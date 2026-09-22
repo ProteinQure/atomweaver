@@ -27,12 +27,11 @@ from sklearn.linear_model import LogisticRegression
 def build(eval_db, out, global_t=2.12, sigmas=(0.2, 0.4, 0.6, 0.8), min_per=192, seed=0, device="cpu"):
     import joblib
 
-    from scripts.joint_diffusion.sample import build_eval_discretizer
+    from atomweaver.joint_diffusion.reference_library import ReferenceLibrary
 
-    discs, ccd_to_idx, sc_a, sc_s, rep, db, r2t = build_eval_discretizer(
-        eval_db, device, chirality_mismatch_penalty=0.0
-    )
-    idx_to_ccd = {v: k for k, v in ccd_to_idx.items()}
+    library = ReferenceLibrary.load(eval_db)
+    db, rep, r2t = library.data, library.representable, library.rotamer_to_type
+    idx_to_ccd = {v: k for k, v in library.ccd_to_idx.items()}
     CANON = {
         "ALA",
         "ARG",

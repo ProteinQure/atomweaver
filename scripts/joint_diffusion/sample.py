@@ -92,11 +92,8 @@ THREE2ONE = {
 _ELEM_NAME = {1: "C", 2: "N", 3: "O", 4: "S"}  # model element encoding (PAD=0 skipped)
 _BB_NAMES = ("N", "CA", "C", "O")
 
-EVAL_MAX_SC = 14
-_N_BACKBONE = 4
 
 # Read-time discretiser: normalized distance-matrix (NDM) correlation.
-DISC_METHODS = (("NDM", "normalized"),)
 
 
 def _atom_line(n, aname, rname, ch, resnum, xyz, el):
@@ -169,61 +166,6 @@ def _load_model(checkpoint, residue_db, device, coord_process_type=None):
     from atomweaver.joint_diffusion.model_loader import load_model
 
     return load_model(Path(checkpoint), residue_db, device)
-
-
-def build_eval_discretizer(
-    eval_db_path: str,
-    device: str,
-    combined_weight: float = 0.5,
-    element_mismatch_penalty: float = 0.3,
-    atom_mismatch_penalty: float = 0.5,
-    chirality_mismatch_penalty: float = 50.0,
-):
-    from atomweaver.joint_diffusion.matching import GeometricMatcher
-
-    db = torch.load(eval_db_path, weights_only=False)
-    rot, ccd_to_idx = [], {}
-    sc_atoms = {}
-    sc_sidechain = {}  # per-TYPE SIDECHAIN heavy-atom count (num_atoms - 4 backbone)
-    for i, m in enumerate(db["metadata"]):
-        rot += [i] * int(m.get("num_rotamers", 1))
-        for pid in m.get("pdb_ids", []) or []:
-            if pid:
-                ccd_to_idx.setdefault(pid, i)
-        sc_atoms[i] = int(m.get("num_atoms", 0))  # TOTAL atoms (incl 4 backbone)
-        sc_sidechain[i] = max(int(m.get("num_atoms", 0)) - _N_BACKBONE, 0)  # sidechain heavy atoms
-    # FIXED representability mask over TYPES: sidechain <= EVAL_MAX_SC. Constant for ALL runs so the
-    # 14-slot and 16-slot ablation arms are scored on an identical candidate + GT set. Un-representable
-    # types are masked out of the discretizer logits (never a snap target) AND excluded from the scored
-    # GT positions downstream. Indexed by type idx (aligns with the type-level aggregated logits + tgt).
-    n_types_meta = len(db["metadata"])
-    representable = torch.tensor([sc_sidechain.get(i, 0) <= EVAL_MAX_SC for i in range(n_types_meta)], dtype=torch.bool)
-    # Build the shared DB tensors ONCE, then instantiate three discretizers over them (differing only
-    # in `method`). combined_weight is only consumed by method="combined"; it's inert for the others.
-    rotamer_to_type_cpu = torch.tensor(rot, dtype=torch.long)
-    shared = {
-        "residue_database": db["coords"],
-        "residue_masks": db["masks"],
-        "backbone_indices": db.get("backbone_indices"),
-        "element_types": db.get("element_types"),
-        "rotamer_to_type": rotamer_to_type_cpu,
-        "element_mismatch_penalty": element_mismatch_penalty,  # 0.0=geometry-only; 0.3=the training convention
-        "atom_mismatch_penalty": atom_mismatch_penalty,  # 0.5 matches training (count-aware); 0.0=count-blind
-        # Mirror-invariance fix: penalize candidates of the wrong L/D handedness (NDM/combined only).
-        # Confidence-weighted + finite; the scoring call passes backbone_coords so it is active here.
-        "chirality_mismatch_penalty": chirality_mismatch_penalty,
-    }
-    discs = {}
-    for label, method in DISC_METHODS:
-        d = GeometricMatcher(
-            repack_prediction=os.environ.get("ATOMWEAVER_DISC_REPACK", "1").strip() not in {"0", "false", "False", ""},
-            **shared,
-        ).to(device)
-        d.eval()
-        discs[label] = d
-    rotamer_to_type = rotamer_to_type_cpu.to(device)
-    representable = representable.to(device)
-    return discs, ccd_to_idx, sc_atoms, sc_sidechain, representable, db, rotamer_to_type
 
 
 def _device_batch(batch, device):

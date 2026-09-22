@@ -33,7 +33,6 @@ Example
 """
 
 import glob
-import importlib.util
 import json
 import os
 from pathlib import Path
@@ -46,6 +45,8 @@ import joblib
 import numpy as np
 import torch
 import typer
+
+from atomweaver.joint_diffusion.reference_library import ReferenceLibrary
 
 torch.set_num_threads(int(os.environ.get("NTHREADS", "8")))
 
@@ -270,24 +271,18 @@ def main(
             "Pass --canon20 (or a pure-canonical head / pure_learned preset) to skip it."
         )
 
-    NDM = ndm_col = num_types = representable = rot2type = None
+    NDM = ndm_col = num_types = representable = None
     if need_ndm:
-        # --- NDM discretizer over the ref DB at the task penalties ---
-        # Locate sample.py: env override, else the sibling file next to this script
-        # (portable across checkouts -- this script ships in scripts/joint_diffusion/ alongside it).
-        eval_mod = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample.py")
-        spec = importlib.util.spec_from_file_location("evalmod", eval_mod)
-        EV = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(EV)
-        discs, ccd_to_idx, _sa, _ss, representable, db, rot2type = EV.build_eval_discretizer(
-            ref_db,
-            device="cpu",
+        library = ReferenceLibrary.load(ref_db)
+        NDM = library.matcher(
             element_mismatch_penalty=elem_penalty,
             atom_mismatch_penalty=atom_penalty,
             chirality_mismatch_penalty=chir_penalty,
+            repack_prediction=os.environ.get("ATOMWEAVER_DISC_REPACK", "1").strip() not in {"0", "false", "False", ""},
         )
-        NDM = discs["NDM"]
-        num_types = len(db["metadata"])
+        representable = library.representable
+        ccd_to_idx = library.ccd_to_idx
+        num_types = len(library.data["metadata"])
         # candidate col in the DB type space per Learned class (-1 => not in DB; NDM score = -inf there)
         ndm_col = np.array([ccd_to_idx.get(c, -1) for c in classes], dtype=np.int64)
     else:
