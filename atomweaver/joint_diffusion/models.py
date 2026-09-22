@@ -14,7 +14,7 @@ import torch.nn as nn
 from torch.nn import functional as F  # noqa: N812
 
 from .diffusion import ELEMENT_PAD, NUM_ELEMENT_TYPES, TimestepEmbedding
-from .egnn import (
+from .graph import (
     EdgeTypeEmbedding,
     build_multi_type_radius_graph,
 )

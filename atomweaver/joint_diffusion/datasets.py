@@ -1405,7 +1405,7 @@ class BinderDataset(Dataset):
                 [RESIDUE_TO_IDX.get(name, RESIDUE_TO_IDX["UNK"]) for name in target_data["res_names"]], dtype=torch.long
             )
 
-            # Flatten all target atoms for EGNN graph with detailed per-atom features
+            # Flatten all target atoms for the SE(3) transformer graph with detailed per-atom features
             target_flat = flatten_all_atoms(
                 target_data["backbone_coords"],
                 target_data["backbone_mask"],
@@ -1441,7 +1441,7 @@ class BinderDataset(Dataset):
                 "target_sidechain_coords": target_data["sidechain_coords"],
                 "target_sidechain_mask": target_data["sidechain_mask"],
                 "target_res_names": target_data["res_names"],
-                # Target data - for EGNN graph (all atoms flattened with per-atom features)
+                # Target data - for the SE(3) transformer graph (all atoms flattened with per-atom features)
                 "target_coords": target_flat["coords"],
                 "target_mask": target_flat["mask"],
                 "target_ca_coords": target_flat["ca_coords"],
@@ -1759,7 +1759,7 @@ def collate_binders(
         result["target_ca_coords"] = target_ca_coords
         result["target_res_names"] = target_res_names
         result["target_residue_types"] = target_residue_types
-        # Flattened target atoms for EGNN graph
+        # Flattened target atoms for the SE(3) transformer graph
         result["target_coords"] = target_coords
         result["target_mask"] = target_mask
         # Per-atom features for SE(3) transformer

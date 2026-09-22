@@ -131,8 +131,8 @@ class SE3AttentionLayer(nn.Module):
         # 15 Å depending on run), but a hardcoded 0-10 Å span (width 1.0) saturates every Gaussian to
         # ~0 past ~12 Å, leaving the bias net distance-blind on exactly the 12-25 Å edges that tell the
         # binder how far the target is. When ``rbf_max_dist`` is supplied we widen the span to that
-        # cutoff and scale the Gaussian width to the new center spacing (span / (n-1)), matching the
-        # ``latent_matching.py`` pattern. The number of centers is UNCHANGED (``n_dist_features``), so
+        # cutoff and scale the Gaussian width to the new center spacing (span / (n-1)).
+        # The number of centers is UNCHANGED (``n_dist_features``), so
         # ``dist_to_bias``'s input dim -- and every learned weight -- is identical: this is a buffer-only
         # change that loads cleanly from a base checkpoint.
 

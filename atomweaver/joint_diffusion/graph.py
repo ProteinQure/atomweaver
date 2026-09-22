@@ -1,96 +1,7 @@
-"""
-E(n) Equivariant Graph Neural Network (EGNN) for SE(3)-equivariant molecular modeling.
+"""Radius graphs and learned edge types used by the released SE(3) transformer.
 
-This module implements EGNN as described in:
-    Satorras et al., "E(n) Equivariant Graph Neural Networks" (2021)
-    https://arxiv.org/abs/2102.09844
-
-EGNN is chosen as the backbone for our diffusion model due to its simplicity and
-efficiency. However, there are several alternative SE(3)-equivariant architectures
-worth considering for future work:
-
-Alternative Architectures
--------------------------
-1. **SE3-Transformer / Tensor Field Networks (TFN)**
-   - Paper: Fuchs et al., "SE(3)-Transformers" (NeurIPS 2020)
-   - Pros: More expressive than EGNN. Uses spherical harmonics to represent
-     higher-order geometric features (directions, angles, etc.). Can capture
-     angular relationships explicitly through irreducible representations.
-   - Cons: Computationally expensive due to spherical harmonics and Clebsch-Gordan
-     coefficient computations. Memory-hungry. Complex implementation requiring
-     specialized libraries (e3nn). Slower training and inference.
-   - Use when: You need to model angular dependencies, bond angles, or dihedral
-     information explicitly. Good for tasks where geometric detail matters.
-
-2. **Equiformer**
-   - Paper: Liao & Smidt, "Equiformer" (2022); used by EquiFold for protein folding
-   - Pros: State-of-the-art on many molecular benchmarks. Combines SE3-Transformer
-     architecture with MLP attention (from GATv2) and non-linear message passing.
-     Depthwise tensor products for efficiency.
-   - Cons: Even more complex than SE3-Transformer. Heavy dependency on e3nn library.
-     Requires careful hyperparameter tuning.
-   - Use when: You need maximum expressivity and have compute budget. Good for
-     protein structure prediction tasks.
-
-3. **Frame Averaging / Vector Neurons**
-   - Paper: Puny et al., "Frame Averaging for Invariant and Equivariant Learning" (2022)
-   - Pros: Can make ANY architecture equivariant by averaging predictions over
-     random rotations/translations. Conceptually simple.
-   - Cons: Requires multiple forward passes (expensive at inference). Approximation
-     errors from finite sampling. Not truly equivariant, just approximately so.
-   - Use when: You want to retrofit equivariance onto an existing non-equivariant
-     model without rewriting it.
-
-4. **GemNet / PaiNN / SchNet variants**
-   - Various papers from the molecular ML community
-   - Pros: Well-tested on molecular property prediction. Good trade-offs between
-     expressivity and efficiency.
-   - Cons: Often specialized for specific tasks (e.g., energy prediction).
-   - Use when: Your task aligns with their original design goals.
-
-Why EGNN for this project
--------------------------
-- Simple to implement from scratch (no e3nn or other heavy dependencies)
-- For atom clouds where relationships are primarily distance-based, EGNN's
-  expressivity is often sufficient
-- DiffPepBuilder and similar peptide diffusion work demonstrates EGNN works
-  well for this domain
-- Fast training iteration for research exploration
-
-Future Research Directions
---------------------------
-**Groupwise / Hierarchical Diffusion Processes**
-
-A promising direction is to use different noise schedules for atoms based on their
-distance from the backbone:
-
-1. **Backbone-proximal atoms (e.g., Cb carbons)**: Diffuse LAST (denoise FIRST)
-   - These define the "broad direction" of the side chain
-   - Less noise in forward process -> emerge from noise early in reverse
-   - Resolved first so distal atoms can be conditioned on them
-
-2. **Distal atoms (side chain tips, rings, etc.)**: Diffuse FIRST (denoise LAST)
-   - Fine structural details that depend on proximal atom positions
-   - More noise in forward process -> stay noisy longer in reverse
-   - Resolved last, conditioned on already-placed Cb
-
-This hierarchical approach offers several advantages:
-- **Tractability**: For most of the diffusion process, we can focus on coarse
-  structure (Cb) without worrying about resolving distal atom positions
-- **Physical intuition**: Mirrors the natural hierarchy backbone -> Cb -> side chain
-- **Reduced complexity**: Early reverse steps predict Cb direction, later steps
-  refine distal atomic positions
-- **Better gradients**: Proximal atoms have more stable gradients since they're
-  less noisy during training
-
-Implementation ideas:
-- Blockwise diffusion with different noise schedules per atom group
-- Cascaded diffusion: first predict Cβ positions, then condition distal atoms
-- Continuous noise schedule that varies with atom depth (distance from backbone)
-- Could use atom "depth" as an additional conditioning signal
-
-This is similar in spirit to cascaded diffusion models for images (coarse-to-fine)
-but grounded in molecular structure.
+Graph nodes combine peptide side chains, peptide backbone atoms, and target
+atoms. Edge ordering is preserved because it affects message aggregation.
 """
 
 from __future__ import annotations
@@ -110,7 +21,7 @@ class EdgeTypeEmbedding(nn.Module):
     Embedding layer for edge types.
 
     Converts edge type indices to learned embeddings that can be passed
-    to EGNN layers as edge features.
+    to SE(3) transformer layers as edge features.
 
     Parameters
     ----------

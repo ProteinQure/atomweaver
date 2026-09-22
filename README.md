@@ -133,6 +133,7 @@ scripts/joint_diffusion/
   └─ build_readout_cache.py      # optional reference-only classifier cache utility
 atomweaver/joint_diffusion/
   ├─ models.py, diffusion.py    # fixed released architecture and sampling math
+  ├─ graph.py                   # radius graphs and edge-type embeddings for SE(3) attention
   ├─ model_loader.py           # strict checkpoint loading
   ├─ sampling.py               # runtime shell scaling and recycle settings
   ├─ datasets.py               # PDB parsing, cropping, and batching
