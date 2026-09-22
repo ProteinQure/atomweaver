@@ -1,5 +1,6 @@
 """Numerical regressions captured from the original released inference code."""
 
+import os
 from pathlib import Path
 
 import pytest
@@ -50,3 +51,16 @@ def test_released_sampling(model, case):
     torch.manual_seed(123)
     actual = model.sample(**reference["inputs"])
     assert_equivalent(actual, reference["outputs"])
+
+
+@pytest.mark.skipif(
+    os.environ.get("ATOMWEAVER_RUN_SLOW_TESTS") != "1", reason="Enable extended CPU comparisons explicitly"
+)
+@pytest.mark.parametrize(("case", "seed"), [("full", 77), ("long", 2026)])
+def test_extended_sampling(model, case, seed):
+    """Compare the complete example and full schedule, including final RNG state."""
+    reference = torch.load(ROOT / "tests/data" / f"{case}.pt", weights_only=True)
+    torch.manual_seed(seed)
+    actual = model.sample(**reference["inputs"])
+    assert_equivalent(actual, reference["outputs"])
+    assert torch.equal(torch.random.get_rng_state(), reference["rng"])
