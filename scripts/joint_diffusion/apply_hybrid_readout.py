@@ -11,7 +11,7 @@ fitted -- every knob (eps, m, beta, gamma) is a named constant in the chosen pre
 
 Two inputs:
   * Learned head (--head) : the SAME frozen logreg bundle apply_learned_readout.py consumes
-                             (bundle = {clf, classes, prior}). Defines the candidate vocabulary.
+                             (bundle = {clf, classes}). Defines the candidate vocabulary.
   * NDM ref-DB (--ref-db) : the reference residue library .pt (reference_library.pt),
                              scored with GeometricMatcher at penalties atom0.5/elem0.3/chir50.
 
@@ -230,19 +230,11 @@ def main(
         "--preset",
         help=f"Named hybrid preset (default b2_balanced, DMS-validated): {list(H.SHIP_PRESETS)}",
     ),
-    natfreq: bool = typer.Option(
-        False,
-        "--natfreq/--no-natfreq",
-        help="Multiply the blended distribution by the head's SwissProt natfreq prior (bundle['prior']) "
-        "before argmax, biasing composition toward natural (canon-heavy) frequencies. Default off "
-        "(uniform); composable with --canon20.",
-    ),
     canon20: bool = typer.Option(
         False,
         "--canon20/--no-canon20",
         help=f"Convenience: when --head is not given, swap to the canon-20 ship head ({CANON20_HEAD}), "
-        "restricting the candidate vocabulary to the 20 canonicals (no NCAA candidates). "
-        "Composable with --natfreq.",
+        "restricting the candidate vocabulary to the 20 canonicals (no NCAA candidates).",
     ),
     atom_penalty: float = typer.Option(0.5, "--atom-penalty"),
     elem_penalty: float = typer.Option(0.3, "--elem-penalty"),
@@ -272,14 +264,6 @@ def main(
     classes = [str(c) for c in bundle["classes"]]
     cls_idx = {c: i for i, c in enumerate(classes)}
     is_canon = np.array([c in CANON for c in classes])
-    # SwissProt natfreq prior aligned to `classes` (only consumed when --natfreq); required if requested.
-    prior_vec = bundle.get("prior")
-    if natfreq:
-        if prior_vec is None:
-            raise typer.BadParameter("--natfreq requested but head bundle has no 'prior' vector.")
-        prior_vec = np.asarray(prior_vec, dtype=np.float64).ravel()
-        if prior_vec.shape[0] != len(classes):
-            raise typer.BadParameter(f"head 'prior' length {prior_vec.shape[0]} != n_classes {len(classes)}.")
 
     # --- decide whether the NDM geometric matcher is actually consumed ([2]) ---
     # The blend only reads qN (the NDM cliff) when the family is not pure-Learned AND there is at
@@ -350,8 +334,6 @@ def main(
         pL = np.asarray(clf.predict_proba(F), dtype=np.float64)  # [L, len(classes)]
 
         P = H.apply_preset(pL, sN, is_canon, pr)  # [L, C] normalized distribution
-        if natfreq:  # post-hoc natfreq prior multiply (composable; default off -> byte-identical)
-            P = H.apply_natfreq(P, prior_vec)
         rs = P.sum(1)
         assert np.allclose(rs, 1.0, atol=1e-5), f"{name} rows not normalized: {rs.min()},{rs.max()}"
 
@@ -388,7 +370,6 @@ def main(
             "penalties": {"atom": atom_penalty, "elem": elem_penalty, "chir": chir_penalty},
             "n_designs": len(designs),
             "n_classes": len(classes),
-            "natfreq": bool(natfreq),
             "canon20": bool(canon20),
             "element_vocab": "5",
             "mode": "hybrid",

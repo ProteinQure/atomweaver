@@ -83,11 +83,8 @@ read-out. Existing clouds labeled `ALA` can be corrected by rerunning the read-o
 Useful options:
 
 - `--num-samples N` - designs sampled per input (default 5).
-- `--natfreq` - bias composition toward natural (canonical-heavy) frequencies (SwissProt prior).
 - `--canon20` - restrict the vocabulary to the 20 canonical amino acids (no NCAA can be called).
 - `--dry-run` - print the underlying sampling + read-out commands without running them.
-
-`--natfreq` and `--canon20` are independent and composable.
 
 ---
 

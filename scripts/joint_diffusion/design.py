@@ -35,14 +35,9 @@ input structure name plus the ``_s<idx>`` sample suffix
   * a NON-CANONICAL residue (NCAA) is written as its CCD/PQ code in square brackets
     (e.g. DAL -> ``[DAL]``), so ``A[DAL]C...`` stays human-readable.
 
-Composition controls (both default OFF, independent + composable -- any of the 4 combinations work):
-  * ``--natfreq`` -- multiply the blended b2_balanced distribution by the head's SwissProt natfreq
-    prior (``bundle['prior']``) before argmax, biasing composition toward natural (canon-heavy)
-    frequencies and down-weighting rare NCAAs. Passed straight through to ``apply_hybrid_readout.py
-    --natfreq``. Default off = the current uniform b2_balanced (byte-for-byte).
+Composition control (default OFF):
   * ``--canon20`` -- swap the Learned head to the canon-20 ship head (20-class), restricting the
     candidate vocabulary to the 20 canonicals so NO NCAA can be called (every argmax is canonical).
-    Composable with ``--natfreq`` (natfreq then re-weights over the 20 canonicals only).
 """
 
 from __future__ import annotations
@@ -176,9 +171,7 @@ def build_sampling(
     return env, argv
 
 
-def build_readout(
-    *, head: str, eval_db: str, out: Path, preset: str, natfreq: bool, repo: str
-) -> tuple[dict, list[str]]:
+def build_readout(*, head: str, eval_db: str, out: Path, preset: str, repo: str) -> tuple[dict, list[str]]:
     # apply_hybrid_readout.py is CPU-only (it setdefaults CUDA_VISIBLE_DEVICES=""); we pin it empty.
     # PYTHONPATH=repo so the bundled ``atomweaver`` package resolves from the checkout (matches build_sampling);
     # without it a plain-install run would import a differently-installed atomweaver.
@@ -197,8 +190,6 @@ def build_readout(
         "--out",
         str(out / "preds.json"),
     ]
-    if natfreq:
-        argv.append("--natfreq")
     return env, argv
 
 
@@ -280,18 +271,11 @@ def main(
         None, "--pdb-dir", help="Directory of input PDBs (peptide backbone + target). Required unless --from-preds."
     ),
     num_samples: int = typer.Option(5, "--num-samples", help="Designs sampled per input structure."),
-    natfreq: bool = typer.Option(
-        False,
-        "--natfreq/--no-natfreq",
-        help="Bias the read-out toward natural (canon-heavy) composition: multiply the blended "
-        "b2_balanced distribution by the head's SwissProt natfreq prior before argmax "
-        "(apply_hybrid_readout.py --natfreq). Default off = uniform. Composable with --canon20.",
-    ),
     canon20: bool = typer.Option(
         False,
         "--canon20/--no-canon20",
         help="Restrict the candidate vocabulary to the 20 canonicals by swapping to the canon-20 ship "
-        "head (no NCAA can be called). Default off (full300, NCAA-open). Composable with --natfreq.",
+        "head (no NCAA can be called). Default off (full300, NCAA-open).",
     ),
     gpu: int = typer.Option(0, "--gpu", help="GPU index for sampling (paired with CUDA_DEVICE_ORDER=PCI_BUS_ID)."),
     # --- overridable production paths / knobs ---
@@ -346,7 +330,7 @@ def main(
         num_steps=num_steps,
         design_positions=design_positions,
     )
-    read_env, read_argv = build_readout(head=head, eval_db=eval_db, out=outp, preset=preset, natfreq=natfreq, repo=repo)
+    read_env, read_argv = build_readout(head=head, eval_db=eval_db, out=outp, preset=preset, repo=repo)
 
     if dry_run:
         typer.echo("# --- 1. SAMPLING (GPU) ---")

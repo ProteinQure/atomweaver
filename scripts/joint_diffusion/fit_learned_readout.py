@@ -8,7 +8,7 @@ The Learned discretizer is the frozen sklearn head consumed by ``apply_learned_r
 a per-site 294-dim geometric+chemical feature to a distribution over a residue vocabulary. The shipped
 heads cover the settled clean-300 vocabulary. This CLI re-runs the *same* fit recipe over an arbitrary
 user-chosen subset of residue types (e.g. "just my 20 canonicals + these 5 NCAAs"), producing a bundle
-that ``apply_learned_readout.py`` consumes UNCHANGED (identical ``dict(clf, classes, prior, meta)``
+that ``apply_learned_readout.py`` consumes UNCHANGED (identical ``dict(clf, classes, meta)``
 shape and identical 294-dim feature contract).
 
 This is the "coords-first, discretize-after" design in action: a new residue type is introduced by
@@ -48,10 +48,6 @@ MODEL: StandardScaler -> multinomial LogisticRegression (max_iter=300, C=1.0). l
   coef_/intercept_ from an existing head (class-aligned: shared classes copied, new classes zero-init).
   This is 7-9x faster. Without it lbfgs typically caps at max_iter; a warning is emitted if it does.
 
-PRIOR: the natfreq (SwissProt) vector is computed and carried into the bundle as ``prior`` (aligned to
-  ``classes``). It is an OPTIONAL runtime toggle -- the PRIMARY readout is UNIFORM (plain predict_proba
-  argmax). ``apply_learned_readout.py --prior natfreq`` multiplies it back in.
-
 --residues (the CUSTOM SUBSET spec)
 -----------------------------------
 Accepts either:
@@ -68,9 +64,8 @@ library (coords-first: one reference structure, no model retrain), then re-run t
 
 Output bundle
 -------------
-``dict(clf, classes, prior, meta)`` -- identical shape to the ship heads, so ``apply_learned_readout.py``
-consumes it unchanged. ``meta`` records feature_spec, scope, popweight mode, corruption, ref_db,
-phipsi_table, ckpt, and subset size.
+``dict(clf, classes, meta)`` -- the read-out is UNIFORM (plain predict_proba argmax). ``meta``
+records feature_spec, scope, popweight mode, corruption, ref_db, phipsi_table, ckpt, and subset size.
 
 CPU only by design (no GPU is touched).
 
@@ -115,13 +110,6 @@ CANON = [
     "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL",
 ]  # fmt: skip
 CANON_S = set(CANON)
-# natfreq (SwissProt) prior -- carried into the bundle; PRIMARY readout stays uniform.
-NAT = {
-    "ALA": .0825, "ARG": .0553, "ASN": .0406, "ASP": .0546, "CYS": .0138, "GLN": .0393, "GLU": .0672,
-    "GLY": .0707, "HIS": .0227, "ILE": .0591, "LEU": .0966, "LYS": .0580, "MET": .0241, "PHE": .0386,
-    "PRO": .0474, "SER": .0656, "THR": .0534, "TRP": .0110, "TYR": .0292, "VAL": .0687,
-}  # fmt: skip
-FLOOR = 1e-4
 CAP_M = 1000  # max model-cloud rows per class
 CAP_R = 400  # max (corrupted) reference rows per class
 DROP, SIGMA = 0.20, 0.60  # reference-rotamer corruption: atom-drop prob, coordinate jitter sigma
@@ -585,7 +573,6 @@ def main(
         )
 
     cls = np.array([str(c) for c in clf.named_steps["logisticregression"].classes_])
-    prior = np.array([NAT.get(c, FLOOR) for c in cls])
 
     meta = {
         "readout": "logreg_bbphipsi",
@@ -595,7 +582,6 @@ def main(
         "popweight": "ref_rotamers_only" if popweight != "none" else "disabled",
         "fallback": ("pooled_phipsi_grid" if popweight == "a6" else ("uniform_1.0" if popweight == "a5" else "n/a")),
         "variant": ("A6" if popweight == "a6" else ("A5" if popweight == "a5" else "balanced_only")),
-        "prior_note": "bundle prior=natfreq SwissProt (OPTIONAL); PRIMARY readout=uniform predict_proba argmax",
         "feature_spec": FEATURE_SPEC,
         "slot_convention": SLOT_CONV,
         "corruption": {"atom_drop": DROP, "jitter_sigma": SIGMA},
@@ -617,7 +603,7 @@ def main(
     }
 
     Path(out).parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump({"clf": clf, "classes": cls, "prior": prior, "meta": meta}, out)
+    joblib.dump({"clf": clf, "classes": cls, "meta": meta}, out)
     typer.echo(
         f"[fit_learned_readout] [{fit_kind} n_iter={niter}] saved {out}  "
         f"classes={len(cls)} model_n={len(Xm)} ref_n={len(Xr)}  ({dt:.1f}s fit / {time.time() - t_start:.1f}s total)"

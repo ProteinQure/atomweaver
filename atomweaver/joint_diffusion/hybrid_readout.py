@@ -40,23 +40,6 @@ def learned_dist(pL_full: np.ndarray) -> np.ndarray:
     return _row_norm(np.asarray(pL_full, dtype=np.float64))
 
 
-def apply_natfreq(dist: np.ndarray, prior: np.ndarray) -> np.ndarray:
-    """Multiply an [L, C] distribution by a per-class natural-frequency `prior` and row-renormalize.
-
-    `prior` is a [C] vector aligned to the head's ``classes`` (the SwissProt natfreq stored in the
-    head bundle as ``bundle['prior']``). This re-weights an already-blended hybrid (or Learned)
-    distribution toward natural amino-acid composition -- canon-heavy, rare-NCAA down -- as a pure
-    post-hoc Bayesian prior multiply (``P(c) ~ dist(c) * prior(c)``). Composable: it does not touch
-    the blend, only reshapes the final distribution before argmax. Reuses ``_row_norm`` so all-zero
-    rows fall back to uniform.
-    """
-    dist = np.asarray(dist, dtype=np.float64)
-    prior = np.asarray(prior, dtype=np.float64).ravel()
-    if prior.shape[0] != dist.shape[1]:
-        raise ValueError(f"natfreq prior length {prior.shape[0]} != n_classes {dist.shape[1]}")
-    return _row_norm(dist * prior[None, :])
-
-
 def _eps_effective(sorted_desc: np.ndarray, eps: float, eps_mode: str) -> float:
     """Resolve the epsilon knob to absolute score units for one position.
 

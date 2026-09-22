@@ -39,8 +39,7 @@ def test_released_features():
 
 
 @pytest.mark.parametrize("vocab", ["full300", "canon20"])
-@pytest.mark.parametrize("natfreq", [False, True])
-def test_released_readout(tmp_path, vocab, natfreq, clouds):
+def test_released_readout(tmp_path, vocab, clouds):
     """Use hybrid labels in the PDB while preserving probabilities and all other atom data."""
     output = tmp_path / "preds.json"
     cloud = clouds / "reference_s0.pdb"
@@ -51,7 +50,6 @@ def test_released_readout(tmp_path, vocab, natfreq, clouds):
         clouds=str(clouds),
         out=str(output),
         preset="b2_balanced",
-        natfreq=natfreq,
         canon20=vocab == "canon20",
         atom_penalty=0.5,
         elem_penalty=0.3,
@@ -59,8 +57,7 @@ def test_released_readout(tmp_path, vocab, natfreq, clouds):
         dump_distributions=None,
     )
     actual = json.loads(output.read_text())
-    prior = "natfreq" if natfreq else "uniform"
-    expected = json.loads((DATA / f"{vocab}_{prior}.json").read_text())
+    expected = json.loads((DATA / f"{vocab}_uniform.json").read_text())
     assert actual["classes"] == expected["classes"]
     assert actual["designs"] == expected["designs"]
     generated_chain = b"E" if before[0].startswith(b"REMARK  ATOMWEAVER_CHAINS") else b"C"

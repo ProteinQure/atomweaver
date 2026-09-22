@@ -14,7 +14,7 @@ DATA = ROOT / "tests/data"
 
 
 def test_custom_vocabulary_fit(tmp_path):
-    """Match fitted coefficients, scaling, class order, and prior exactly."""
+    """Match fitted coefficients, scaling, and class order exactly."""
     output = tmp_path / "custom.joblib"
     torch.manual_seed(456)
     with threadpool_limits(limits=2):
@@ -34,7 +34,6 @@ def test_custom_vocabulary_fit(tmp_path):
     classifier = bundle["clf"].named_steps["logisticregression"]
     actual = {
         "classes": bundle["classes"],
-        "prior": bundle["prior"],
         "mean": scaler.mean_,
         "scale": scaler.scale_,
         "coef": classifier.coef_,

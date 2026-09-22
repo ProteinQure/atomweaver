@@ -22,11 +22,11 @@ across other dependency versions or hardware is not assumed.
   including diagnostics and the RNG state after sampling.
 - `dataset.pt`: all parsed tensors and metadata for the complete example, both
   before and after collation.
-- `features.npy`, `clouds/reference_s0.pdb`, and the four read-out JSON files:
-  exact features and predictions for full300/canon20, with and without natfreq.
+- `features.npy`, `clouds/reference_s0.pdb`, and the two read-out JSON files:
+  exact features and predictions for full300/canon20.
 - `fit_clouds.npz`, `residues.txt`, `fit_expected.npz`: a small ALA/LEU/MK8
   custom-head fit, warm-started from the shipped head with Torch seed 456.
-  Comparisons cover class order, prior, scaler statistics, coefficients, and
+  Comparisons cover class order, scaler statistics, coefficients, and
   intercepts.
 
 Sampling uses shell jitter variance scaling 0.25, five element classes,
