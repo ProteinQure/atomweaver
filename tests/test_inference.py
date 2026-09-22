@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 import torch
 
-from atomweaver.joint_diffusion.model_loader import _load_lightning_module_for_eval
+from atomweaver.joint_diffusion.model_loader import load_model
 from scripts.joint_diffusion.sample import apply_sampling_config
 from scripts.joint_diffusion.sampling_knobs import SamplingConfig
 
@@ -20,7 +20,7 @@ def model():
         pytest.skip("Download the released weights/atomweaver.pt to run numerical regressions")
     torch.set_num_threads(2)
     torch.manual_seed(17)
-    loaded = _load_lightning_module_for_eval(checkpoint, str(ROOT / "data/sampling_library.pt"), "cpu").model
+    loaded = load_model(checkpoint, str(ROOT / "data/sampling_library.pt"), "cpu").model
     reference = torch.load(ROOT / "tests/data/initialization.pt", weights_only=True)
     assert torch.equal(torch.random.get_rng_state(), reference["rng"])
     assert list(loaded.state_dict()) == reference["keys"]

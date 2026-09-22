@@ -166,9 +166,9 @@ def _load_model(checkpoint, residue_db, device, coord_process_type=None):
     Loads the checkpoint through a direct call into the shipped ``model_loader`` module,
     so inference no longer needs the training script on disk.
     """
-    from atomweaver.joint_diffusion.model_loader import _load_lightning_module_for_eval
+    from atomweaver.joint_diffusion.model_loader import load_model
 
-    return _load_lightning_module_for_eval(Path(checkpoint), residue_db, device, coord_process_type=coord_process_type)
+    return load_model(Path(checkpoint), residue_db, device)
 
 
 def build_eval_discretizer(
@@ -270,7 +270,7 @@ def apply_sampling_config(model, cfg: SamplingConfig) -> None:
     Apply a resolved sampling recipe to an already-built model.
 
     Factored out of ``main`` because it was only ever reachable through the Typer CLI. Studies that
-    import this eval as a library call ``_load_lightning_module_for_eval`` directly and so silently
+    import this eval as a library call ``load_model`` directly and so silently
     ran with every knob here unapplied, while knobs read deeper in the model (geometric reconcile,
     the absorbing override) did fire. The NCAA panel therefore reported a shell-variance recipe for
     runs that never used one, and the only tell was a missing log line.

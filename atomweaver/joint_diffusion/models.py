@@ -1978,142 +1978,67 @@ class SidechainDenoiser(nn.Module):
     #: Process-wide latch so the neighbour-x0 training-corruption prints its "active" marker only once.
     _nx0_corrupt_announced: bool = False
 
-    def __init__(
-        self,
-        hidden_dim: int = 128,
-        num_layers: int = 4,
-        time_embed_dim: int = 128,
-        max_sidechain_atoms: int = 14,
-        count_embed_mode: str = "linear",  # "linear" (Linear(1,d) ramp) | "ordinal" (Embedding per count)
-        use_target_conditioning: bool = True,
-        num_cross_attn_layers: int = 3,  # Deep target conditioning
-        num_cross_attn_heads: int = 8,  # Multi-head target attention
-        use_film: bool = True,  # FiLM: multiplicative target gating
-        use_bidirectional_target_conditioning: bool = True,
-        use_sidechain_target_residue_attention: bool = True,
-        target_condition_scale: float = 1.0,
-        cluster_target_condition_scale: float = 1.0,
-        edge_embed_dim: int = 16,
-        intra_residue_cutoff: float = 8.0,
-        inter_residue_cutoff: float = 8.0,
-        sidechain_target_cutoff: float = 12.0,
-        backbone_target_cutoff: float = 25.0,
-        # SE(3) RBF span selector. False (default) => legacy 0-10 A RBF span (rbf_max_dist=None below);
-        # True => widen the span to backbone_target_cutoff. See the IFD-level docstring above.
-        rbf_span_to_cutoff: bool = False,
-        ca_ca_prefilter: float = 20.0,
-        dropout: float = 0.0,
-        use_jackie: bool = False,
-        preal_gate_target: str = "none",
-        use_slot_attention: bool = False,
-        num_slot_attn_layers: int = 2,
-        num_slot_attn_heads: int = 4,
-        use_directional_slot_attention: bool = False,
-        n_scouts: int = 3,
-        num_element_classes: int = NUM_ELEMENT_TYPES,
-        use_element_velocity_coupling: bool = False,
-        num_timesteps: int = 250,  # T for tau = t/T normalization used by non-EVC timestep ramps
-        use_ca_dist_element_feature: bool = False,
-        use_count_velocity_coupling: bool = False,
-        use_bond_attention: bool = False,
-        zero_init_bond_attention: bool = False,  # bond-attn identity-start (safe retrofit onto pre-bond-attn ckpts)
-        use_valence_demand: bool = False,
-        use_cross_residue_packing: bool = False,
-        cross_residue_packing_spatial: bool = False,  # pair residues by SPATIAL proximity instead of i±1
-        cross_residue_packing_k: int = 4,  # k nearest residues per query (spatial mode)
-        cross_residue_packing_radius: float = 10.0,  # pseudo-Cbeta cutoff, <=0 disables the radius gate
-        cross_residue_packing_min_seq_sep: int = 2,  # minimum |i-j|; 2 excludes i±1 (matches eval Buried)
-        use_neighbor_x0_packing: bool = False,  # condition packing on NEIGHBOURS' predicted x0 (anti-self)
-        neighbor_x0_packing_radius: float = 8.0,  # outer shell radius for the neighbour-x0 context features
-        neighbor_x0_highnoise_weight: float = 1.0,  # amplify the neighbour-x0 residual at high noise; 1.0 = exact no-op
-        # TRAINING-side corruption of the neighbour-x0 packing signal (weaken-the-neighbour-signal ablation).
-        # All 0 => byte-identical (no corruption, no RNG). See corrupt_neighbor_x0. Applied ONLY when training.
-        neighbor_x0_corrupt_add_prob: float = 0.0,  # per-GHOST-slot chance to ADD a phantom atom along the cloud ray
-        neighbor_x0_corrupt_drop_prob: float = 0.0,  # per-REAL-slot chance to REMOVE (ghost to Cα) an atom
-        neighbor_x0_corrupt_noise_prob: float = 0.0,  # whole-call chance the coord noise is applied at all
-        neighbor_x0_corrupt_coord_noise: float = 0.0,  # Gaussian coord-noise std (Angstrom) when noise fires
-        neighbor_x0_corrupt_disconnect_prob: float = 0.0,  # per-op chance to DESYNC coord vs existence tracks
-        use_shape_prior: bool = False,
-        shape_prior_n_anchors: int = 4,
-        use_bond_co_diffusion: bool = False,
-        use_coord_self_conditioning: bool = False,
-        use_plan_latent: bool = False,
-        use_interaction_intent: bool = False,
-        interaction_intent_num_classes: int = 4,
-        interaction_intent_velocity_bias: bool = True,
-        use_chirality: bool = False,
-        num_edge_types: int = 3,
-        graph_num_edge_types: int | None = None,
-        use_backbone_dihedral: bool = False,  # backbone dihedral graft (zero-init add)
-        use_burial_feature: bool = False,  # Cbeta-burial graft (zero-init add)
-        use_residue_frame_stream: bool = False,  # DRAFT: residue-level frame-aware stream (zero-init inject)
-        residue_frame_layers: int = 2,  # #layers in the residue frame-attention stack
-        use_residue_frame_deep_inject: bool = False,  # DRAFT: also inject the residue latent into EVERY SE3 layer
-        # volumetric deep-inject. When on, the (t-independent) VolumetricOccupancyHead's per-residue
-        # latent `vol_hidden` (computed once at the InverseFoldingDiffusion level) is deep-injected into EVERY
-        # SE(3) layer, mirroring residue_frame_deep_proj. The head lives one level up, so the latent is passed
-        # DOWN into forward(vol_hidden=...); this flag only builds the per-layer projections + applies them.
-        # The IFD ANDs this with use_volumetric_head before it reaches here, so it is already effective-gated.
-        use_volumetric_deep_inject: bool = False,
-        # TARGET deep-inject (run10): reinforce sc_target_attn (sidechain->target cross-attention) at EVERY
-        # SE(3) layer, not just layer 0. Local to this module (sc_target_attn is computed in forward), so no
-        # IFD-side latent threading is needed; applied on sc nodes only. Zero-init => byte-identical off.
-        use_target_deep_inject: bool = False,
-        use_backbone_deep_inject: bool = False,
-        frame_v2_deep_inject_detach: bool = False,
-        # x0 BOND-INJECT deep-inject (angle + length): featurize the PREDICTED CLEAN x0 side-chain cloud's
-        # internal bond angles AND bonded-pair lengths (bond_geom_descriptor) -> per-residue latent
-        # (bond_angle_inject_encoder) -> ZERO-INIT per-SE(3)-layer projection (bond_angle_deep_proj), mirroring
-        # residue_frame_v2_deep_proj. Source = bond_prev_x0 (detached predicted x0); absent => inject skipped =>
-        # inert. Byte-identical off. Orthogonal to bond_angle_loss + bond_length_loss (which supervise the
-        # angles/lengths); this feeds predicted internal geometry BACK.
-        use_bond_angle_deep_inject: bool = False,
-        # volumetric -> existence (element-track) coupling. When on, the head's per-residue `vol_hidden`
-        # latent (computed once at the IFD level, threaded DOWN into forward(vol_hidden=...)) modulates the
-        # element track's per-slot PAD/GHOST (existence) logit via a single ZERO-INIT projection. The IFD ANDs
-        # this with use_volumetric_head before it reaches here, so it is already effective-gated. Applied on
-        # BOTH the training forward AND the sampling reverse loop (the element head runs at both).
-        use_volumetric_existence_coupling: bool = False,
-        # v2 residue-frame graph (binder+target residues, orientation-only heads). Independent
-        # of (and mutually exclusive with) the v1 stream above. Off => not built, byte-identical.
-        use_residue_frame_stream_v2: bool = False,
-        residue_frame_v2_layers: int = 2,  # #layers in the v2 cross-attention stack
-        frame_v2_clean_input: bool = True,  # True: clean geometry-only binder embed; False: pocket-conditioned backbone_features
-        # NEW (v2 frame deep-inject): per-SE(3)-layer LIVE-gradient deep-injection of the v2 residue-frame
-        # stream's per-residue latent into the atom SE(3) transformer. Mirror of residue_frame_deep_proj but
-        # gated on the v2 stream and -- critically -- LIVE (source NOT detached; see the module def below). The
-        # IFD ANDs this with use_residue_frame_stream_v2 before it reaches here, so it is already effective-gated.
-        use_residue_frame_v2_deep_inject: bool = False,
-        # supervised stereochemistry (e3-sign) head on the v2 frame graph. Only meaningful with
-        # use_residue_frame_stream_v2 (the IFD ANDs the two before it reaches here). Off => head not built.
-        use_stereochem_head: bool = False,
-        # t-resolution head. A t-DEPENDENT stereochem prediction that reads the CURRENT (noised)
-        # side-chain atom cloud's in-frame out-of-plane (e3) configuration and blends it with the STATIC
-        # Chunk-4a prior: P(D)_t = (1 - w(t))·P(D)_prior + w(t)·sigmoid(atom_logit). The IFD ANDs this with
-        # use_stereochem_head (which itself ANDs the v2 stream) before it reaches here, so it is only ever
-        # True when the static stereo head is on. Off => head not built, byte-identical.
-        use_stereochem_t_resolution: bool = False,
-        # t-resolution COORD-FLOW FEEDBACK. The resolved P(D)_t () steers the coordinate flow
-        # to pull atoms onto the chosen L/D (e3) face. Two ZERO-INIT channels under one flag: (1) a learned
-        # per-SE(3)-layer deep-inject (`stereo_feedback_deep_proj`, exact mirror of volumetric_deep_proj) that
-        # scatters a face_pref-derived per-residue latent into each layer's invariant node features, and (2) an
-        # explicit, equivariant e3-directional velocity bias (face_pref·e3, gated by a zero-init learnable scale)
-        # that GUARANTEES atoms move toward the resolved face. The IFD ANDs this with use_stereochem_t_resolution
-        # (which itself needs the static stereo head + v2 stream) before it reaches here, so it is only ever True
-        # when P(D)_t exists to steer with. Off => no modules built, no RNG advance, byte-identical.
-        use_stereochem_t_resolution_feedback: bool = False,
-        activation_checkpointing: bool = False,
-        activation_checkpoint_stride: float = 1.0,  # >1 = selective: checkpoint every Nth SE3 layer (float-OK, e.g. 1.5)
-        use_global_latent_matching: bool = False,  # clean-context stream + per-residue latent pool (ported)
-        global_latent_embed_dim: int = 64,  # z_pred / z_gt width (read off the QuPID lookup when wired)
-        global_latent_pool_hidden: int = 128,  # CLS-pool width (divisible by n_heads)
-        global_latent_pool_radius: float = 10.0,  # Cα neighbourhood radius for per-residue pooling
-        global_latent_confidence: bool = True,  # confidence probe + gated FiLM feedback
-        global_latent_confidence_hidden: int = 64,  # confidence MLP hidden width
-        global_latent_condition_main_stream: bool = True,  # FiLM the gated latent into generated atoms
-        global_latent_film_layers: str = "last",  # where to inject the FiLM feedback (this port: "last")
-        graft_init_std: float = 0.0,  # >0: init the zero-init graft INJECTION modules with N(0, std) instead of zeros
-    ):
+    def __init__(self):
+        # Fixed architecture of the released atomweaver.pt checkpoint.
+        hidden_dim = 432
+        num_layers = 10
+        time_embed_dim = 128
+        max_sidechain_atoms = 14
+        use_target_conditioning = True
+        num_cross_attn_layers = 3
+        num_cross_attn_heads = 8
+        use_film = True
+        use_sidechain_target_residue_attention = True
+        target_condition_scale = 1.0
+        cluster_target_condition_scale = 1.0
+        edge_embed_dim = 16
+        intra_residue_cutoff = 8.0
+        inter_residue_cutoff = 8.0
+        sidechain_target_cutoff = 15.0
+        backbone_target_cutoff = 15.0
+        rbf_span_to_cutoff = False
+        ca_ca_prefilter = 20.0
+        dropout = 0.1
+        use_jackie = False
+        preal_gate_target = "none"
+        num_element_classes = 6
+        use_element_velocity_coupling = True
+        num_timesteps = 250
+        use_ca_dist_element_feature = False
+        zero_init_bond_attention = False
+        cross_residue_packing_spatial = False
+        cross_residue_packing_k = 4
+        cross_residue_packing_radius = 10.0
+        cross_residue_packing_min_seq_sep = 2
+        neighbor_x0_packing_radius = 8.0
+        neighbor_x0_corrupt_add_prob = 0.35
+        neighbor_x0_corrupt_drop_prob = 0.35
+        neighbor_x0_corrupt_noise_prob = 0.9
+        neighbor_x0_corrupt_coord_noise = 0.75
+        neighbor_x0_corrupt_disconnect_prob = 0.0
+        use_shape_prior = True
+        shape_prior_n_anchors = 4
+        interaction_intent_num_classes = 4
+        interaction_intent_velocity_bias = True
+        num_edge_types = 3
+        graph_num_edge_types = None
+        use_backbone_dihedral = False
+        use_burial_feature = True
+        use_volumetric_deep_inject = True
+        use_target_deep_inject = True
+        frame_v2_deep_inject_detach = False
+        use_volumetric_existence_coupling = True
+        use_residue_frame_stream_v2 = True
+        residue_frame_v2_layers = 2
+        frame_v2_clean_input = True
+        use_residue_frame_v2_deep_inject = True
+        use_stereochem_head = True
+        use_stereochem_t_resolution = True
+        use_stereochem_t_resolution_feedback = True
+        activation_checkpointing = False
+        activation_checkpoint_stride = 1.0
+        graft_init_std = 0.0
+
         super().__init__()
 
         # Category-3 injection-graft init. Default 0.0 => zeros (bit-exact current behaviour). When > 0,
@@ -2142,8 +2067,6 @@ class SidechainDenoiser(nn.Module):
             else:
                 nn.init.zeros_(w)
 
-        self.use_backbone_dihedral = use_backbone_dihedral
-        self.use_burial_feature = use_burial_feature
         self.hidden_dim = hidden_dim
         # Graph-side edge-type count may differ from the model's embedding row
         # count. Used during monomer fine-tune from a smallmol->3-edge-duplicated
@@ -2151,36 +2074,20 @@ class SidechainDenoiser(nn.Module):
         # only intra (0) and inter/extra (1), preserving row 2 (binder-target)
         # for the eventual peptide:protein phase.
         self._graph_num_edge_types: int | None = graph_num_edge_types
-        self.use_coord_self_conditioning = use_coord_self_conditioning
-        self.use_plan_latent = use_plan_latent
-        self.use_interaction_intent = use_interaction_intent
-        self.use_bond_attention = use_bond_attention
-        self.use_valence_demand = use_valence_demand
-        self.use_cross_residue_packing = use_cross_residue_packing
-        self.cross_residue_packing_spatial = cross_residue_packing_spatial
-        self.use_neighbor_x0_packing = use_neighbor_x0_packing
         self.neighbor_x0_packing_radius = neighbor_x0_packing_radius
-        self.neighbor_x0_highnoise_weight = float(neighbor_x0_highnoise_weight)
         self.neighbor_x0_corrupt_add_prob = float(neighbor_x0_corrupt_add_prob)
         self.neighbor_x0_corrupt_drop_prob = float(neighbor_x0_corrupt_drop_prob)
         self.neighbor_x0_corrupt_noise_prob = float(neighbor_x0_corrupt_noise_prob)
         self.neighbor_x0_corrupt_coord_noise = float(neighbor_x0_corrupt_coord_noise)
         self.neighbor_x0_corrupt_disconnect_prob = float(neighbor_x0_corrupt_disconnect_prob)
         self.num_element_classes = num_element_classes
-        self.use_jackie = use_jackie
         self.preal_gate_target = preal_gate_target
-        self.use_slot_attention = use_slot_attention
-        self.use_directional_slot_attention = use_directional_slot_attention
         self.use_element_velocity_coupling = use_element_velocity_coupling
         self.num_timesteps = num_timesteps
-        self.use_ca_dist_element_feature = use_ca_dist_element_feature
-        self.use_count_velocity_coupling = use_count_velocity_coupling
         self.max_sidechain_atoms = max_sidechain_atoms
         self.use_target_conditioning = use_target_conditioning
         self.num_cross_attn_layers = num_cross_attn_layers
-        self.num_cross_attn_heads = num_cross_attn_heads
         self.use_film = use_film
-        self.use_bidirectional_target_conditioning = use_bidirectional_target_conditioning
         self.use_sidechain_target_residue_attention = use_sidechain_target_residue_attention
         self.target_condition_scale = target_condition_scale
         self.cluster_target_condition_scale = cluster_target_condition_scale
@@ -2200,11 +2107,9 @@ class SidechainDenoiser(nn.Module):
         # and (a) injects a ZERO-INIT additive residual back into backbone_features (byte-identical
         # at graft, resume-safe) and (b) predicts coarse side-chain latents for the supervision +
         # consistency losses assembled in InverseFoldingDiffusion.forward. See residue_frame_stream.py.
-        self.use_residue_frame_stream = use_residue_frame_stream
         # DRAFT deep injection: only meaningful when the stream itself is on. The effective flag AND's
         # the two so downstream logic is a single guard, and no deep-inject modules are built (nor any
         # tensors added to the state_dict) unless BOTH are requested.
-        self.use_residue_frame_deep_inject = bool(use_residue_frame_stream and use_residue_frame_deep_inject)
 
         # v2 residue-frame graph (binder+target residues; orientation-only heads: in-frame
         # centroid + χ1 (cos,sin); no count/radial). SE(3)-INVARIANT exactly like v1 -- geometry
@@ -2213,7 +2118,6 @@ class SidechainDenoiser(nn.Module):
         # the model is byte-identical (no new params, no RNG advance) when off, and resume-safe (the
         # injection is zero-init). v1 and v2 are mutually exclusive: setting BOTH is a launch error --
         # they contend for the same injection slot, so we refuse rather than silently pick one.
-        self.use_residue_frame_stream_v2 = bool(use_residue_frame_stream_v2)
         # supervised stereochemistry head lives INSIDE the v2 stream; the IFD has already AND'd
         # this flag with use_residue_frame_stream_v2, so it is only ever True when the v2 stream is on.
         self.use_stereochem_head = bool(use_stereochem_head)
@@ -2318,7 +2222,6 @@ class SidechainDenoiser(nn.Module):
         # sc/bb node features) -- at EVERY layer. Mirrors residue_frame_deep_proj (sc + bb scatter). DETACHED at apply
         # (the backbone encoder is upstream + heavily shared; do not reshape it via a new per-layer path). Zero-init
         # => byte-identical off. `backbone_features` (L, hidden) is already a _forward_single arg, so no new threading.
-        self.use_backbone_deep_inject = bool(use_backbone_deep_inject)
 
         # x0 BOND-ANGLE deep-inject. `bond_angle_inject_encoder` maps the (L, BOND_ANGLE_DESC_DIM) per-residue
         # angle descriptor of the predicted-x0 cloud -> a per-residue latent (L, hidden). `bond_angle_deep_proj`
@@ -2328,7 +2231,6 @@ class SidechainDenoiser(nn.Module):
         # gradient still reaches proj AND (through it) the encoder, so the path is live-but-identity at init. The
         # encoder is NOT zero-init (it is a fresh reader of the descriptor), but its output is gated by the
         # zero-init proj, so nothing perturbs the flow until training moves proj off zero.
-        self.use_bond_angle_deep_inject = bool(use_bond_angle_deep_inject)
 
         # volumetric -> existence coupling. ONE ZERO-INIT projection mapping the (detached) per-residue
         # `vol_hidden` latent -> a PER-SLOT existence-logit bias (L, max_sc). The bias is SUBTRACTED from the
@@ -2418,7 +2320,6 @@ class SidechainDenoiser(nn.Module):
         # [0, max_sidechain_atoms]. Each count gets its own freely-learned code -> distinct,
         # resolvable embeddings. Param-shape change, so it only activates behind the flag; a base
         # checkpoint (trained "linear") loads unchanged when the flag is left at "linear".
-        self.count_embed_mode = count_embed_mode
         self.noised_count_embed = nn.Linear(1, hidden_dim // 8)
 
         # Self-conditioning: previous prediction embeddings
@@ -2638,7 +2539,6 @@ class SidechainDenoiser(nn.Module):
         # Per-slot prediction of interaction mode with target. Can be 2-class (binary
         # contact) or 4-class (none, hydrophobic, H-bond, aromatic). Velocity bias
         # toward nearest target atom is optional and orthogonal to the classification.
-        self.interaction_intent_num_classes = interaction_intent_num_classes
         self.interaction_intent_velocity_bias = interaction_intent_velocity_bias
         self.interaction_intent_head = nn.Linear(hidden_dim, interaction_intent_num_classes)
         nn.init.zeros_(self.interaction_intent_head.weight)
@@ -2649,7 +2549,6 @@ class SidechainDenoiser(nn.Module):
         # === Feature: Chirality attention ===
         # Signed volume from first 3 atoms per residue -> per-slot scalar feature.
         # Breaks SE(3) equivariance to distinguish L vs D configurations.
-        self.use_chirality = use_chirality
 
         # Stage 2 per-residue mixture heads: predict shared sidechain cloud parameters.
         # All real atoms within a residue share one centroid and one variance,
@@ -2701,10 +2600,6 @@ class SidechainDenoiser(nn.Module):
         # clean context; a per-residue CLS-attention pool reads off z_pred; a confidence probe gates
         # a detached FiLM feedback into the generated atoms. Built ONLY when the flag is on, so with
         # the flag off there are no extra tensors and the forward path is bit-exact unchanged.
-        self.use_global_latent_matching = use_global_latent_matching
-        self.global_latent_embed_dim = int(global_latent_embed_dim)
-        self.global_latent_condition_main_stream = global_latent_condition_main_stream
-        self.global_latent_film_layers = global_latent_film_layers
 
     def _t_resolution_weight(self, t: torch.Tensor) -> torch.Tensor:
         """per-TIMESTEP blend weight w(t) for the atom-informed stereochem resolution.
@@ -4315,494 +4210,94 @@ class InverseFoldingDiffusion(nn.Module):
     #: message prints once per process, mirroring ``SidechainDenoiser._nx0_corrupt_announced``.
     _ba_corrupt_announced: bool = False
 
-    def __init__(
-        self,
-        hidden_dim: int = 128,
-        num_layers: int = 4,
-        timesteps: int = 250,
-        schedule: str = "cosine",
-        max_sidechain_atoms: int = 14,
-        count_embed_mode: str = "linear",  # "linear" (default, byte-identical) | "ordinal" (Embedding)
-        use_target_conditioning: bool = True,
-        timestep_sampling: str = "uniform",
-        coord_loss_weight: float = 1.25,
-        element_loss_weight: float = 0.5,
-        atom_count_loss_weight: float = 0.5,
-        coord_scale: float = 100.0,
-        prediction_type: str = "v",
-        coord_process_type: str = "ddpm",  # "ddpm" or "flow_matching"
-        flow_ghost_power: float = 2.0,
-        flow_real_proximal_power: float = 2.0,
-        flow_real_distal_power: float = 1.0,
-        flow_use_conditional_groupwise: bool = False,
-        flow_noise_scale: float = 1.0,  # Source distribution std (Å) for coordinate flow. Smaller = tighter ghost cloud.
-        element_type_drop_prob: float = 0.05,
-        element_type_token_drop_prob: float = 0.02,
-        element_type_drop_schedule: bool = True,
-        self_conditioning_prob: float = 0.75,
-        use_cluster_particle_diffusion: bool = False,
-        oracle_atom_counts: bool = False,
-        cluster_assignment_loss_weight: float = 0.0,
-        cluster_cohesion_loss_weight: float = 0.0,
-        cluster_structure_loss_weight: float = 0.0,
-        cluster_contrastive_loss_weight: float = 0.0,
-        target_condition_scale: float = 1.0,
-        cluster_target_condition_scale: float = 1.0,
-        cluster_split_ramp_power: float = 1.0,
-        cluster_label_permutation_prob: float = 0.0,
-        cluster_feature_warmup_fraction: float = 0.0,
-        min_snr_gamma: float = 0.0,
-        count_correlation_loss_weight: float = 5.0,
-        count_loss_type: str = "mse",  # "correlation" or "mse" -- per-residue count loss formulation
-        num_cross_attn_layers: int = 5,
-        num_cross_attn_heads: int = 8,
-        use_film: bool = True,
-        use_bidirectional_target_conditioning: bool = True,
-        use_sidechain_target_residue_attention: bool = True,
-        sidechain_target_cutoff: float = 15.0,
-        backbone_target_cutoff: float = 25.0,
-        # SE(3) RBF span selector (audit follow-up, ce7ed5d70). False (default / absent from old hparams) =>
-        # the SE(3) attention-bias RBF keeps its LEGACY 0-10 A span (rbf_max_dist=None in the transformer);
-        # True => the run OPTS IN to widening the span to backbone_target_cutoff so the distance bias stays
-        # sensitive on the long CA->target context edges. Flag-gated (NOT default-on) so an OLD checkpoint --
-        # which carries backbone_target_cutoff in hparams but was TRAINED with the 0-10 span -- rebuilds with
-        # the legacy 0-10 features it actually saw. Persisted via save_hyperparameters so
-        # eval rebuilds the exact span. Mirrors the --count-embed-mode plumbing.
-        rbf_span_to_cutoff: bool = False,
-        dropout: float = 0.1,
-        coord_noise_std: float = 0.1,
-        disable_element_types: bool = False,
-        ghost_weight: float = 0.5,  # Weight for ghost atom coord loss (0=hard gating, 1.0=equal weight)
-        pad_sampling_init: str | None = "bare",  # "bare"=all-PAD init with time-varying prior, None=fixed prior
-        element_fn_weight: float = 1.0,  # Extra multiplier on element loss for non-PAD GT positions (false neg penalty)
-        element_loss_non_pad_only: bool = False,  # Only compute element CE on GT non-PAD positions
-        atom_mask_loss_weight: float = 0.0,  # Binary CE on P(non-PAD) vs GT mask (PAD existence loss)
-        mask_bce_pos_weight_cap: float = 0.0,  # Cap pos_weight in mask BCE (0=no cap, e.g. 10=clip at 10)
-        soft_count_loss_weight: float = 0.0,  # MSE on sum(P(non-PAD)) per residue vs GT count
-        use_multi_count_discretization: bool = False,  # Try {n-1, n, n+1} atoms in discretization
-        multi_count_max_plus: int = 1,  # Max positive delta for multi-count disc (1={-1,0,+1}, 2={-1,0,+1,+2})
-        decoupled_count: bool = False,  # Decouple atom count from element identity noise
-        count_ramp_threshold: float = 0.9,  # t_norm threshold for delayed-eq count schedule
-        count_overdispersion: float = 1.5,  # NegBin overdispersion φ (Var = μ·φ)
-        use_jackie: bool = False,  # Use Jackie biochemical features instead of learned residue embeddings
-        count_perturb_prob: float = 0.0,  # Prob of perturbing per-residue atom counts during training
-        count_corr_tau: float = 0.5,  # Tau for count correlation/MSE loss gating (1.0=no gating)
-        count_tau_floor: float = 0.0,  # Floor on the tau-gated count-loss weight so count differentiation fires at ALL t (0.0=current low-t-only behavior; e.g. 0.4 => high-t weight 0.4, low-t 1.0)
-        occupancy_loss_weight: float = 0.0,  # Weight for per-slot ghost-vs-real BCE (0=disabled)
-        occupancy_gate_elements: bool = False,  # Use occupancy logits to gate element predictions
-        occupancy_gate_strength: float = 3.0,  # Strength of the occupancy gate on element logits
-        coord_dropout: float = 0.0,  # Prob of replacing sidechain coords with CA (forces context-based element pred)
-        mixture_gate_weight: float = 0.0,  # Blend weight for mixture posterior in element gating (0=occupancy only)
-        ghost_var_floor: float = 0.3,  # Min ghost variance (Å²) to avoid degenerate posterior at low noise
-        mixture_loss_weight: float = 0.0,  # Weight for Stage 2 learned mixture param supervision (0=Stage 1 only)
-        mixture_gate_max_noise: float = 1.0,  # Max noise fraction (t/T) for mixture gating (1.0=no limit)
-        mixture_override_pad: bool = False,  # Hard-override PAD state from mixture posterior instead of element diffusion
-        disc_detach_mask: bool = False,  # DETACH the disc soft mask -> disc trains COORDS only, no gradient into P(PAD) (severs the "drop the atom you can't place" NDM count-hack without swapping the 2-track existence mechanism, unlike mixture_override_pad)
-        all_carbon_sampling: bool = False,  # Feed all-Carbon elements to denoiser during sampling; ghost/real from mixture posterior only
-        position_based_element_powers: bool = True,  # Use all-real mask for element schedule powers in sampling (Fix A)
-        preal_gate_target: str = "none",  # Gate target conditioning by P(real): "none", "cross_attention", "film", "graph_edges"
-        residue_count_loss_weight: float = 0.0,  # Weight for residue-level count head supervision (0=disabled)
-        count_ranking_loss_weight: float = 0.0,  # Weight for pairwise count-ranking loss (0=disabled)
-        count_pearson_loss_weight: float = 0.0,  # Weight for independent (1 - Pearson r) count correlation loss (0=disabled)
-        noise_dependent_ghost_weight: bool = False,  # Ramp ghost_weight from 0.5 (high noise) to 0.1 (low noise)
-        element_pad_prior: float
-        | None = None,  # Override PAD weight in element prior (default=0.71). Lower -> more non-PAD during noise/sampling.
-        mixture_lr_threshold: float = 0.0,  # Log-LR threshold for mixture posterior (0=standard Bayes, >0=require stronger evidence for real)
-        mixture_real_var_floor: float = 0.0,  # Extra variance floor (Å²) for real component, scaled by s². Broad at t=T -> easier escape from ghost.
-        use_existence_flow: bool = False,  # Replace occupancy BCE with flow-matched existence velocity loss
-        existence_loss_weight: float = 1.0,  # Weight for existence velocity MSE (replaces occupancy_loss_weight when active)
-        non_pad_element_sampling: bool = False,  # 4-class element diffusion {C,N,O,S} with no PAD; ghost/real from mixture at t=0
-        late_element_resolution: bool = False,  # Resolve element types in last 25% of trajectory; all-Carbon before that
-        late_element_cutoff: float = 0.25,  # t_norm cutoff: elements are all-Carbon above this, resolve below
-        contact_weight_min: float = 1.0,  # Min loss weight for distant residues (1.0=disabled, <1.0=contact upweighting)
-        contact_weight_scale: float = 5.0,  # Distance scale (Å) for contact weight exponential decay
-        contact_weight_boost: float = 0.0,  # Upweight-only mode: w = 1 + boost*exp(-d/scale). 0=disabled.
-        contact_weight_coord: bool = True,  # Apply contact weighting to coord loss (False=element loss only)
-        contact_weight_count: bool = False,  # Apply contact weighting to per-residue count losses (atom_count + count-corr MSE)
-        fill_corrected_coord_weight: float = 0.0,  # Weight for the fill-corrected coord loss (0=off): subtracts fill-attributable coord error so count can reach GT without geometry fighting it
-        fcc_slope: float = 0.097,  # Å-per-atom slope subtracted as fill-attributable coord error (empirical rmsd-vs-fill, interface value)
-        fcc_tau: float = 0.5,  # Tau-gate: fill-corrected loss applied only for t/T < fcc_tau (low noise)
-        fcc_per_env: bool = False,  # Per-env FCC slopes: gather 0.097/0.067/0.082 by the residue's B/E/I env (needs bei_env in forward); off => scalar fcc_slope
-        fcc_slope_buried: float = 0.067,  # Å-per-atom FCC slope for BURIED residues (env code 1), used only when fcc_per_env and bei_env are supplied
-        fcc_slope_exposed: float = 0.082,  # Å-per-atom FCC slope for EXPOSED residues (env code 2), used only when fcc_per_env and bei_env are supplied
-        occupancy_match_loss_weight: float = 0.0,  # Weight for the occupancy-matching loss (0=off): differentiable Gaussian atom-density agreement between predicted and GT sidechain clouds (permutation-invariant, self-occupancy-esque)
-        occupancy_match_sigma: float = 1.0,  # Gaussian sigma (Å) for the atom-presence density
-        occupancy_match_tau: float = 0.5,  # Tau-gate: occupancy-matching loss applied only for t/T < occupancy_match_tau (low noise)
-        occupancy_match_timestep_floor: float = 0.0,  # Soft floor on the occupancy-match tau-gated weight so it fires across the WHOLE trajectory (0.0=byte-identical hard cosine-tau gate; e.g. 0.5 => high-t weight floored at 0.5, t=0 weight 1.0). Mirrors count_tau_floor.
-        # === Volumetric self-occupancy head (self-occupancy-style graft; head + loss only, NO flow injection). ===
-        # Additive: not built + byte-identical when off. See volumetric_head.py.
-        use_volumetric_head: bool = False,  # build + run the volumetric occupancy head (default off = byte-identical)
-        # SANDCLOCK available-volume INPUT to the volumetric head: a GT-free 2-cone descriptor of how much
-        # room each e3 (out-of-plane / L-D) face has, fed as an extra per-residue input the head projects
-        # (zero-init) into `vol_hidden`. AND-gated with use_volumetric_head; byte-identical when off. See
-        # volumetric_head.available_volume_cones. Meaningful only in full-arch FT (inert in the head-only pretrain).
-        use_available_volume: bool = False,
-        # SINGLE-SITE POCKET CONTEXT: condition the volumetric head on a per-query NEIGHBOR-OCCUPANCY FIELD --
-        # the OTHER residues' side chains (+ binder backbone + target) splatted onto each site's own query
-        # lattice, with the site's own side chain self-excluded -- fed via a zero-init projection so the head
-        # predicts its own occupancy knowing which query points the neighbour pocket blocks. Raw neighbour atoms
-        # never enter the head's feature set. Pretrain source = GT side chains (documented predicted-x0 seam for
-        # FT). AND-gated with use_volumetric_head; byte-identical when off. See volumetric_head.py.
-        use_single_site_context: bool = False,
-        # SINGLE-SITE SCHEDULED-SAMPLING context mix (FT-only; default OFF = teacher forcing). Only the
-        # INTEGRATED (non-pretrain-only) forward is affected, and only when use_single_site_context is on:
-        # the volumetric head's neighbour-occupancy CONTEXT source is mixed PER BINDER RESIDUE between the
-        # GT clean x0 (teacher forcing = what the head saw in pretraining) and the flow's PREDICTED x0
-        # (reused from the neighbour-x0 recycle machinery; GT fallback when recycling did not run). The
-        # per-site predicted fraction ramps linearly 0 -> p_max over [start_epoch, max_epochs]. p_max=0.0
-        # (default) => all-GT => byte-identical to a plain teacher-forced single-site run, so a run that sets
-        # use_single_site_context but not these still behaves sanely. Guarded below (>0 requires single-site
-        # AND non-pretrain-only). See _single_site_context_source / get_ss_context_pred_prob.
-        volumetric_ss_context_p_max: float = 0.0,
-        volumetric_ss_context_start_epoch: int = 40,
-        volumetric_loss_weight: float = 0.0,  # weight of the self-occupancy MSE loss (0=off; head still runs when use_volumetric_head)
-        # VOLUMETRIC DECOY CROSS-ENTROPY (FT-only plumbing; default 0.0 = OFF = byte-identical). A discriminative
-        # "on-top" term that pressures the head's predicted own-sidechain density field to score its GT residue-
-        # type reference density above a set of DECOY-type reference densities -- REUSING the SAME decoys the
-        # atom-disc discretization loss draws for that position (threaded out of DiscretizationLoss; never
-        # re-sampled). The CE itself is added in DiffusionLightningModule.training_step alongside the integrated
-        # volumetric loss (NOT in --volumetric-pretrain-only, which returns before it). Requires use_volumetric_head
-        # (guarded below) AND the stratified discretization/residue-DB machinery it borrows decoys from (guarded in
-        # validate_training_flag_coherence). Weight 0 => no decoy reuse, no reference-density library build, no CE.
-        volumetric_decoy_ce_weight: float = 0.0,
-        volumetric_decoy_ce_temperature: float = 1.0,  # softmax temperature on the density-similarity logits (>0)
-        # INTEGRATED volumetric-loss TARGET selector. Default False = the historical self-SIDECHAIN-ONLY GT
-        # (vol_density_gt, the head's simplified anti-leak MSE) => byte-identical when off. True switches the
-        # integrated volumetric loss to the SAME own-only region-bucketed self-occupancy objective (via
-        # build_full_occupancy_target) that --volumetric-pretrain-only supervises against -- so a Phase-2 FT
-        # of a self-occupancy-pretrained head does not train it AWAY from the objective it was pretrained on. See the
-        # coherence guard in validate_training_flag_coherence (pretrained + thawed + weight>0 + self-only
-        # target is rejected as off-objective).
-        volumetric_loss_supervision_target: bool = False,
-        # A/B toggle for the self-occupancy occupancy TARGET composition (both the --volumetric-pretrain-only and
-        # --volumetric-loss-self-occupancy-target paths flow through _supervision_full_field_occupancy_loss). Default False =
-        # OWN-ONLY (faithful): the head regresses the masked residue's own side chain; context is INPUT +
-        # CONTEXT-region label, not part of the target. True = legacy own+context field (comparison only).
-        volumetric_target_include_context: bool = False,
-        volumetric_context_radius: float = 10.0,  # Å radius of the target-aware context sphere (around each CA)
-        volumetric_n_query: int = 128,  # #query points in the fixed local-frame occupancy lattice
-        volumetric_sigma: float = 1.0,  # Gaussian sigma (Å) for the GT self-occupancy splat
-        # PER-ELEMENT vdW-derived splat sigma: replace the single volumetric_sigma with a per-atom Bondi-radius
-        # sigma (small O vs bulky S/X) on the GT-target / self-occupancy-target / self-consistency splats (and the eval
-        # references). Off (default) => byte-identical uniform sigma. Scale None => mean-over-C/N/O/X normalized
-        # to 1.0. AND'd with use_volumetric_head; stored on the head so the eval gate auto-detects it.
-        volumetric_per_element_sigma: bool = False,
-        volumetric_sigma_element_scale: float | None = None,
-        volumetric_empty_weight: float = 1.75,  # up-weight for ~empty (anti-leak) query points (self-occupancy default)
-        # FOURIER query lift + trunk dropout (faithful field expressivity). The query point is lifted to
-        # 2*fourier_frequencies random Fourier features before the density trunk (0 disables the lift). The final
-        # density is softplus'd (non-negative field). These CHANGE the head's arch/state_dict (a Fourier-widened
-        # density_mlp) => a checkpoint from a differently-configured head will not strict-load. Passed to the head.
-        volumetric_fourier_frequencies: int = 64,
-        volumetric_fourier_scale: float = 10.0,
-        volumetric_dropout: float = 0.0,  # module default 0.0 = byte-identical; the CLI drives the self-occupancy 0.1
-        # Softplus (non-negative) density field at the head output (6f7648f04). True (production default) =>
-        # softplus'd field aligned to the >=0 GT/reference splats. False => the LEGACY signed raw output. This
-        # does NOT change the head's state_dict (softplus is an activation), but it DOES change the scored
-        # density, so an OLD checkpoint trained WITHOUT softplus (absent from its hparams) must rebuild with
-        # False for faithful density scoring; the eval-rebuild defaults it legacy-when-absent. Passed to the head.
-        volumetric_use_softplus: bool = True,
-        # PER-QUERY kNN CONTEXT (self-occupancy ContextEncoder). Off (default) => the density trunk reads the shared
-        # attention-pooled `vol_hidden` broadcast to every query point (byte-identical; the head builds NO
-        # ContextEncoder submodule). On => EACH query point gets its OWN kNN neighborhood over the single-site
-        # context atoms (backbone + target + OTHER residues' side chains, self-excluded), the per-point
-        # discrimination signal the pooled broadcast cannot carry. use_per_query_context BUILDS a new submodule
-        # (context_encoder.*) => it changes the head state_dict (a strict load catches a mismatch); context_k /
-        # context_heads tune the kNN + attention. Persisted via save_hyperparameters for eval/Ray rebuild.
-        volumetric_per_query_context: bool = False,
-        volumetric_context_k: int = 128,  # self-occupancy k_neighbors
-        volumetric_context_heads: int = 4,  # self-occupancy NeighborhoodAttention num_heads (must divide hidden_dim)
-        # Residue-axis chunk for the per-query ContextEncoder (OOM guard). The (G, Q, k, hidden) neighbor
-        # tensor OOMs at G=B*L residues in parallel; each residue is INDEPENDENT so chunking G is NUMERICALLY
-        # EXACT (peak set by the chunk, not B*L). Only active with per_query on; compute-only (does NOT change
-        # the state_dict or numerics), so it is deliberately NOT a checkpoint-compat check.
-        volumetric_context_chunk: int = 32,
-        # VOLUMETRIC-FAITHFUL ATOM-ANCHORED QUERIES. Off (default) => the fixed CA-centered Fibonacci lattice
-        # (byte-identical). On => the pretrain-only forward SAMPLES per-residue queries anchored on each GT
-        # own-atom (center + around cluster + context negatives + banded empties; sample_atom_anchored_queries)
-        # so the positive buckets are populated, and supervises the head's density at those SAME queries. The
-        # head builds NO extra parameters for this (stateless sampler + per-call query override), so the head
-        # state_dict is unchanged whether it is on or off => resume-safe / checkpoint-transferable. Persisted
-        # via save_hyperparameters for eval/Ray rebuild.
-        volumetric_atom_anchored_queries: bool = False,
-        # SCALE-ANCHOR loss: pin the predicted density's per-residue total mass to the GT splat's mass. The
-        # z-scored decoy-CE is scale-INVARIANT, so it leaves absolute magnitude unconstrained and the mass
-        # drifts (neg_mse recovery collapses while cosine rises). This term lets the decoy-CE sharpen SHAPE
-        # while magnitude stays calibrated. 0.0 (default) => not added (byte-identical); the decoy-CE is
-        # untouched. Added to the volumetric loss (both the pretrain-only and integrated paths).
-        volumetric_scale_anchor_weight: float = 0.0,
-        # self-consistency loss = MSE between the FLOW's predicted-x0 density and the volumetric
-        # HEAD's predicted density (the head's density is DETACHED => the flow chases the head one-way, not
-        # the head drifting toward the collapsing flow). The flow-x0 cloud is splatted on the head's OWN
-        # query lattice + sigma, weighted by the model's OWN soft P(real) (NOT the GT mask, unlike
-        # occupancy_match) so the signal is exactly what the model reads at inference (the head exists at
-        # inference; GT does not). This is the FREE-SAMPLING anchor, complementary to occupancy_match (the
-        # low-t GT teacher-forcing guard). NOT tau-gated -- ramped IN by epoch (head-first curriculum: the
-        # head warms on its GT loss before the flow is forced to it). Additive + byte-identical when off;
-        # meaningful only WITH use_volumetric_head (AND'd below).
-        use_volumetric_self_consistency: bool = False,  # add the self-consistency loss (default off = byte-identical)
-        self_consistency_weight: float = 1.0,  # weight of the self-consistency MSE (0=off; tuned HIGH at training)
-        self_consistency_ramp_start: float = 0.2,  # epoch frac where the ramp begins (0 weight before this)
-        self_consistency_ramp_end: float = 0.6,  # epoch frac where the ramp reaches full weight
-        # deep-inject the head's per-residue latent `vol_hidden` into EVERY SE(3) layer (zero-init,
-        # byte-identical off, resume-safe). Only meaningful WITH use_volumetric_head (AND'd below). Applied on
-        # BOTH the training forward AND the sampling reverse loop (the head is computed once per call/step-loop).
-        use_volumetric_deep_inject: bool = False,
-        # (run10): repoint the deep-inject from the degenerate pooled `vol_hidden` to a zero-init
-        # projection of `vol_density_pred` (the informative per-query density field). Only meaningful WITH
-        # use_volumetric_head AND use_volumetric_deep_inject (AND'd below). Zero-init => byte-identical when off.
-        use_volumetric_density_inject: bool = False,
-        # TARGET deep-inject (run10): reinforce the sidechain->target cross-attention at every SE(3) layer.
-        # Threaded straight through to the SidechainDenoiser (which owns sc_target_attn). Zero-init => off = identical.
-        use_target_deep_inject: bool = False,
-        use_backbone_deep_inject: bool = False,
-        frame_v2_deep_inject_detach: bool = False,
-        use_bond_angle_deep_inject: bool = False,  # x0 bond-angle repr deep-inject (see SidechainDenoiser flag)
-        # volumetric -> existence (element-track) coupling. The head's per-residue `vol_hidden` latent
-        # modulates the element track's per-slot PAD/GHOST logit via a zero-init projection (more predicted
-        # volume => shift probability toward real, non-PAD atoms -- the direct lever on undercount / size
-        # collapse). Additive + byte-identical when off; meaningful only WITH use_volumetric_head (AND'd below).
-        # Applied on BOTH the training forward AND the sampling reverse loop (the element head runs at both;
-        # `vol_hidden` is computed once per call/step-loop and threaded in).
-        use_volumetric_existence_coupling: bool = False,
-        # PHASE 2: load a SEPARATELY-pretrained volumetric occupancy head (produced by
-        # scripts/joint_diffusion/train_volumetric_head.py, i.e. a standalone-trained
-        # atomweaver.joint_diffusion.volumetric_head.VolumetricOccupancyHead) into self.volumetric_head so the
-        # atom flow is guided by an already-good head instead of one competing for gradient from scratch. The
-        # path may be a raw head state_dict OR a Lightning/standalone-trainer checkpoint whose keys are
-        # prefixed (e.g. "state_dict"/"model" wrapper + "...volumetric_head.*"); any common prefix is stripped and
-        # the load is strict (a silent partial load would read as random guidance). Only meaningful WITH
-        # use_volumetric_head (validated below). None/"" => no load (byte-identical). If freeze is on, the
-        # head's params are frozen (requires_grad=False) so it acts as a fixed teacher; the optimizer
-        # the training-time param-group logic skips requires_grad=False params, so frozen params land in NO group.
-        volumetric_head_pretrained: str | None = None,
-        freeze_volumetric_head: bool = False,
-        # VOLUMETRIC PRETRAIN-ONLY: build + run ONLY the VolumetricOccupancyHead (skip the SE(3) atom
-        # transformer / flow), so the head can be pretrained through the standard harness (DDP, data
-        # pipeline, holdout flags, val, checkpointing) at big batch. The SidechainDenoiser is NOT
-        # constructed when this is on (that is what frees the VRAM); forward() computes the head sub-graph
-        # (byte-identical head input to the full net) and the self-occupancy occupancy loss, and STOPS there -- no
-        # coord/element/count/any other loss. Requires use_volumetric_head. Off (default) => byte-identical:
-        # the denoiser is built and forward()/loss run exactly as today. The head's state_dict keys+shapes
-        # are unchanged either way, so a pretrain checkpoint loads into the full net via PHASE 2
-        # (--volumetric-head-pretrained) with the same strict-load + config-validate.
-        volumetric_pretrain_only: bool = False,
-        use_slot_attention: bool = False,  # Intra-residue slot attention for ghost/real coordination
-        num_slot_attn_layers: int = 2,  # Number of slot attention layers
-        num_slot_attn_heads: int = 4,  # Number of attention heads in slot attention
-        use_directional_slot_attention: bool = False,  # Distal scout -> proximal one-way attention
-        n_scouts: int = 3,  # Number of scout slots: the N most-distal REAL slots per residue send one-way messages
-        autoregressive_training: bool = False,  # Per-residue AR training: predict one focus residue conditioned on revealed GT neighbors
-        ar_isolated_residues: bool = False,  # Single-residue mode: no inter-residue context (all non-focus hidden)
-        count_extreme_alpha: float = 0.0,  # Reweight count losses by |gt_count - mean|^alpha + 1. 0=disabled.
-        asymmetric_perturb: bool = False,  # Bias count perturbation toward mean: high-count residues lose atoms, low-count gain
-        mixture_head_dropout: float = 0.0,  # Dropout on features feeding occupancy/mixture heads (info bottleneck, 0=disabled)
-        rc_head_tau: float = -1.0,  # Separate tau for residue count head loss (-1=use count_corr_tau, >0=independent)
-        dynamic_lrt: bool = False,  # Per-residue LRT: predict LRT offset from backbone+target features
-        dynamic_lrt_weight: float = 2.0,  # Loss weight for dynamic LRT loss
-        dynamic_lrt_clamp: float = 0.0,  # Clamp LRT delta to [-val, +val]. 0=no clamp
-        dynamic_lrt_loss_type: str = "l1",  # l1, mse, or huber for dlrt count-matching loss
-        dynamic_lrt_rank_weight: float = 0.0,  # Pairwise ranking loss on lrt_delta vs GT count (0=disabled)
-        dynamic_lrt_reg_weight: float = 0.0,  # L2 regularizer on lrt_delta magnitude (0=disabled)
-        dlrt_analytical_scale: float = 0.0,  # >0: use count head prediction to set threshold analytically (no learning)
-        dlrt_detach: bool = False,  # Detach backbone features before LRT head (prevents gradient interference with backbone encoder)
-        dlrt_sample_scale: float = 1.0,  # Scale LRT delta at sampling time (0.5 = half the learned delta). 1.0=no change.
-        dlrt_ema_decay: float = 0.0,  # EMA decay for LRT head weights. 0=disabled. 0.99=slow EMA. Use EMA weights at sampling time.
-        use_split_velocity: bool = False,  # Split velocity: learned v_real + analytical v_ghost. Ghost slots not trained.
-        split_velocity_sampling_only: bool = False,  # Sampling-only split: standard training, blend v_real+v_ghost at sampling time only
-        use_prior_cloud: bool = False,  # Backbone-conditioned prior for centroid/logvar (stable signal before sidechain denoising)
-        prior_cloud_loss_weight: float = 0.5,  # Loss weight for prior cloud centroid/logvar supervision
-        prior_blend_power: float = 2.0,  # Blending schedule: w(t) = (1-tau)^power (1=linear, 2=quadratic)
-        sharpen_temperature_min: float = 1.0,  # Min temperature for mixture posterior at t=0 (1.0=off, 0.1=very sharp)
-        sharpen_temperature_power: float = 1.0,  # Annealing speed for temperature schedule
-        sidechain_corrupt_prob: float = 0.0,  # Prob of corrupting sidechain geometry per residue (0=off). Exposure bias fix.
-        sidechain_corrupt_noise_gate: float = 0.5,  # Only corrupt when t_norm < this (mid/low noise)
-        sidechain_corrupt_distal_only: bool = False,  # Only flip distal slots (slot-index-biased), not whole-residue
-        sidechain_compress_prob: float = 0.0,  # Radial compression prob per real slot (0=off). r~U(0.3,0.8).
-        rotation_corruption_prob: float = 0.0,  # per-residue prob of azimuthally spinning the NOISED sidechain INPUT about the Cα->pseudo-Cβ cone axis (0=off, byte-identical). x0 target stays true -> model learns to de-rotate via the frame. Training-only.
-        rotation_corruption_max_angle: float = 90.0,  # max |spin| in DEGREES; angle ~ U(-cap, +cap). Cap mitigates near-symmetric sidechains (Phe/Tyr ring, Asp/Glu carboxylate, Arg guanidinium) whose true x0 would otherwise be a near-degenerate target under a large spin.
-        rotation_corruption_min_tau: float = 0.05,  # skip rotation-corruption for samples with tau=t/(T-1) below this. The FM velocity-target recompute inverts x_t=(1-s)x0+s*x1 via 1/s (s=tau^power -> 0 as t->0), so it is singular near t=0; gating there avoids the singularity (and the near-clean regime is where the augmentation is least useful). Corrupted samples get their target REBUILT so the x0-inverse still reconstructs the true x0.
-        # (stereochem): two low-rate coord-input corruptions that teach the t-resolution head to break the L/D symmetry. Both reflect/flatten the NOISED sidechain about the residue BACKBONE PLANE (the N-CA-C plane whose unit normal is e3 of build_local_frames), backbone untouched, self.training-only, and -- exactly like corrupt the model INPUT (x_t) so the FM velocity target is REBUILT from the implied corrupted source (recompute_target_for_corrupted_xt). Both reuse rotation_corruption_min_tau as the t≈0 floor (same 1/s singularity) and the FM-only construction guard. Byte-identical when both == 0.0 (block skipped, no RNG).
-        mirror_corruption_prob: float = 0.0,  # per-residue prob of MIRROR-FLIPping the NOISED sidechain across the backbone plane (x' = x - 2·((x-CA)·e3)·e3) -> atoms on the WRONG L/D face; the t-resolution head must recover the correct face (the rarer wrong-face rescue). 0=off, byte-identical.
-        inplane_corruption_prob: float = 0.0,  # per-residue prob of IN-PLANE-FLATTENing the NOISED sidechain onto the backbone plane (x' = x - ((x-CA)·e3)·e3, zeroing the out-of-plane component) -> the ambiguous "which side?" mid-state; the head must resolve to the correct side. This is the PRIMARY symmetry-break (more important of the two). 0=off, byte-identical.
-        # Existence/count exposure-bias fix: corrupt CONDITIONING toward under-fill; loss targets stay GT.
-        main_path_underfill_prob: float = 0.0,  # Frac of samples with corrupted existence/count cond (0=off).
-        main_path_underfill_bias: float = 0.85,  # P(under-fill vs over-fill) for a corrupted sample.
-        use_donut_source: bool = False,  # Per-slot radial shell source (donut) instead of isotropic Gaussian
-        donut_thickness_ratio: float = 0.2,  # Shell thickness as fraction of shell radius
-        use_empirical_shell_thickness: bool = False,  # data-driven radial std sqrt(Var(||x-CA||)) instead of tau*r jitter
-        shell_target_var_scale: float = 1.0,  # scale empirical per-slot radial variance (target shells) DOWN; 1.0 = OFF (byte-identical)
-        donut_element_init: str = "pad",  # Element init at t=T for donut mode: "pad"=all-PAD, "carbon"=all-Carbon, "mask"=MASK
-        absorbing_mask: bool = True,  # MASK is absorbing: once resolved to {PAD,C,N,O,S}, can't return to MASK
-        use_element_velocity_coupling: bool = False,  # FiLM modulation of velocity by PAD/non-PAD state (mixDDPM-style)
-        evc_scheduled_sampling_prob: float = 0.0,  # Prob of non-GT existence mask for EVC in training. REQUIRES a delivery mode (self_conditioning_prob>0 OR evc_ss_corruption=True); was historically 0.3 but INERT without one, so default is now 0.0 (honest)
-        evc_soft_conditioning: bool = False,  # Use soft P(non-PAD) instead of hard binary for EVC at sampling
-        evc_velocity_blend: bool = False,  # At sampling: blend learned velocity with ghost velocity using EVC state
-        evc_ss_corruption: bool = False,  # SS: feed a designed under/over-fill corruption of the GT mask
-        ss_underfill_bias: float = 0.7,  # fraction of SS-corrupted samples that under-fill vs over-fill
-        evc_ss_corrupt_selfcond: bool = False,  # SS STACK: corrupt the SELF-CONDITIONED predicted mask (not GT)
-        evc_ss_noised_element_prob: float = 0.0,  # SS: feed EVC the noised-element existence (MASK->0.5) at t; also switches 2-track SAMPLING evc read to MASK->0.5
-        use_ca_dist_element_feature: bool = False,  # Concat distance-from-CA to element head input
-        use_count_velocity_coupling: bool = False,  # FiLM modulation by per-residue count -> per-slot P(real)
-        use_bond_attention: bool = False,  # Intra-residue bond graph attention for coupling the 3 tracks
-        zero_init_bond_attention: bool = False,  # bond-attn identity-start (retrofit onto pre-bond-attn ckpts)
-        bond_loss_weight: float = 1.0,  # Weight for bond prediction auxiliary loss
-        pocket_contact_loss_weight: float = 1.0,  # Weight for pocket contact prediction loss
-        valence_loss_weight: float = 0.0,  # Weight for valence demand prediction loss (CE on bond count 0-4). 0=off.
-        use_cross_residue_packing: bool = False,  # Inter-residue packing attention: contact prediction + cross-residue attention
-        packing_contact_loss_weight: float = 1.0,  # Weight for inter-residue contact prediction auxiliary loss
-        cross_residue_packing_spatial: bool = False,  # Pair residues by SPATIAL proximity (pseudo-CB kNN) instead of i±1. The eval's Buried metric is |q-p|>1 tip-packing, which the i±1-only pairing structurally cannot serve.
-        cross_residue_packing_k: int = 4,  # k nearest residues per query in spatial mode (memory ~ k x consecutive mode)
-        cross_residue_packing_radius: float = 10.0,  # Pseudo-CB distance cutoff in Angstrom; <=0 disables the radius gate
-        cross_residue_packing_min_seq_sep: int = 2,  # Minimum |i-j| in spatial mode; 2 excludes i±1 (matches the eval Buried definition)
-        use_neighbor_x0_packing: bool = False,  # Condition each residue's packing on its NEIGHBOURS' predicted x0 (anti-self); leg-A's approximation of leg-B's clean neighbour context
-        neighbor_x0_packing_recycles: int = 2,  # TOTAL forward passes (AF2-style recycling). 1 = unconditioned single pass, 2 = the original two-pass scheme. Wall-clock scales ~linearly.
-        neighbor_x0_packing_radius: float = 8.0,  # Outer shell radius (Angstrom) for the neighbour-x0 context features
-        neighbor_self_dropout_prob: float = 0.0,  # FEATURE 1: per-residue P of ghosting a DESIGNED residue's own noised side chain to CA, forcing it to pack from neighbour-x0 context. 0.0 = bit-exact off.
-        neighbor_x0_highnoise_weight: float = 1.0,  # FEATURE 2: amplify the neighbour-x0 packing residual at high noise (t_norm>0.5). 1.0 = exact no-op everywhere.
-        # TRAINING-side corruption of the neighbour-x0 packing signal (weaken-the-neighbour ablation). All 0 =>
-        # byte-identical (no corruption, no RNG). Applied ONLY during training; env-overridable at the call site.
-        neighbor_x0_corrupt_add_prob: float = 0.0,  # per-GHOST-slot chance to ADD a phantom atom along the cloud ray
-        neighbor_x0_corrupt_drop_prob: float = 0.0,  # per-REAL-slot chance to REMOVE (ghost to Cα) an atom
-        neighbor_x0_corrupt_noise_prob: float = 0.0,  # whole-call chance the coord noise is applied at all
-        neighbor_x0_corrupt_coord_noise: float = 0.0,  # Gaussian coord-noise std (Angstrom) when noise fires
-        neighbor_x0_corrupt_disconnect_prob: float = 0.0,  # per-op chance to DESYNC coord vs existence tracks
-        neighbor_x0_packing_prob_start: float = 0.0,  # Per-SAMPLE firing probability at epoch 0 (0.0 = start bit-identical to the parent checkpoint)
-        neighbor_x0_packing_prob_end: float = 0.8,  # Firing probability after the ramp
-        neighbor_x0_packing_ramp_epochs: int = 50,  # Epochs over which the firing probability ramps start -> end
-        # Randomised recycle count. PAIRS WITH the recycle-index encoding: encoding j makes a
-        # train/sample recycle mismatch HONEST, but only training over a spread of N makes it WORK
-        # (train at N=2 and the model has never seen j=3,4,5). This is exactly why AF2 trains with a
-        # random recycle count. Turning one on without the other is half the feature.
-        neighbor_x0_packing_random_recycles: bool = False,  # draw N per BATCH from the weighted categorical below
-        neighbor_x0_packing_max_recycles: int = 5,  # largest N with non-zero weight (must match the weight length)
-        neighbor_x0_packing_recycle_weights: str
-        | Sequence[float]
-        | None = None,  # relative P(N=2), P(N=3), ...; None = NEIGHBOR_X0_RECYCLE_WEIGHTS_DEFAULT (E[N]=2.5)
-        use_transition_weighted_loss: bool = False,  # Reweight the FINAL-pass per-slot loss by HOW THE PREDICTION CHANGED vs the earlier (detached) recycle pass -- targets STICKY FAILURES. See _transition_weights().
-        transition_weight_sticky: float = 2.5,  # Max multiplier: wrong -> SAME wrong (repeated its own error; the behaviour to destroy)
-        transition_weight_revised: float = 1.25,  # Max multiplier: wrong -> DIFFERENTLY wrong (revised, still wrong -- it at least tried)
-        transition_weight_regression: float = 2.0,  # Max multiplier: right -> wrong (two-sided, so we do not train flightiness)
-        transition_weight_cap: float = 3.0,  # Hard ceiling on any per-slot weight, so one position cannot dominate the batch
-        transition_coord_tol: float = 1.0,  # Angstrom; per-slot x0 error above this counts as "wrong" on the COORD channel
-        transition_coord_same_tol: float = 0.25,  # Angstrom; final x0 moved less than this from the earlier pass -> "SAME wrong" (sticky)
-        transition_coord_mag_scale: float = 2.0,  # Angstrom of excess error / degradation that saturates the coord magnitude ramp
-        occupancy_weighted_source: bool = False,  # Scale donut shell by per-slot P(real) so ghost-heavy slots start near CA
-        leak_gt_count: bool = False,  # Positive control: leak GT atom mask into source (real->shell, ghost->CA)
-        leak_gt_direction: bool = False,  # Positive control: leak GT sidechain direction into donut source
-        pseudo_cb_direction: bool = False,  # Use virtual CB direction from backbone geometry (N, CA, C) instead of GT
-        d_aa_l_source_prob: float = 0.0,  # Per-D-residue probability of forcing the SOURCE cone to L (+1) in TRAINING (D residues start on L hemisphere; flow must cross the mirror). >=1.0 = always L (old always_L_source_prior=True); <=0.0 = GT chirality everywhere (old False, new default); 0<p<1 = per-residue Bernoulli. Flow target + chirality-head supervision stay GT. Sampling always respects caller chirality.
-        element_flow_matching: bool = False,  # Use flow matching on probability simplex for element types instead of absorbing diffusion
-        split_element_existence: bool = False,  # Separate existence flow (PAD/non-PAD) from element absorbing diffusion ({C,N,O,S,MASK})
-        split_absorbing_element: bool = True,  # If True, split element diffusion is absorbing (MASK->{C,N,O,S} only). If False, non-absorbing (allows re-masking mid-trajectory).
-        split_element_flow: bool = False,  # Use flow matching on {C,N,O,S,MASK} simplex instead of discrete diffusion for split elements
-        split_element_flow_temp: float = 0.0,  # Temperature for element flow denoiser input: 0=hard argmax, >0=sharpened soft probs
-        split_element_uniform_power: bool = False,  # If True, element track uses uniform power (1.0) while existence/coords use slot schedule
-        existence_source_value: float = 0.5,  # Source value for existence flow (0.5=max entropy start)
-        existence_power: float = 1.0,  # Power schedule for existence flow (1=linear, 2=quadratic)
-        existence_threshold: float = 0.5,  # Threshold for ghost/real classification (>= threshold = real)
-        existence_absorbing: bool = False,  # Use 3-class absorbing diffusion {ghost,real,MASK} instead of continuous existence flow
-        existence_velocity_scale: float = 1.0,  # Sampling-time velocity multiplier for existence flow
-        use_shape_prior: bool = False,  # Learned sidechain shape prior: predict anchor points, bias coord flow
-        shape_prior_n_anchors: int = 4,  # Number of anchor points per residue (K). 0 disables shape prior entirely.
-        shape_prior_loss_weight: float = 1.0,  # Weight for shape prior anchor matching loss
-        use_bond_co_diffusion: bool = False,  # Latent bond graph co-diffusion: noise GT bonds, predict bond velocity
-        bond_co_diffusion_weight: float = 1.0,  # Weight for bond co-diffusion flow matching loss
-        use_coord_self_conditioning: bool = False,  # Feed previous step's predicted x₀ coords as input
-        use_plan_latent: bool = False,  # Per-residue plan latent from backbone+target
-        plan_latent_loss_weight: float = 1.0,  # Weight for plan latent supervision loss
-        use_interaction_intent: bool = False,  # Per-slot target interaction type prediction
-        interaction_intent_loss_weight: float = 1.0,  # Weight for interaction intent CE loss
-        interaction_intent_num_classes: int = 4,  # Number of intent classes (2=binary, 4=multiclass)
-        interaction_intent_velocity_bias: bool = True,  # Whether to apply velocity bias toward target for interactors
-        use_chirality: bool = False,  # Signed volume feature breaks SE(3) to distinguish L/D
-        pairwise_distance_loss_weight: float = 0.0,  # Intra-residue pairwise distance MSE (0=off)
-        bonded_geometry_loss_weight: float = 0.0,  # Bonded + nonbonded split geometry loss (0=off)
-        rotamer_rmsd_loss_weight: float = 0.0,  # Low-noise rotamer RMSD loss (0=off)
-        bond_window_loss_weight: float = 0.0,  # Bond-window classification loss (0=off)
-        bond_angle_loss_weight: float = 0.0,  # Bond angle loss on bonded triples (0=off)
-        bond_length_loss_weight: float = 0.0,  # Bond length loss on bonded pairs (bond-inject length half; 0=off)
-        scale_loss_weight: float = 0.0,  # Per-residue scale loss: penalize compressed pairwise distances (0=off)
-        dist_from_ca_loss_weight: float = 0.0,  # Per-slot distance-from-CA MSE vs GT (0=off)
-        num_edge_types: int = 3,  # 3=intra/inter/binder-target (legacy), 2=intra/extra-residue (forward-compat)
-        graph_num_edge_types: int
-        | None = None,  # If set, graph emits this many edge types (decoupled from embedding rows)
-        use_backbone_dihedral: bool = False,  # backbone dihedral graft (zero-init add)
-        use_burial_feature: bool = False,  # Cbeta-burial graft (zero-init add)
-        # === DRAFT: residue-level frame-aware stream + coarse-latent consistency (see residue_frame_stream.py) ===
-        # Off by default; byte-identical + resume-safe when off (zero-init injection). FIRST CUT -- needs review.
-        use_residue_frame_stream: bool = False,  # build + run the residue frame stream
-        residue_frame_layers: int = 2,  # #layers in the residue frame-attention stack
-        use_residue_frame_deep_inject: bool = False,  # DRAFT: ALSO inject the residue latent per-SE3-layer (needs stream on)
-        residue_frame_supervision_weight: float = 1.0,  # weight of the GT-supervision latent loss (keeps stream live)
-        residue_frame_consistency_weight: float = 1.0,  # weight of the atom-cloud consistency loss (RAMPED, tau-gated). Was 5.0 -- dropped 2026-08-05: at 5.0 it dominated gradient (~5x coord loss) + destabilized the coord track from-scratch.
-        residue_frame_consistency_ramp_frac: float = 0.3,  # ramp consistency 0->full over this fraction of max_epochs
-        # === v2 residue-frame graph (binder+target residues; orientation-only). Off by ===
-        # default; byte-identical + resume-safe when off. Mutually exclusive with the v1 stream above.
-        use_residue_frame_stream_v2: bool = False,  # build + run the v2 residue-frame graph
-        residue_frame_v2_layers: int = 2,  # #layers in the v2 cross-attention stack
-        frame_v2_clean_input: bool = True,  # True: clean geometry-only binder embed; False: pocket-conditioned fallback (v1-style)
-        # NEW: per-SE(3)-layer LIVE deep-inject of the v2 frame stream's latent into the atom transformer.
-        # Only meaningful WITH use_residue_frame_stream_v2 (AND'd below). Off => byte-identical + resume-safe.
-        use_residue_frame_v2_deep_inject: bool = False,
-        frame_v2_centroid_weight: float = 1.0,  # weight of the v2 in-frame-centroid supervision loss
-        frame_v2_chi1_weight: float = 1.0,  # weight of the v2 χ1 (cos,sin) supervision loss
-        # supervised stereochemistry (e3-sign) head on the v2 frame graph, reading vol_hidden as
-        # an auxiliary input. Off by default; only meaningful WITH use_residue_frame_stream_v2 (AND'd below,
-        # + a coherence guard in validate_training_flag_coherence). Byte-identical when off.
-        use_stereochem_head: bool = False,  # build + supervise the e3-sign (L vs D) head
-        frame_v2_stereo_weight: float = 1.0,  # weight of the stereochem BCE (only active when use_stereochem_head)
-        # t-resolution head. Off by default; only meaningful WITH use_stereochem_head (which itself
-        # needs use_residue_frame_stream_v2). AND'd below + a coherence guard in
-        # validate_training_flag_coherence. Byte-identical when off. Supervised-only (its own BCE); it does
-        # NOT feed back into coords/element/existence in this piece (that is ).
-        use_stereochem_t_resolution: bool = False,
-        stereo_t_resolution_weight: float = 1.0,  # weight of the P(D)_t BCE (only active with the flag)
-        # t-resolution COORD-FLOW FEEDBACK. Off by default; only meaningful WITH
-        # use_stereochem_t_resolution (which supplies the resolved P(D)_t to steer with, and itself needs the
-        # static stereo head + v2 stream). AND'd below + a coherence guard in validate_training_flag_coherence.
-        # Byte-identical when off (no modules built). HEAD-FIRST RAMPED (knobs below) so an UNTRAINED P(D)_t head
-        # -- whose resolved face is meaningless early -- never steers coords; =1 at inference.
-        use_stereochem_t_resolution_feedback: bool = False,
-        t_resolution_feedback_ramp_start: float = 0.1,  # epoch frac where the feedback ramp begins (off before)
-        t_resolution_feedback_ramp_end: float = 0.5,  # epoch frac where the feedback ramp reaches full (s=1)
-        # -1: sigmoid-gated cone init. Steer the pseudo-Cβ donut cone's OUT-OF-PLANE (e3) sign by the
-        # stereochem head's P(D) so D-amino acids initialize on the correct face at the SOURCE distribution.
-        # Effective only WITH use_residue_frame_stream_v2 AND use_stereochem_head AND pseudo_cb_direction
-        # (AND'd below + a coherence guard in validate_training_flag_coherence). Off => the source dist uses the
-        # ungated analytic cone unchanged => BYTE-IDENTICAL (no new params -- reuses the frame-v2 + volumetric heads).
-        use_stereochem_gated_init: bool = False,
-        # -1 head-first ramp (graft safety): blend the source-dist e3 from the ungated analytic L
-        # cone (s=0) to the P(D)-gated value (s=1) over training, mirroring the self-consistency ramp. At
-        # s=0 the gated init is byte-identical to the L cone, so an UNTRAINED stereo head (P(D)≈0.5 on a
-        # fresh graft) does NOT flatten every cone in-plane. Inference (no training_progress) => s=1 (full).
-        gated_init_ramp_start: float = 0.1,  # epoch frac where the ramp begins (s=0 == L cone before this)
-        gated_init_ramp_end: float = 0.5,  # epoch frac where the ramp reaches s=1 (full P(D)-gating)
-        # v2 REUSES residue_frame_consistency_weight / _ramp_frac / _tau for the centroid consistency term.
-        use_polarity_head: bool = False,  # burial/backbone -> element-composition expert (product-of-experts on element logits; see below). Most meaningful with use_burial_feature=True.
-        polarity_loss_weight: float = 0.1,  # weight of the supervised polarity composition CE (only active when use_polarity_head)
-        use_glycine_head: bool = False,  # backbone-DIHEDRAL(phi,psi)-only -> glycine expert: a bounded, zero-init, GT-glycine-supervised push on P(PAD) (glycine==0 real atoms). Narrow input+supervision confine it to the axis where all-PAD is CORRECT; NOT a general count lever. WARNING: modulates the fragile existence axis -- keep OFF until undercount is stable.
-        glycine_loss_weight: float = 0.1,  # weight of the supervised glycine BCE (only active when use_glycine_head)
-        glycine_pad_cap: float = 4.0,  # cap (logits) on the additive P(PAD) bias the glycine head may apply, gated by a zero-init scalar
-        activation_checkpointing: bool = False,  # Recompute SE3 layer activations during backward to save memory
-        activation_checkpoint_stride: float = 1.0,  # >1 = selective: checkpoint only every Nth SE3 layer (float-OK, e.g. 1.5)
-        use_global_latent_matching: bool = False,  # clean-context stream + per-residue latent matching (ported; default OFF = no-op)
-        global_latent_weight: float = 1.0,  # weight of the latent-matching (cosine) loss
-        global_latent_gate_t_min: float = 0.5,  # t_norm below this -> no latent loss (ramp start; high-noise gate)
-        global_latent_gate_t_full: float = 1.0,  # t_norm at/above this -> full latent-loss weight
-        global_latent_embed_dim: int = 64,  # z_pred/z_gt width; OVERRIDDEN by the lookup table width when wired
-        global_latent_qupid_lookup: str = "",  # path to the QuPID identity-embedding lookup .pt (launch-time input)
-        global_latent_confidence: bool = True,  # confidence probe + gated FiLM feedback
-        global_latent_confidence_weight: float = 0.1,  # weight of the confidence-probe MSE loss
-        global_latent_condition_main_stream: bool = True,  # FiLM the gated latent into generated atoms
-        global_latent_film_layers: str = "last",  # where to inject the FiLM feedback (this port: "last")
-        global_latent_loss_type: str = "cosine",  # "cosine" | "mse"
-        latent_self_dropout_prob: float = 0.0,  # FEATURE 3: per-residue P of blinding a DESIGNED residue's own element identity to MASK, forcing it to read identity from the injected z_pred latent. 0.0 = bit-exact off.
-        distal_threshold_cap: float = 0.0,  # FEATURE 4: LOWER the MASK-slot existence read-threshold to min(0.5*r, cap) for mid/distal slots (0.5*r>cap), recovering under-read atoms; proximal unchanged. 0.0 = OFF (bit-exact)
-        distal_jitter_cap: float = 0.0,  # FEATURE 5: cap the source jitter (tau*r) at this Angstrom for distal slots; 0.0 = OFF (bit-exact). Threaded to the coord flow.
-        distal_shell_ramp_epochs: int = 0,  # shared distal-shell warmup window for features 4 & 5; 0 = instant/no-ramp
-        graft_init_std: float = 0.0,  # >0: init the zero-init graft INJECTION modules (incl. residue_frame_deep_proj when deep-inject is on) with N(0, std) instead of zeros. 0.0 = zeros (bit-exact).
-    ):
+    def __init__(self):
+        # Fixed architecture of the released atomweaver.pt checkpoint.
+        hidden_dim = 432
+        timesteps = 250
+        schedule = "cosine"
+        max_sidechain_atoms = 14
+        prediction_type = "v"
+        coord_process_type = "flow_matching"
+        flow_ghost_power = 0.5
+        flow_real_proximal_power = 2.5
+        flow_real_distal_power = 1.0
+        flow_use_conditional_groupwise = True
+        flow_noise_scale = 1.0
+        use_cluster_particle_diffusion = False
+        disable_element_types = False
+        ghost_weight = 0.5
+        pad_sampling_init = "bare"
+        multi_count_max_plus = 1
+        decoupled_count = False
+        count_ramp_threshold = 0.9
+        count_overdispersion = 1.5
+        occupancy_gate_elements = False
+        mixture_gate_weight = 0.0
+        ghost_var_floor = 0.3
+        mixture_loss_weight = 0.0
+        all_carbon_sampling = False
+        residue_count_loss_weight = 0.0
+        mixture_lr_threshold = 1.5
+        use_existence_flow = False
+        non_pad_element_sampling = False
+        late_element_resolution = False
+        occupancy_match_timestep_floor = 0.0
+        use_volumetric_head = True
+        use_available_volume = True
+        use_single_site_context = True
+        volumetric_ss_context_p_max = 0.8
+        volumetric_context_radius = 10.0
+        volumetric_n_query = 384
+        volumetric_sigma = 0.6
+        volumetric_per_element_sigma = True
+        volumetric_sigma_element_scale = None
+        volumetric_empty_weight = 1.75
+        volumetric_fourier_frequencies = 64
+        volumetric_fourier_scale = 10.0
+        volumetric_dropout = 0.1
+        volumetric_use_softplus = True
+        volumetric_per_query_context = True
+        volumetric_context_k = 128
+        volumetric_context_heads = 4
+        volumetric_context_chunk = 32
+        volumetric_atom_anchored_queries = False
+        use_volumetric_self_consistency = True
+        self_consistency_ramp_start = 0.0
+        self_consistency_ramp_end = 0.001
+        use_volumetric_deep_inject = True
+        use_volumetric_density_inject = True
+        use_bond_angle_deep_inject = False
+        use_volumetric_existence_coupling = True
+        mixture_head_dropout = 0.0
+        dlrt_analytical_scale = 0.0
+        dlrt_detach = False
+        dlrt_ema_decay = 0.0
+        sharpen_temperature_min = 1.0
+        use_donut_source = True
+        donut_thickness_ratio = 0.3
+        use_empirical_shell_thickness = True
+        shell_target_var_scale = 1.0
+        donut_element_init = "mask"
+        absorbing_mask = True
+        evc_velocity_blend = False
+        evc_ss_noised_element_prob = 0.5
+        use_neighbor_x0_packing = True
+        neighbor_x0_packing_recycles = 2
+        neighbor_x0_packing_random_recycles = False
+        neighbor_x0_packing_max_recycles = 5
+        neighbor_x0_packing_recycle_weights = None
+        occupancy_weighted_source = False
+        split_element_existence = False
+        use_residue_frame_stream_v2 = True
+        use_stereochem_head = True
+        use_stereochem_t_resolution = True
+        use_stereochem_t_resolution_feedback = True
+        t_resolution_feedback_ramp_start = 0.0
+        t_resolution_feedback_ramp_end = 0.05
+        distal_threshold_cap = 0.0
+        distal_jitter_cap = 0.0
+        distal_shell_ramp_epochs = 0
+
         super().__init__()
 
         from .diffusion import (
@@ -4818,10 +4313,6 @@ class InverseFoldingDiffusion(nn.Module):
         from .diffusion import ELEMENT_MASK
 
         self.split_element_existence = split_element_existence
-        self.existence_source_value = existence_source_value
-        self.existence_power = existence_power
-        self.existence_threshold = existence_threshold
-        self.existence_velocity_scale = existence_velocity_scale
         self.num_element_classes = NUM_ELEMENT_TYPES + (1 if donut_element_init == "mask" else 0)
 
         # === Global latent matching (ported) -- default OFF = bit-exact no-op ===
@@ -4829,48 +4320,22 @@ class InverseFoldingDiffusion(nn.Module):
         # residue-DB class id (batch["residue_indices"], NCAA-aware via name_to_idx). The lookup width
         # sets embed_dim (the CLI value is only a fallback when no table is wired). The loss itself is
         # assembled during training; here we build the buffer + thread the flags into the denoiser.
-        self.use_global_latent_matching = use_global_latent_matching
-        self.global_latent_weight = float(global_latent_weight)
-        self.global_latent_gate_t_min = float(global_latent_gate_t_min)
-        self.global_latent_gate_t_full = float(global_latent_gate_t_full)
-        self.global_latent_confidence = bool(global_latent_confidence)
-        self.global_latent_confidence_weight = float(global_latent_confidence_weight)
-        self.global_latent_loss_type = global_latent_loss_type
-        self.global_latent_embed_dim = int(global_latent_embed_dim)
-        self.global_latent_names = None
-        self.global_latent_lookup = None
 
         # DRAFT residue-frame stream config (stored so forward can assemble the two losses + ramp).
-        self.use_residue_frame_stream = use_residue_frame_stream
         # DRAFT deep per-layer injection (effective only WITH the stream; the denoiser AND's the two).
-        self.use_residue_frame_deep_inject = bool(use_residue_frame_stream and use_residue_frame_deep_inject)
-        self.residue_frame_supervision_weight = float(residue_frame_supervision_weight)
-        self.residue_frame_consistency_weight = float(residue_frame_consistency_weight)
-        self.residue_frame_consistency_ramp_frac = float(residue_frame_consistency_ramp_frac)
         # Tau-gate the consistency loss to low noise (mirrors FCC's schedule); fixed for the first cut.
-        self.residue_frame_consistency_tau = 0.5
 
         # v2 residue-frame graph (orientation-only). Loss weights stored here; the module is
         # built inside the denoiser. Off => weights unused + nothing runs (byte-identical).
-        self.use_residue_frame_stream_v2 = bool(use_residue_frame_stream_v2)
         # NEW: v2 frame deep-inject is effective only WITH the v2 stream (AND). Stored for hparams/resume; the
         # denoiser stores the same AND'd value and owns the per-layer projections.
-        self.use_residue_frame_v2_deep_inject = bool(use_residue_frame_stream_v2 and use_residue_frame_v2_deep_inject)
-        self.frame_v2_deep_inject_detach = bool(frame_v2_deep_inject_detach)
         self.use_bond_angle_deep_inject = bool(use_bond_angle_deep_inject)
-        self.frame_v2_centroid_weight = float(frame_v2_centroid_weight)
-        self.frame_v2_chi1_weight = float(frame_v2_chi1_weight)
         # effective-gate the stereochem head with the v2 stream (the head lives inside the v2
         # module; enabling it without the stream would do nothing). The denoiser stores the AND'd value.
         self.use_stereochem_head = bool(use_residue_frame_stream_v2 and use_stereochem_head)
-        self.frame_v2_stereo_weight = float(frame_v2_stereo_weight)
         # effective-gate the t-resolution head with the static stereo head (which supplies
         # P(D)_prior) -- and, transitively, with the v2 stream (use_stereochem_head already ANDs it). Enabling
         # it without the static head would have no prior to blend against. The denoiser stores the AND'd value.
-        self.use_stereochem_t_resolution = bool(
-            use_residue_frame_stream_v2 and use_stereochem_head and use_stereochem_t_resolution
-        )
-        self.stereo_t_resolution_weight = float(stereo_t_resolution_weight)
         # effective-gate the coord-flow feedback with the t-resolution head (which produces the P(D)_t
         # it steers with) -- and, transitively, with the static stereo head + v2 stream. The denoiser stores the
         # AND'd value. Ramp knobs live here (training_progress is available at the IFD level; see
@@ -4890,129 +4355,15 @@ class InverseFoldingDiffusion(nn.Module):
         # it) AND coord_process_type=="flow_matching" (the whole recompute/steer is FM-specific -- DDPM never
         # takes the direction_override path). When any is off, the source dist is byte-identical to today (the
         # gating sits inside `if self.pseudo_cb_direction` and this AND'd flag).
-        self.use_stereochem_gated_init = bool(
-            use_residue_frame_stream_v2
-            and use_stereochem_head
-            and pseudo_cb_direction
-            and use_donut_source
-            and coord_process_type == "flow_matching"
-            and use_stereochem_gated_init
-        )
         # Head-first ramp knobs (graft safety); see _gated_init_ramp / _stereochem_gate_cone_direction.
-        self.gated_init_ramp_start = float(gated_init_ramp_start)
-        self.gated_init_ramp_end = float(gated_init_ramp_end)
 
         # VOLUMETRIC PRETRAIN-ONLY: a head-only pretrain build. Requires the head (there is nothing to
         # pretrain otherwise) and skips the SE(3) atom transformer / flow denoiser entirely so a much
         # bigger batch fits. Set BEFORE the denoiser construction so the build can be gated on it.
-        self.volumetric_pretrain_only = bool(volumetric_pretrain_only)
 
         # Skip the (VRAM-dominant) SE(3) atom denoiser in pretrain-only mode. forward() branches out at the
         # volumetric-head compute and never touches self.denoiser, so leaving it None is safe there.
-        self.denoiser = SidechainDenoiser(
-            hidden_dim=hidden_dim,
-            num_layers=num_layers,
-            max_sidechain_atoms=max_sidechain_atoms,
-            count_embed_mode=count_embed_mode,
-            use_target_conditioning=use_target_conditioning,
-            num_cross_attn_layers=num_cross_attn_layers,
-            num_cross_attn_heads=num_cross_attn_heads,
-            use_film=use_film,
-            use_bidirectional_target_conditioning=use_bidirectional_target_conditioning,
-            use_sidechain_target_residue_attention=use_sidechain_target_residue_attention,
-            target_condition_scale=target_condition_scale,
-            cluster_target_condition_scale=cluster_target_condition_scale,
-            sidechain_target_cutoff=sidechain_target_cutoff,
-            backbone_target_cutoff=backbone_target_cutoff,
-            rbf_span_to_cutoff=rbf_span_to_cutoff,
-            dropout=dropout,
-            use_jackie=use_jackie,
-            preal_gate_target=preal_gate_target,
-            use_slot_attention=use_slot_attention,
-            num_slot_attn_layers=num_slot_attn_layers,
-            num_slot_attn_heads=num_slot_attn_heads,
-            use_directional_slot_attention=use_directional_slot_attention,
-            n_scouts=n_scouts,
-            num_element_classes=self.num_element_classes,
-            use_element_velocity_coupling=use_element_velocity_coupling,
-            num_timesteps=timesteps,
-            use_ca_dist_element_feature=use_ca_dist_element_feature,
-            use_count_velocity_coupling=use_count_velocity_coupling,
-            use_bond_attention=use_bond_attention,
-            zero_init_bond_attention=zero_init_bond_attention,
-            use_valence_demand=valence_loss_weight > 0,
-            use_cross_residue_packing=use_cross_residue_packing,
-            cross_residue_packing_spatial=cross_residue_packing_spatial,
-            cross_residue_packing_k=cross_residue_packing_k,
-            cross_residue_packing_radius=cross_residue_packing_radius,
-            cross_residue_packing_min_seq_sep=cross_residue_packing_min_seq_sep,
-            use_neighbor_x0_packing=use_neighbor_x0_packing,
-            neighbor_x0_packing_radius=neighbor_x0_packing_radius,
-            neighbor_x0_highnoise_weight=neighbor_x0_highnoise_weight,
-            neighbor_x0_corrupt_add_prob=neighbor_x0_corrupt_add_prob,
-            neighbor_x0_corrupt_drop_prob=neighbor_x0_corrupt_drop_prob,
-            neighbor_x0_corrupt_noise_prob=neighbor_x0_corrupt_noise_prob,
-            neighbor_x0_corrupt_coord_noise=neighbor_x0_corrupt_coord_noise,
-            neighbor_x0_corrupt_disconnect_prob=neighbor_x0_corrupt_disconnect_prob,
-            use_shape_prior=use_shape_prior and shape_prior_n_anchors > 0,
-            shape_prior_n_anchors=shape_prior_n_anchors if shape_prior_n_anchors > 0 else 4,
-            use_bond_co_diffusion=use_bond_co_diffusion,
-            use_coord_self_conditioning=use_coord_self_conditioning,
-            use_plan_latent=use_plan_latent,
-            use_interaction_intent=use_interaction_intent,
-            interaction_intent_num_classes=interaction_intent_num_classes,
-            interaction_intent_velocity_bias=interaction_intent_velocity_bias,
-            use_chirality=use_chirality,
-            num_edge_types=num_edge_types,
-            graph_num_edge_types=graph_num_edge_types,
-            use_backbone_dihedral=use_backbone_dihedral,
-            use_burial_feature=use_burial_feature,
-            use_residue_frame_stream=use_residue_frame_stream,
-            residue_frame_layers=residue_frame_layers,
-            use_residue_frame_deep_inject=use_residue_frame_deep_inject,
-            # effective-gate the volumetric deep-inject with use_volumetric_head here (the head lives
-            # in this module, so an inject with no head would build dead projections). The denoiser stores the
-            # AND'd value directly.
-            use_volumetric_deep_inject=bool(use_volumetric_head and use_volumetric_deep_inject),
-            use_target_deep_inject=use_target_deep_inject,
-            use_backbone_deep_inject=use_backbone_deep_inject,
-            frame_v2_deep_inject_detach=frame_v2_deep_inject_detach,
-            use_bond_angle_deep_inject=use_bond_angle_deep_inject,
-            # effective-gate the existence coupling with use_volumetric_head here (the head lives in
-            # this module, so a coupling with no head would build a dead projection). The denoiser stores the
-            # AND'd value directly.
-            use_volumetric_existence_coupling=bool(use_volumetric_head and use_volumetric_existence_coupling),
-            use_residue_frame_stream_v2=use_residue_frame_stream_v2,
-            residue_frame_v2_layers=residue_frame_v2_layers,
-            frame_v2_clean_input=frame_v2_clean_input,
-            # NEW: AND with the v2 stream here (the deep-inject projections live in the denoiser, so a deep-inject
-            # with no v2 stream would build dead projections + have no source latent). The denoiser stores the AND'd value.
-            use_residue_frame_v2_deep_inject=bool(use_residue_frame_stream_v2 and use_residue_frame_v2_deep_inject),
-            # AND with the v2 stream here (the head lives inside the v2 module, so a head with no
-            # stream would build dead params). The denoiser stores the AND'd value directly.
-            use_stereochem_head=bool(use_residue_frame_stream_v2 and use_stereochem_head),
-            # AND with the v2 stream + static stereo head here (the t-resolution head needs the
-            # static P(D)_prior). The denoiser stores the AND'd value directly.
-            use_stereochem_t_resolution=bool(
-                use_residue_frame_stream_v2 and use_stereochem_head and use_stereochem_t_resolution
-            ),
-            # AND with the t-resolution head (+ static stereo head + v2 stream). The denoiser stores
-            # the AND'd value directly.
-            use_stereochem_t_resolution_feedback=bool(
-                use_residue_frame_stream_v2
-                and use_stereochem_head
-                and use_stereochem_t_resolution
-                and use_stereochem_t_resolution_feedback
-            ),
-            activation_checkpointing=activation_checkpointing,
-            activation_checkpoint_stride=activation_checkpoint_stride,
-            use_global_latent_matching=use_global_latent_matching,
-            global_latent_embed_dim=self.global_latent_embed_dim,
-            global_latent_confidence=global_latent_confidence,
-            global_latent_condition_main_stream=global_latent_condition_main_stream,
-            global_latent_film_layers=global_latent_film_layers,
-            graft_init_std=graft_init_std,
-        )
+        self.denoiser = SidechainDenoiser()
         # === Polarity head (burial/backbone -> element composition) ===================
         # A supervised bottleneck expert: from the per-residue backbone encoding (which carries the
         # Cbeta-burial contribution when use_burial_feature is on), predict the sidechain's element
@@ -5022,8 +4373,6 @@ class InverseFoldingDiffusion(nn.Module):
         # EVC / the element head; polarity only reweights identity-given-existence). See forward().
         # Zero-init the last layer so at graft time polarity_logits==0 -> uniform -> the renormalised
         # bias is a no-op, i.e. identity when resuming a checkpoint; the supervised loss grows it in.
-        self.use_polarity_head = use_polarity_head
-        self.polarity_loss_weight = polarity_loss_weight
         n_real_classes = self.num_element_classes - 1  # exclude PAD (index 0)
         self.polarity_head = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim // 2),
@@ -5032,39 +4381,8 @@ class InverseFoldingDiffusion(nn.Module):
         )
         nn.init.zeros_(self.polarity_head[-1].weight)
         nn.init.zeros_(self.polarity_head[-1].bias)
-        self.use_glycine_head = use_glycine_head
-        self.glycine_loss_weight = glycine_loss_weight
-        self.glycine_pad_cap = glycine_pad_cap
-        self.use_coord_self_conditioning = use_coord_self_conditioning
-        self.use_plan_latent = use_plan_latent
-        self.use_interaction_intent = use_interaction_intent
-        self.use_chirality = use_chirality
-        self.pairwise_distance_loss_weight = pairwise_distance_loss_weight
-        self.bonded_geometry_loss_weight = bonded_geometry_loss_weight
-        self.rotamer_rmsd_loss_weight = rotamer_rmsd_loss_weight
-        self.bond_window_loss_weight = bond_window_loss_weight
-        self.bond_angle_loss_weight = bond_angle_loss_weight
-        self.bond_length_loss_weight = bond_length_loss_weight
-        self.scale_loss_weight = scale_loss_weight
-        self.dist_from_ca_loss_weight = dist_from_ca_loss_weight
-        self.use_element_velocity_coupling = use_element_velocity_coupling
-        self.use_count_velocity_coupling = use_count_velocity_coupling
-        self.use_bond_attention = use_bond_attention
-        self.bond_loss_weight = bond_loss_weight
-        self.pocket_contact_loss_weight = pocket_contact_loss_weight
-        self.valence_loss_weight = valence_loss_weight
-        self.use_cross_residue_packing = use_cross_residue_packing
-        self.packing_contact_loss_weight = packing_contact_loss_weight
-        self.cross_residue_packing_spatial = cross_residue_packing_spatial
-        self.cross_residue_packing_k = cross_residue_packing_k
-        self.cross_residue_packing_radius = cross_residue_packing_radius
-        self.cross_residue_packing_min_seq_sep = cross_residue_packing_min_seq_sep
         self.use_neighbor_x0_packing = use_neighbor_x0_packing
         self.neighbor_x0_packing_recycles = max(1, int(neighbor_x0_packing_recycles))
-        self.neighbor_x0_packing_radius = neighbor_x0_packing_radius
-        self.neighbor_self_dropout_prob = float(neighbor_self_dropout_prob)
-        self.neighbor_x0_highnoise_weight = float(neighbor_x0_highnoise_weight)
-        self.latent_self_dropout_prob = float(latent_self_dropout_prob)
         self.distal_threshold_cap = float(distal_threshold_cap)
         self.distal_shell_ramp_epochs = int(distal_shell_ramp_epochs)
         # MODE guard (v36 FEATURE 3): latent self-dropout writes ELEMENT_MASK, which is a distinct
@@ -5073,9 +4391,6 @@ class InverseFoldingDiffusion(nn.Module):
         # row (or it collides with carbon at index 0), so the blinding is silently WRONG rather than
         # merely inert. Fail loud at construction (the flag is new, so no historical checkpoint trips
         # this). Also enforced in validate_training_flag_coherence for a friendlier launch message.
-        self.neighbor_x0_packing_prob_start = neighbor_x0_packing_prob_start
-        self.neighbor_x0_packing_prob_end = neighbor_x0_packing_prob_end
-        self.neighbor_x0_packing_ramp_epochs = neighbor_x0_packing_ramp_epochs
         self.neighbor_x0_packing_random_recycles = bool(neighbor_x0_packing_random_recycles)
         self.neighbor_x0_packing_max_recycles = int(neighbor_x0_packing_max_recycles)
         # Parsed (and validated) only when the draw can actually happen, so an eval/resume loader
@@ -5087,31 +4402,8 @@ class InverseFoldingDiffusion(nn.Module):
             if (use_neighbor_x0_packing and self.neighbor_x0_packing_random_recycles)
             else None
         )
-        self.use_transition_weighted_loss = use_transition_weighted_loss
-        self.transition_weight_sticky = float(transition_weight_sticky)
-        self.transition_weight_revised = float(transition_weight_revised)
-        self.transition_weight_regression = float(transition_weight_regression)
-        self.transition_weight_cap = float(transition_weight_cap)
-        self.transition_coord_tol = float(transition_coord_tol)
-        self.transition_coord_same_tol = float(transition_coord_same_tol)
-        self.transition_coord_mag_scale = float(transition_coord_mag_scale)
-        self.use_shape_prior = use_shape_prior
-        self.shape_prior_loss_weight = shape_prior_loss_weight
-        self.use_bond_co_diffusion = use_bond_co_diffusion
-        self.bond_co_diffusion_weight = bond_co_diffusion_weight
-        self.plan_latent_loss_weight = plan_latent_loss_weight
-        self.interaction_intent_loss_weight = interaction_intent_loss_weight
-        self.leak_gt_count = leak_gt_count
-        self.leak_gt_direction = leak_gt_direction
-        self.pseudo_cb_direction = pseudo_cb_direction
-        self.d_aa_l_source_prob = float(d_aa_l_source_prob)
-        self.evc_scheduled_sampling_prob = evc_scheduled_sampling_prob
-        self.evc_soft_conditioning = evc_soft_conditioning
         self.evc_velocity_blend = evc_velocity_blend
-        self.evc_ss_corruption = evc_ss_corruption
-        self.ss_underfill_bias = ss_underfill_bias
         self.evc_ss_noised_element_prob = evc_ss_noised_element_prob
-        self.evc_ss_corrupt_selfcond = evc_ss_corrupt_selfcond
         # PRETRAIN-ONLY: the denoiser is None, so its post-construction attribute wiring is skipped (nothing
         # downstream in the pretrain path reads these). Off => byte-identical (the block runs exactly as today).
         if self.denoiser is not None:
@@ -5219,29 +4511,11 @@ class InverseFoldingDiffusion(nn.Module):
         self.element_diffusion.class_weights.copy_(data_weights)
 
         # Element flow matching: continuous flow on probability simplex as alternative to absorbing diffusion
-        self.element_flow_matching = element_flow_matching
 
         # Late element resolution: standard PAD-aware element diffusion throughout, but
         # non-PAD slots are stochastically collapsed to Carbon based on a cosine schedule
         # compressed into [0, cutoff]. Chemistry {C,N,O,S} resolves smoothly in the final
         # portion of the trajectory. PAD/non-PAD signal is preserved at all noise levels.
-        self.non_pad_element_sampling = non_pad_element_sampling
-        self.late_element_resolution = late_element_resolution
-        self.late_element_cutoff = late_element_cutoff
-        self.contact_weight_min = contact_weight_min
-        self.contact_weight_scale = contact_weight_scale
-        self.contact_weight_boost = contact_weight_boost
-        self.contact_weight_coord = contact_weight_coord
-        self.contact_weight_count = contact_weight_count
-        self.fill_corrected_coord_weight = fill_corrected_coord_weight
-        self.fcc_slope = fcc_slope
-        self.fcc_tau = fcc_tau
-        self.fcc_per_env = fcc_per_env
-        self.fcc_slope_buried = fcc_slope_buried
-        self.fcc_slope_exposed = fcc_slope_exposed
-        self.occupancy_match_loss_weight = occupancy_match_loss_weight
-        self.occupancy_match_sigma = occupancy_match_sigma
-        self.occupancy_match_tau = occupancy_match_tau
         # Validated fail-loud (finite, in [0.0, 1.0]) -- this floor is relaunch-critical: >1 reverses the
         # floor + (1-floor)*base interpolation, nan poisons the loss, <0 silently disables. Checked inline
         # (not via a training-side validator) because the training module imports models.py -> importing it back here
@@ -5252,7 +4526,6 @@ class InverseFoldingDiffusion(nn.Module):
                 f"occupancy_match_timestep_floor must be finite in [0.0, 1.0] (got {_occ_floor!r}); "
                 ">1 reverses the interpolation, nan poisons the loss, <0 silently disables"
             )
-        self.occupancy_match_timestep_floor = _occ_floor
 
         # Volumetric self-occupancy head (). Built ONLY when opted in, so the model is
         # byte-identical (no new params / no RNG advance) when off, and resume-safe. The head is
@@ -5265,28 +4538,20 @@ class InverseFoldingDiffusion(nn.Module):
         # CE to filter references whose sidechain exceeds the model's budget (representability), matching the
         # atom-disc path's max_sc filter.
         self.max_sidechain_atoms = int(max_sidechain_atoms)
-        self.volumetric_loss_weight = float(volumetric_loss_weight)
         # SCALE-ANCHOR weight (per-residue total-mass match). 0.0 => not added (byte-identical). Meaningful
         # only WITH use_volumetric_head (guarded at the loss add-sites below).
-        self.volumetric_scale_anchor_weight = float(volumetric_scale_anchor_weight)
         # VOLUMETRIC DECOY CE (FT-only). Plain scalars consumed by DiffusionLightningModule.training_step (which
         # owns the residue-DB decoys + the reference-density library). Stored raw (NOT AND'd with the head) so the
         # __init__ guard below can fail loud on an incoherent request; the training_step CE path is head-gated.
-        self.volumetric_decoy_ce_weight = float(volumetric_decoy_ce_weight)
-        self.volumetric_decoy_ce_temperature = float(volumetric_decoy_ce_temperature)
         # INTEGRATED volumetric loss target: self-sidechain-only GT (False, historical) vs own-only
         # region-bucketed self-occupancy objective (True). Effective only WITH the head (the loss term is head-gated),
         # so store the AND -- False when the head is off keeps every off path byte-identical.
-        self.volumetric_loss_supervision_target = bool(use_volumetric_head and volumetric_loss_supervision_target)
         # A/B toggle for the self-occupancy occupancy target composition. Default False = own-only (faithful);
         # True = legacy own+context. Threaded into _supervision_full_field_occupancy_loss (both the pretrain-only and
         # integrated self-occupancy-target paths).
-        self.volumetric_target_include_context = bool(volumetric_target_include_context)
-        self.volumetric_empty_weight = float(volumetric_empty_weight)
         # VOLUMETRIC-FAITHFUL ATOM-ANCHORED QUERIES. Effective only WITH the head (AND); stored so the pretrain-only
         # forward knows to sample per-residue atom-anchored queries + supervise the head at them. False when the
         # head is off keeps every off path byte-identical.
-        self.volumetric_atom_anchored_queries = bool(use_volumetric_head and volumetric_atom_anchored_queries)
         # volumetric deep-inject is effective only WITH the head (AND). Stored so forward/sample can
         # decide to compute `vol_hidden` early (before the denoiser) and thread it into every SE(3) layer.
         self.use_volumetric_deep_inject = bool(use_volumetric_head and use_volumetric_deep_inject)
@@ -5325,7 +4590,6 @@ class InverseFoldingDiffusion(nn.Module):
         # neighbours and returns before any flow, so there is no predicted x0 to mix in). Refuse both incoherent
         # combos loudly on EVERY construction path -- mirrors the decoy-CE / available-volume guards.
         self.volumetric_ss_context_p_max = float(volumetric_ss_context_p_max)
-        self.volumetric_ss_context_start_epoch = int(volumetric_ss_context_start_epoch)
         if not (0.0 <= self.volumetric_ss_context_p_max <= 1.0):
             raise ValueError(
                 f"volumetric_ss_context_p_max={self.volumetric_ss_context_p_max} must be in [0, 1] (it is a "
@@ -5347,7 +4611,6 @@ class InverseFoldingDiffusion(nn.Module):
         # mirrors the deep-inject / existence-coupling "flag set but inert" guards in
         # validate_training_flag_coherence. Kept here so EVERY construction path (Ray/eval rebuild, tests,
         # direct instantiation) is protected, not just the CLI.
-        self.freeze_volumetric_head = bool(freeze_volumetric_head)
         # a self-occupancy-PRETRAINED head that is LEFT THAWED (not frozen) and trained with a
         # positive integrated volumetric_loss_weight against the SELF-SIDECHAIN-ONLY target (the head's simplified
         # anti-leak MSE) would be pulled OFF the own-only region-bucketed self-occupancy objective it was just pretrained
@@ -5423,104 +4686,41 @@ class InverseFoldingDiffusion(nn.Module):
         # self-consistency (flow-x0 density <-> head density). Effective only WITH the head, so
         # the AND makes the flag inert (byte-identical) when the head is off. Ramp knobs are epoch fracs.
         self.use_volumetric_self_consistency = bool(use_volumetric_head and use_volumetric_self_consistency)
-        self.self_consistency_weight = float(self_consistency_weight)
         self.self_consistency_ramp_start = float(self_consistency_ramp_start)
         self.self_consistency_ramp_end = float(self_consistency_ramp_end)
         # Positive-value guards: bad launch values would divide-by-zero in the tau gate / density kernel.
 
         # Existence flow: continuous flow-matched existence variable (0=ghost, 1=real)
         self.mixture_lr_threshold = mixture_lr_threshold
-        self.mixture_real_var_floor = mixture_real_var_floor
         self.use_existence_flow = use_existence_flow
-        self.existence_loss_weight = existence_loss_weight
-        self.existence_absorbing = existence_absorbing
 
         # Split existence/element: separate existence flow from element diffusion.
         # Existence flow handles PAD/non-PAD (atom count), element diffusion handles {C,N,O,S,MASK}.
-        self.split_absorbing_element = split_absorbing_element
 
         # Split element flow matching: continuous flow on {C,N,O,S,MASK} simplex
         # Replaces discrete diffusion for element types in split mode.
-        self.split_element_flow = split_element_flow
-        self.split_element_flow_temp = split_element_flow_temp
-        self.split_element_uniform_power = split_element_uniform_power
 
         # Prior cloud: backbone-conditioned centroid/logvar heads.
         # Predicts from backbone_features (stable, available before sidechain denoising)
         # to provide a meaningful mixture signal at high noise when sidechain atoms are garbage.
 
-        self.prediction_type = prediction_type
-        self.coord_process_type = coord_process_type
-        self.flow_ghost_power = flow_ghost_power
         self.flow_real_proximal_power = flow_real_proximal_power
         self.flow_real_distal_power = flow_real_distal_power
-        self.flow_use_conditional_groupwise = flow_use_conditional_groupwise
         self.ghost_weight = ghost_weight
-        self.pad_sampling_init = pad_sampling_init
-        self.element_fn_weight = element_fn_weight
-        self.element_loss_non_pad_only = element_loss_non_pad_only
-        self.atom_mask_loss_weight = atom_mask_loss_weight
-        self.mask_bce_pos_weight_cap = mask_bce_pos_weight_cap
-        self.soft_count_loss_weight = soft_count_loss_weight
-        self.use_multi_count_discretization = use_multi_count_discretization
         self.multi_count_max_plus = multi_count_max_plus
-        self.decoupled_count = decoupled_count
-        self.count_perturb_prob = count_perturb_prob
-        self.count_corr_tau = count_corr_tau
-        self.count_tau_floor = count_tau_floor
-        self.occupancy_loss_weight = occupancy_loss_weight
         self.occupancy_gate_elements = occupancy_gate_elements
-        self.occupancy_gate_strength = occupancy_gate_strength
-        self.coord_dropout = coord_dropout
         self.mixture_gate_weight = mixture_gate_weight
         self.ghost_var_floor = ghost_var_floor
         self.mixture_loss_weight = mixture_loss_weight
-        self.mixture_gate_max_noise = mixture_gate_max_noise
-        self.mixture_override_pad = mixture_override_pad
-        self.disc_detach_mask = disc_detach_mask
-        self.all_carbon_sampling = all_carbon_sampling
-        self.position_based_element_powers = position_based_element_powers
-        self.preal_gate_target = preal_gate_target
         self.residue_count_loss_weight = residue_count_loss_weight
-        self.count_ranking_loss_weight = count_ranking_loss_weight
-        self.count_pearson_loss_weight = count_pearson_loss_weight
-        self.noise_dependent_ghost_weight = noise_dependent_ghost_weight
         # Whether to use per-slot element noise schedules matched to coordinate flow powers.
         # When True, distal real atoms stay non-PAD longer in forward (matching their coord schedule),
         # and ghost atoms transition to PAD faster. Controlled by flow_use_conditional_groupwise.
         self.groupwise_element_schedule = flow_use_conditional_groupwise and coord_process_type == "flow_matching"
-        self.count_extreme_alpha = count_extreme_alpha
-        self.asymmetric_perturb = asymmetric_perturb
-        self.mixture_head_dropout = mixture_head_dropout
-        self.rc_head_tau = rc_head_tau
-        self.dynamic_lrt = dynamic_lrt
-        self.dynamic_lrt_weight = dynamic_lrt_weight
-        self.dynamic_lrt_clamp = dynamic_lrt_clamp
-        self.dynamic_lrt_loss_type = dynamic_lrt_loss_type
-        self.dynamic_lrt_rank_weight = dynamic_lrt_rank_weight
-        self.dynamic_lrt_reg_weight = dynamic_lrt_reg_weight
         self.dlrt_analytical_scale = dlrt_analytical_scale
-        self.dlrt_detach = dlrt_detach
-        self.dlrt_sample_scale = dlrt_sample_scale
-        self.dlrt_ema_decay = dlrt_ema_decay
-        self.use_split_velocity = use_split_velocity
-        self.split_velocity_sampling_only = split_velocity_sampling_only
-        self.use_prior_cloud = use_prior_cloud
-        self.prior_cloud_loss_weight = prior_cloud_loss_weight
-        self.prior_blend_power = prior_blend_power
         self.sharpen_temperature_min = sharpen_temperature_min
-        self.sharpen_temperature_power = sharpen_temperature_power
-        self.sidechain_corrupt_prob = sidechain_corrupt_prob
-        self.sidechain_corrupt_noise_gate = sidechain_corrupt_noise_gate
-        self.sidechain_corrupt_distal_only = sidechain_corrupt_distal_only
-        self.sidechain_compress_prob = sidechain_compress_prob
-        self.rotation_corruption_prob = rotation_corruption_prob
-        self.rotation_corruption_max_angle = rotation_corruption_max_angle
-        self.rotation_corruption_min_tau = float(rotation_corruption_min_tau)
         # (stereochem): mirror-flip + in-plane-flatten coord-input corruption probabilities. Both
         # reuse rotation_corruption_min_tau as the t≈0 floor (identical 1/s singularity in the recompute).
-        self.mirror_corruption_prob = float(mirror_corruption_prob)
-        self.inplane_corruption_prob = float(inplane_corruption_prob)
         # FM-ONLY guard: rotation-corruption edits the noised INPUT (x_t) and REQUIRES rebuilding the
         # flow-matching velocity target from the implied corrupted source (recompute_target_for_corrupted_xt).
         # That recompute is specific to the linear-interpolant velocity target; under DDPM/v/epsilon there is
@@ -5553,11 +4753,6 @@ class InverseFoldingDiffusion(nn.Module):
         # stereo (mirror / in-plane) corruptions; it is a tau=t/(T-1) fraction, so 0 < min_tau <= 1
         # (0 would re-admit the 1/s singularity it exists to gate). Enforce when ANY of those corruptions is on.
 
-        self.main_path_underfill_prob = main_path_underfill_prob
-        self.main_path_underfill_bias = main_path_underfill_bias
-        self.autoregressive_training = autoregressive_training
-        self.ar_isolated_residues = ar_isolated_residues
-
         sampling_mode_count = sum(
             int(flag) for flag in (all_carbon_sampling, late_element_resolution, non_pad_element_sampling)
         )
@@ -5581,55 +4776,19 @@ class InverseFoldingDiffusion(nn.Module):
         self.register_buffer("_slot_coord_var", torch.ones(max_sidechain_atoms))
 
         self.timesteps = timesteps
-        self.use_target_conditioning = use_target_conditioning
-        self.timestep_sampling = timestep_sampling
-        self.coord_loss_weight = coord_loss_weight
-        self.element_loss_weight = element_loss_weight
-        self.atom_count_loss_weight = atom_count_loss_weight
-        self.count_correlation_loss_weight = count_correlation_loss_weight
-        self.count_loss_type = count_loss_type
         # Coordinate normalization: training coords have std ~100 Angstroms
         # Divide by this to get unit variance (~1.0) for proper diffusion
         # Only scale, don't shift mean (SE(3) equivariance requires translation invariance)
-        self.coord_scale = coord_scale
 
         # Element type dropout: prevents model from over-relying on element types
-        self.element_type_drop_prob = element_type_drop_prob
-        self.element_type_token_drop_prob = element_type_token_drop_prob
-        self.element_type_drop_schedule = element_type_drop_schedule
-        self.self_conditioning_prob = self_conditioning_prob
         self.use_cluster_particle_diffusion = use_cluster_particle_diffusion
-        self.oracle_atom_counts = oracle_atom_counts
-        self.cluster_assignment_loss_weight = cluster_assignment_loss_weight
-        self.cluster_cohesion_loss_weight = cluster_cohesion_loss_weight
-        self.cluster_structure_loss_weight = cluster_structure_loss_weight
-        self.cluster_contrastive_loss_weight = cluster_contrastive_loss_weight
-        self.target_condition_scale = target_condition_scale
-        self.cluster_target_condition_scale = cluster_target_condition_scale
-        self.cluster_split_ramp_power = cluster_split_ramp_power
-        self.cluster_label_permutation_prob = cluster_label_permutation_prob
-        self.cluster_feature_warmup_fraction = cluster_feature_warmup_fraction
         # Self-conditioning: reduces exposure bias by training model on its own predictions
-        self.self_conditioning_prob = self_conditioning_prob
-        self.cluster_sampling_keep_start = 8.0  # Strongly prefer keeping current cluster at high noise
-        self.cluster_sampling_keep_end = 0.2  # Keep a little late inertia to avoid collapsing far below target counts
-        self.cluster_sampling_local_top_k = 4  # Allow only a few nearby merge targets per step
-        self.cluster_sampling_soft_occupancy_floor = 0.85  # Do not merge far below soft expected occupancy
-        self.cluster_sampling_soft_keep_strength = 4.0  # Preserve labels the model still believes are occupied
         # Preserve more late occupancy to prevent undercount collapse.
-        self.cluster_sampling_soft_occupancy_floor_end = 0.7
-        self.cluster_sampling_temperature_start = 0.85  # Slightly sharper updates at high noise
-        self.cluster_sampling_temperature_end = 1.15  # Keep some late flexibility without over-merging stochastically
-        self.cluster_sampling_resplit_start = 0.0  # Disabled by default; can be enabled for sampler-only repair tests
-        self.cluster_sampling_resplit_end = 0.0
-        self.cluster_sampling_resplit_min_occupancy = 0.25
 
         # Min-SNR-gamma: boost coordinate loss at low noise where v-prediction
         # provides weak x₀ reconstruction gradients (SNR is high -> x₀ ≈ xₜ)
-        self.min_snr_gamma = min_snr_gamma
 
         # Coordinate noise augmentation: small Gaussian noise on all input coords during training
-        self.coord_noise_std = coord_noise_std
 
         # Element type disable flag
         self.disable_element_types = disable_element_types
