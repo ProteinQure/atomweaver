@@ -16,8 +16,6 @@ Modes:
     PDB residue order), holding the rest fixed to the input side chains.
 """
 
-import os
-import sys
 import warnings
 
 # Quiet the noisy load-time warnings from the ML stack (torch / sklearn version notes / biotite);
@@ -30,16 +28,8 @@ from typing import Optional
 import torch
 import typer
 
-# ``sampling_knobs`` sits beside this script. Run as a script, this directory is already on sys.path;
-# imported as a library it is not, so state the path.
-_HERE = Path(__file__).resolve().parent
-if str(_HERE) not in sys.path:
-    sys.path.insert(0, str(_HERE))
-
-import sampling_knobs  # noqa: E402
-from sampling_knobs import SamplingConfig  # noqa: E402
-
-from atomweaver.joint_diffusion.datasets import peptide_chain_ccds  # noqa: E402
+from atomweaver.joint_diffusion.datasets import peptide_chain_ccds
+from atomweaver.joint_diffusion.sampling import SamplingConfig, apply_sampling_config
 
 app = typer.Typer(add_completion=False)
 
@@ -191,101 +181,6 @@ def _target_kwargs(batch):
     return out
 
 
-def _checkpoint_provenance_name(checkpoint: str = "") -> str:
-    """
-    Compact checkpoint identity for per-row provenance.
-
-    ``last.ckpt`` alone is not an identity in this workflow: both checkpoint axes in the cyclosporin
-    grid are usually loaded from a run directory ending in ``checkpoints/last.ckpt``. Keep named
-    checkpoint files unchanged, but qualify generic ``last.ckpt`` with the run directory so the grid
-    can verify an epoch label from the CSV itself.
-    """
-    if not checkpoint:
-        return ""
-    path = Path(checkpoint)
-    if path.name != "last.ckpt":
-        return path.name
-    run_dir = path.parent.parent if path.parent.name == "checkpoints" else path.parent
-    return f"{run_dir.name}/{path.name}" if run_dir.name else path.name
-
-
-def apply_sampling_config(model, cfg: SamplingConfig) -> None:
-    """
-    Apply a resolved sampling recipe to an already-built model.
-
-    Factored out of ``main`` because it was only ever reachable through the Typer CLI. Studies that
-    import this eval as a library call ``load_model`` directly and so silently
-    ran with every knob here unapplied, while knobs read deeper in the model (geometric reconcile,
-    the absorbing override) did fire. The NCAA panel therefore reported a shell-variance recipe for
-    runs that never used one, and the only tell was a missing log line.
-
-    Byte-identical to the untouched model when ``cfg`` is at its defaults; every branch prints what
-    it did.
-
-    APPLIED AT MOST ONCE PER MODEL. The shell knobs mutate registered buffers in place, so a second
-    call would compound them -- thickness by ``vs`` instead of ``sqrt(vs)``, radial variance by
-    ``vs**2`` -- while printing the same line both times. No caller does that today, but this
-    function exists precisely so library callers invoke it themselves, and the CLI's own ``main``
-    still calls it, so a driver that did both would silently sample at a variance nobody configured.
-    Re-entry is a no-op with a log line rather than an error, because the safe reading of a second
-    call is "make sure the knobs are applied", not "apply them twice".
-
-    Parameters
-    ----------
-    model
-        The built model, mutated in place.
-    cfg
-        The resolved recipe. Build it with :meth:`SamplingConfig.resolve_all` at a CLI entry point,
-        or :meth:`SamplingConfig.from_env` to reproduce the historical environment-only behaviour.
-    """
-    if getattr(model, "_sampling_env_overrides_applied", False):
-        typer.echo("[sampling-env] already applied to this model; skipping (these knobs do not compound)")
-        return
-    model._sampling_env_overrides_applied = True
-    if os.environ.get("ATOMWEAVER_VERBOSE"):
-        for line in cfg.describe():
-            typer.echo(line)
-    _var_scale = cfg.shell_var_scale
-    if _var_scale is not None:
-        # Negative values are rejected in SamplingConfig.validate, before the model is even built:
-        # (-0.25) ** 0.5 is complex in Python 3, so both the mul_ and the f-string below would fail
-        # with something unrecognisable after an hour of load time.
-        _vs = float(_var_scale)
-        _cf = model.coord_flow
-        _before = _cf._shell_source_var.clone() if hasattr(_cf, "_shell_source_var") else None
-        with torch.no_grad():
-            if hasattr(_cf, "_shell_thickness"):
-                _cf._shell_thickness.mul_(_vs**0.5)
-            if hasattr(_cf, "_shell_radial_var"):
-                _cf._shell_radial_var.mul_(_vs)
-            if all(hasattr(_cf, _b) for _b in ("_shell_source_var", "_shell_radii", "_shell_thickness")):
-                _cf._shell_source_var.copy_(_cf._shell_radii**2 / 3.0 + _cf._shell_thickness**2)
-        # This knob scales the JITTER, and the difference from scaling the source variance is not
-        # small. The source draw is Ca + r*d + tau*eta*r, whose per-axis variance is
-        # r^2/3 + tau^2*r^2, and only the tau^2*r^2 term moves -- at the production tau=0.3 the
-        # untouched r^2/3 directional term is the dominant one. So var_scale=0.25 changes the source
-        # variance by x0.84, not x0.25, and var_scale=0.1 by x0.81, not x0.10. The old line read
-        # "variance x0.25", and that string is where the var025 run labels came from. Report the
-        # REALISED ratio, measured off the buffer rather than re-derived, so the label cannot drift.
-        _realised = float((_cf._shell_source_var.sum() / _before.sum()).item()) if _before is not None else float("nan")
-        typer.echo(
-            f"[shell-var-scale] jitter variance x{_vs} (thickness x{_vs**0.5:.3f}); "
-            f"SOURCE variance x{_realised:.3f} -- the shell-radius term r^2/3 is not scaled"
-        )
-
-
-def apply_sampling_env_overrides(model) -> None:
-    """
-    Apply the sampling knobs from the environment alone.
-
-    .. deprecated::
-        Resolve a :class:`SamplingConfig` and call :func:`apply_sampling_config` instead, so the
-        recipe is visible and can be recorded. Kept because in-flight drivers call this by name;
-        it resolves from the environment, which warns per variable.
-    """
-    apply_sampling_config(model, SamplingConfig.from_env())
-
-
 @app.command()
 def main(
     pdb_dir: str = typer.Option(..., help="Directory of input PDBs (peptide backbone + optional target)."),
@@ -337,15 +232,7 @@ def main(
 
     # Resolve the sampling recipe first, so a bad value is caught in milliseconds rather than after
     # the model has loaded.
-    cfg = SamplingConfig.resolve_all()
-    _undeclared = sampling_knobs.undeclared_atomweaver_vars()
-    if _undeclared and os.environ.get("ATOMWEAVER_VERBOSE"):
-        # Not an error -- a scratch variable is not a defect -- but a variable the package does not
-        # recognise is worth surfacing in case it was meant to take effect.
-        typer.echo(
-            f"[sampling-config] WARNING undeclared ATOMWEAVER_* in the environment: {', '.join(_undeclared)}. "
-            "If any of these is meant to affect sampling, add it to sampling_knobs.KNOWN_KNOBS."
-        )
+    cfg = SamplingConfig.from_env()
 
     lm = _load_model(Path(checkpoint), sampling_db, device, coord_process_type=(coord_process_type or None))
     model = lm.model
@@ -441,6 +328,7 @@ def main(
             sidechain_mask=torch.ones_like(gt_m),
             seq_mask=seq_mask,
             num_steps=num_steps,
+            neighbor_x0_packing_recycles=cfg.recycles,
             element_sampling_temp_max=1.0,
             reserved_slot0_prefix_exempt=reserved_slot0_prefix_exempt,
             chirality=chirality,

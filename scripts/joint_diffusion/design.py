@@ -75,7 +75,6 @@ DEF_EVAL_DB = str(_REPO_ROOT / "data" / "reference_library.pt")
 DEF_SAMPLING_DB = str(_REPO_ROOT / "data" / "sampling_library.pt")
 DEF_HEAD = str(_REPO_ROOT / "data" / "readout_head_full300.joblib")
 CANON20_HEAD = str(_REPO_ROOT / "data" / "readout_head_canon20.joblib")
-DEF_READOUT_CACHE = str(_REPO_ROOT / "data" / "readout_cache.pkl")
 DEF_PRESET = "b2_balanced"
 
 EVAL_SCRIPT = "scripts/joint_diffusion/sample.py"
@@ -136,7 +135,6 @@ def build_sampling(
     checkpoint: str,
     eval_db: str,
     sampling_db: str,
-    readout_cache: str,
     repo: str,
     num_samples: int,
     num_steps: int,
@@ -148,9 +146,6 @@ def build_sampling(
         "ATOMWEAVER_SHELL_VAR_SCALE": "0.25",
         "ATOMWEAVER_DISC_REPACK": "1",
         "ATOMWEAVER_SAMPLE_RECYCLES": "1",
-        "ATOMWEAVER_LEARNED_READOUT": "1",
-        "ATOMWEAVER_READOUT_CACHE": readout_cache,
-        "ATOMWEAVER_LEARNED_CHIRALITY_GATE": "1",
         "PYTHONPATH": repo,
         "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
         "CUDA_VISIBLE_DEVICES": str(gpu),
@@ -307,9 +302,6 @@ def main(
     eval_db: str = typer.Option(DEF_EVAL_DB, "--eval-db", help="Read-out vocab DB; also the hybrid NDM --ref-db."),
     sampling_db: str = typer.Option(DEF_SAMPLING_DB, "--sampling-db", help="Model-load DB (not used for scoring)."),
     head: str = typer.Option(DEF_HEAD, "--head", help="Learned head (.joblib) -- general full300 by default."),
-    readout_cache: str = typer.Option(
-        DEF_READOUT_CACHE, "--readout-cache", help="ATOMWEAVER_READOUT_CACHE for sampling."
-    ),
     repo: str = typer.Option(DEF_REPO, "--repo", help="atomweaver checkout root."),
     preset: str = typer.Option(DEF_PRESET, "--preset", help="Hybrid read-out preset."),
     num_steps: int = typer.Option(250, "--num-steps"),
@@ -353,7 +345,6 @@ def main(
         checkpoint=checkpoint,
         eval_db=eval_db,
         sampling_db=sampling_db,
-        readout_cache=readout_cache,
         repo=repo,
         num_samples=num_samples,
         num_steps=num_steps,

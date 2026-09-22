@@ -6,8 +6,7 @@ import pytest
 import torch
 
 from atomweaver.joint_diffusion.model_loader import load_model
-from scripts.joint_diffusion.sample import apply_sampling_config
-from scripts.joint_diffusion.sampling_knobs import SamplingConfig
+from atomweaver.joint_diffusion.sampling import SamplingConfig, apply_sampling_config
 
 ROOT = Path(__file__).resolve().parents[1]
 

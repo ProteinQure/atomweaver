@@ -5290,17 +5290,7 @@ class InverseFoldingDiffusion(nn.Module):
         device = backbone_coords.device
 
         num_steps = num_steps or self.timesteps
-        # Alias so the per-step recycle loop below is not shadowed by the kwarg name.
-        # SAMPLING RECYCLE DEFAULT: an EXPLICIT `neighbor_x0_packing_recycles` arg always wins. When the arg
-        # is None (the common eval path) we no longer inherit the checkpoint's TRAINING value
-        # (`self.neighbor_x0_packing_recycles`, typically 2 => a wasteful 2-pass recycle at inference); we fall
-        # back to the `ATOMWEAVER_SAMPLE_RECYCLES` env var (default "1") so sampling is a genuine SINGLE forward
-        # pass unless the caller/driver overrides it. With the single-site inference context (below) the
-        # prev-step predicted-x0 now supplies what the recycle used to provide. `_n_rc = max(1, _sample_recycles)`
-        # downstream, and `_n_rc == 1` => the coord-flow neighbour-x0 recycle loop never fires (single pass).
-        _sample_recycles = neighbor_x0_packing_recycles
-        if _sample_recycles is None:
-            _sample_recycles = max(1, int(os.environ.get("ATOMWEAVER_SAMPLE_RECYCLES", "1")))
+        _sample_recycles = max(1, neighbor_x0_packing_recycles or 1)
         _sample_absorbing = self.absorbing_mask
 
         # Start from CA-relative noise
