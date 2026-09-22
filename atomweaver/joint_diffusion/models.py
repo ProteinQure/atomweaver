@@ -7,16 +7,11 @@ atom clouds conditioned on fixed backbone coordinates and diffusion timestep.
 
 from __future__ import annotations
 
-import math
 import os
-from typing import TYPE_CHECKING
 
 import torch
 import torch.nn as nn
 from torch.nn import functional as F  # noqa: N812
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
 from .diffusion import ELEMENT_PAD, NUM_ELEMENT_TYPES, TimestepEmbedding
 from .egnn import (
@@ -910,66 +905,6 @@ NEIGHBOR_X0_RECYCLE_WEIGHTS_DEFAULT: tuple[float, ...] = (0.70, 0.15, 0.10, 0.05
 #: Smallest randomisable recycle count. N=1 is the unconditioned single pass, which the firing
 #: PROBABILITY ramp already covers, so the random-N draw starts at 2.
 NEIGHBOR_X0_MIN_RANDOM_RECYCLES = 2
-
-
-def parse_neighbor_x0_recycle_weights(
-    weights: str | Sequence[float] | None,
-    max_recycles: int,
-) -> tuple[float, ...]:
-    """Normalise the per-batch recycle-count distribution to a probability tuple over N=2..max.
-
-    Accepts a comma-separated string (so the same value can travel through Typer, a distributed
-    dataclass and a checkpoint hparam dict unchanged) or any float sequence. ``None`` selects
-    :data:`NEIGHBOR_X0_RECYCLE_WEIGHTS_DEFAULT`.
-
-    Parameters
-    ----------
-    weights : str or sequence of float, optional
-        Relative (unnormalised) weights, index i == N of ``i + 2``.
-    max_recycles : int
-        Largest N with non-zero weight. Must equal ``len(weights) + 1``.
-
-    Returns
-    -------
-    tuple of float
-        Probabilities summing to 1.0, of length ``max_recycles - 1``.
-
-    Raises
-    ------
-    ValueError
-        If the length disagrees with ``max_recycles``, or the weights are negative / all zero.
-        Fails loud rather than silently re-shaping: a mismatched tail is exactly the sort of
-        wall-clock blow-up this distribution exists to bound.
-    """
-    if isinstance(weights, str) and weights.strip():
-        parsed = [float(w) for w in weights.replace(" ", "").split(",") if w]
-    elif weights is None or isinstance(weights, str):
-        # "" / " " are how an unset value travels through Typer and a distributed dataclass (neither
-        # round-trips None cleanly), so treat blank exactly as "use the default".
-        parsed = list(NEIGHBOR_X0_RECYCLE_WEIGHTS_DEFAULT)
-    else:
-        parsed = [float(w) for w in weights]
-    n_slots = int(max_recycles) - NEIGHBOR_X0_MIN_RANDOM_RECYCLES + 1
-    if n_slots < 1:
-        raise ValueError(
-            f"neighbor_x0_packing_max_recycles={max_recycles} is below the minimum randomisable "
-            f"recycle count ({NEIGHBOR_X0_MIN_RANDOM_RECYCLES}). Use "
-            f"neighbor_x0_packing_random_recycles=False for a fixed single-pass regime."
-        )
-    if len(parsed) != n_slots:
-        raise ValueError(
-            f"neighbor_x0_packing_recycle_weights has {len(parsed)} entries but "
-            f"neighbor_x0_packing_max_recycles={max_recycles} needs {n_slots} "
-            f"(one per N in {NEIGHBOR_X0_MIN_RANDOM_RECYCLES}..{max_recycles}). The default "
-            f"{NEIGHBOR_X0_RECYCLE_WEIGHTS_DEFAULT} pairs with max_recycles=5; pass explicit "
-            f"weights whenever you change the tail length."
-        )
-    if any(w < 0.0 for w in parsed):
-        raise ValueError(f"neighbor_x0_packing_recycle_weights must be non-negative, got {parsed}")
-    total = float(sum(parsed))
-    if total <= 0.0:
-        raise ValueError("neighbor_x0_packing_recycle_weights sum to 0 -- no recycle count could ever be drawn")
-    return tuple(w / total for w in parsed)
 
 
 def compute_neighbor_x0_features(
@@ -2297,12 +2232,6 @@ class SidechainDenoiser(nn.Module):
             )
             _nx0_coords = neighbor_x0_coords.to(sc_coords_valid.dtype)
             _nb_valid = nb_mask & seq_mask.bool().unsqueeze(-1)
-            _c_add = self.neighbor_x0_corrupt_add_prob
-            _c_drop = self.neighbor_x0_corrupt_drop_prob
-            _c_noise_prob = self.neighbor_x0_corrupt_noise_prob
-            _c_noise_std = self.neighbor_x0_corrupt_coord_noise
-            _c_disc = self.neighbor_x0_corrupt_disconnect_prob
-            _gate_on = neighbor_x0_apply is None or bool((neighbor_x0_apply != 0).any())
             nb_feats = compute_neighbor_x0_features(
                 query_coords=sc_coords_valid,
                 query_residue_idx=sc_residue_idx_valid,
@@ -2660,12 +2589,7 @@ class InverseFoldingDiffusion(nn.Module):
         count_overdispersion = 1.5
         ghost_var_floor = 0.3
         mixture_loss_weight = 0.0
-        all_carbon_sampling = False
         mixture_lr_threshold = 1.5
-        non_pad_element_sampling = False
-        late_element_resolution = False
-        occupancy_match_timestep_floor = 0.0
-        volumetric_ss_context_p_max = 0.8
         volumetric_context_radius = 10.0
         volumetric_n_query = 384
         volumetric_sigma = 0.6
@@ -2681,8 +2605,6 @@ class InverseFoldingDiffusion(nn.Module):
         volumetric_context_heads = 4
         volumetric_context_chunk = 32
         volumetric_atom_anchored_queries = False
-        self_consistency_ramp_start = 0.0
-        self_consistency_ramp_end = 0.001
         mixture_head_dropout = 0.0
         dlrt_detach = False
         dlrt_ema_decay = 0.0
@@ -2695,11 +2617,7 @@ class InverseFoldingDiffusion(nn.Module):
         evc_velocity_blend = False
         evc_ss_noised_element_prob = 0.5
         neighbor_x0_packing_recycles = 2
-        neighbor_x0_packing_max_recycles = 5
-        neighbor_x0_packing_recycle_weights = None
         occupancy_weighted_source = False
-        t_resolution_feedback_ramp_start = 0.0
-        t_resolution_feedback_ramp_end = 0.05
         distal_threshold_cap = 0.0
         distal_jitter_cap = 0.0
         distal_shell_ramp_epochs = 0
@@ -2711,8 +2629,6 @@ class InverseFoldingDiffusion(nn.Module):
         from .diffusion import ELEMENT_MASK
 
         self.num_element_classes = NUM_ELEMENT_TYPES + (1 if donut_element_init == "mask" else 0)
-        self.t_resolution_feedback_ramp_start = float(t_resolution_feedback_ramp_start)
-        self.t_resolution_feedback_ramp_end = float(t_resolution_feedback_ramp_end)
         self.denoiser = SidechainDenoiser()
         n_real_classes = self.num_element_classes - 1
         self.polarity_head = nn.Sequential(
@@ -2723,14 +2639,6 @@ class InverseFoldingDiffusion(nn.Module):
         self.neighbor_x0_packing_recycles = max(1, int(neighbor_x0_packing_recycles))
         self.distal_threshold_cap = float(distal_threshold_cap)
         self.distal_shell_ramp_epochs = int(distal_shell_ramp_epochs)
-        self.neighbor_x0_packing_max_recycles = int(neighbor_x0_packing_max_recycles)
-        self.neighbor_x0_packing_recycle_weights = (
-            parse_neighbor_x0_recycle_weights(
-                neighbor_x0_packing_recycle_weights, self.neighbor_x0_packing_max_recycles
-            )
-            if False
-            else None
-        )
         self.evc_velocity_blend = evc_velocity_blend
         self.evc_ss_noised_element_prob = evc_ss_noised_element_prob
         if self.denoiser is not None:
@@ -2794,23 +2702,9 @@ class InverseFoldingDiffusion(nn.Module):
             f"[element-loss] vocab={data_prior_6.numel() - 1} anchor={_anchor} pad_scale={_pad_scale} -> PAD class weight {float(data_weights[ELEMENT_PAD]):.4f}"
         )
         self.element_diffusion.class_weights.copy_(data_weights)
-        _occ_floor = float(occupancy_match_timestep_floor)
-        if not (math.isfinite(_occ_floor) and 0.0 <= _occ_floor <= 1.0):
-            raise ValueError(
-                f"occupancy_match_timestep_floor must be finite in [0.0, 1.0] (got {_occ_floor!r}); >1 reverses the interpolation, nan poisons the loss, <0 silently disables"
-            )
         self.max_sidechain_atoms = int(max_sidechain_atoms)
         self.volumetric_density_inject_proj = nn.Linear(volumetric_n_query, hidden_dim, bias=False)
         nn.init.zeros_(self.volumetric_density_inject_proj.weight)
-        self.volumetric_ss_context_p_max = float(volumetric_ss_context_p_max)
-        if not 0.0 <= self.volumetric_ss_context_p_max <= 1.0:
-            raise ValueError(
-                f"volumetric_ss_context_p_max={self.volumetric_ss_context_p_max} must be in [0, 1] (it is a per-site Bernoulli probability of using the predicted x0 instead of the GT clean x0)."
-            )
-        if self._neighbor_x0_effective_recycles() <= 1:
-            raise ValueError(
-                f"volumetric_ss_context_p_max={self.volumetric_ss_context_p_max} (>0) requires use_neighbor_x0_packing=True (currently {True}) AND effective recycles>1 (currently {self._neighbor_x0_effective_recycles()}): the predicted-x0 pocket context is stashed ONLY inside the neighbour-x0 recycle loop (2-pass), so without it ss_pred_coords is never populated, the option-(ii) recompute never fires, and the scheduled-sampling ramp silently no-ops to pure GT teacher forcing for the ENTIRE run (vol_hidden keeps the GT context). Enable use_neighbor_x0_packing with neighbor_x0_packing_recycles>=2, or set volumetric_ss_context_p_max=0."
-            )
         self.volumetric_head = VolumetricOccupancyHead(
             hidden_dim=hidden_dim,
             num_element_types=NUM_ELEMENT_TYPES,
@@ -2847,29 +2741,12 @@ class InverseFoldingDiffusion(nn.Module):
             f"[volumetric-head] FROZE {n_frozen} volumetric_head tensors (requires_grad=False); they are excluded from all optimizer param groups."
             + (f" EXEMPTED {n_exempt} trainable fresh-graft tensors absent from the checkpoint." if n_exempt else "")
         )
-        self.self_consistency_ramp_start = float(self_consistency_ramp_start)
-        self.self_consistency_ramp_end = float(self_consistency_ramp_end)
         self.mixture_lr_threshold = mixture_lr_threshold
         self.flow_real_proximal_power = flow_real_proximal_power
         self.flow_real_distal_power = flow_real_distal_power
         self.ghost_var_floor = ghost_var_floor
         self.mixture_loss_weight = mixture_loss_weight
         self.sharpen_temperature_min = sharpen_temperature_min
-        if not 0.0 <= self.self_consistency_ramp_start < self.self_consistency_ramp_end <= 1.0:
-            raise ValueError(
-                f"self_consistency_ramp_start/self_consistency_ramp_end must satisfy 0 <= start < end <= 1 (epoch fractions) when use_volumetric_self_consistency is on, got start={self.self_consistency_ramp_start}, end={self.self_consistency_ramp_end}."
-            )
-        if not 0.0 <= self.t_resolution_feedback_ramp_start < self.t_resolution_feedback_ramp_end <= 1.0:
-            raise ValueError(
-                f"t_resolution_feedback_ramp_start/t_resolution_feedback_ramp_end must satisfy 0 <= start < end <= 1 (epoch fractions) when use_stereochem_t_resolution_feedback is on, got start={self.t_resolution_feedback_ramp_start}, end={self.t_resolution_feedback_ramp_end}."
-            )
-        sampling_mode_count = sum(
-            (int(flag) for flag in (all_carbon_sampling, late_element_resolution, non_pad_element_sampling))
-        )
-        if sampling_mode_count > 1:
-            raise ValueError(
-                "all_carbon_sampling, late_element_resolution, and non_pad_element_sampling are mutually exclusive"
-            )
         self.register_buffer("_slot_fill_rate", torch.zeros(max_sidechain_atoms))
         self.register_buffer("_slot_coord_mean", torch.zeros(max_sidechain_atoms, 3))
         self.register_buffer("_slot_coord_var", torch.ones(max_sidechain_atoms))
@@ -3095,18 +2972,6 @@ class InverseFoldingDiffusion(nn.Module):
         prog = 1.0 if epoch is None or ramp <= 0 else min(float(epoch) / ramp, 1.0)
         capped = torch.minimum(base, base.new_full((), cap))
         return torch.lerp(base, capped, base.new_tensor(prog))
-
-    def _neighbor_x0_effective_recycles(self) -> int:
-        """Static "will an EXTRA neighbour-x0 pass actually run?" count for this config.
-
-        Identical predicate to ``validate_training_flag_coherence`` check (4) (the transition-weighted
-        loss prerequisite): with ``neighbor_x0_packing_random_recycles`` the per-batch N is DRAWN from
-        ``{2 .. max_recycles}`` (never 1), so the static upper bound stands in for "an extra pass will
-        run"; otherwise it is the fixed ``neighbor_x0_packing_recycles``. ``> 1`` means the recycle loop
-        supplies neighbour-x0 context -- the precondition for self-dropout to have anything to fall back
-        on.
-        """
-        return int(self.neighbor_x0_packing_recycles)
 
     def _predicted_existence_probs(self, denoiser_out: dict[str, torch.Tensor]) -> torch.Tensor:
         """Detached, MODEL-OWNED per-slot P(atom exists) read off one denoiser pass.
@@ -3400,7 +3265,6 @@ class InverseFoldingDiffusion(nn.Module):
             coord_traj.append(x.detach().to("cpu", torch.float32).clone())
             elem_traj.append(element_types.detach().to("cpu").clone())
             mask_traj.append((element_types != ELEMENT_PAD).detach().to("cpu").clone())
-        _vol_consumer_active = True
         _avail_vol = self._compute_available_volume(backbone_coords, backbone_mask, target_coords, target_mask)
         x0_prev_coords: torch.Tensor | None = None
         x0_prev_mask: torch.Tensor | None = None
@@ -3438,8 +3302,6 @@ class InverseFoldingDiffusion(nn.Module):
             nx0_coords = nx0_mask = nx0_trust = nx0_apply = None
             t_orig_s = t_cond_s = None
             nx0_recycle_index = None
-            _geom_src_x0 = None
-            _geom_src_mask = None
             _n_rc = self.neighbor_x0_packing_recycles if _sample_recycles is None else _sample_recycles
             _n_rc = max(1, int(_n_rc))
             _keep_s = ~design_mask.to(device=device, dtype=torch.bool) if design_mask is not None else None
@@ -3472,8 +3334,6 @@ class InverseFoldingDiffusion(nn.Module):
                     )
                     _rc_pexist = self._predicted_existence_probs(_rc_out)
                     _rc_x0 = self._x0_from_model_output(_rc_out["noise_pred"], x, t, ca_coords, mask_probs=_rc_pexist)
-                    _geom_src_x0 = _rc_x0
-                    _geom_src_mask = _rc_pexist.detach() > 0.5
                     nx0_coords, nx0_mask, nx0_trust = self._build_neighbor_x0_inputs(
                         _rc_x0,
                         _rc_pexist,
@@ -3613,7 +3473,6 @@ class InverseFoldingDiffusion(nn.Module):
             element_types = element_types_new
             noised_mask = (element_types != ELEMENT_PAD).float()
             if evc_sampling is not None:
-                1.0 - step_i / max(num_steps - 1, 1)
                 if getattr(self, "evc_ss_noised_element_prob", 0.0) > 0:
                     evc_sampling = evc_from_element_state(element_types)
                 else:
