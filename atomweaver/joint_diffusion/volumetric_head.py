@@ -419,7 +419,7 @@ def build_query_points(
     """
     if n_query <= 0:
         raise ValueError(f"n_query must be > 0 (got {n_query})")
-    n_far = int(round(far_fraction * n_query))
+    n_far = round(far_fraction * n_query)
     n_far = max(0, min(n_query - 1, n_far)) if n_query > 1 else 0
     n_near = n_query - n_far
 
@@ -554,8 +554,8 @@ def sample_atom_anchored_queries(
             f"context {n_ctx} > {n_query}. Set --volumetric-n-query >= {n_own_block + n_ctx} (canonical 256), "
             f"or lower masked_around_per_atom / context_negatives."
         )
-    n_near = int(round(empty_fractions[0] * n_empty))
-    n_medium = int(round(empty_fractions[1] * n_empty))
+    n_near = round(empty_fractions[0] * n_empty)
+    n_medium = round(empty_fractions[1] * n_empty)
     n_far = n_empty - n_near - n_medium
 
     # --- per-own-atom block: 1 center + ``a`` around, grouped per atom (canonical layout) ---

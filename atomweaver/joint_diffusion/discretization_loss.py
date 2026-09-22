@@ -349,7 +349,7 @@ class DiscretizationLoss(nn.Module):
         mu = self.in_cluster_start + ramp * (self.in_cluster_end - self.in_cluster_start)
         if self.in_cluster_std > 0.0:
             mu = float(torch.normal(mean=torch.tensor(mu), std=torch.tensor(self.in_cluster_std)).item())
-        return max(0, min(int(round(mu)), self.n_decoys))
+        return max(0, min(round(mu), self.n_decoys))
 
     def _sample_decoy_subset(
         self,

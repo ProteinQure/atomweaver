@@ -482,7 +482,7 @@ def _classify_bei_batch_legacy(
             pr.append(p)
             p_is_sc.append(True)
     if not pc:
-        return {p: "Exposed" for p in range(L)}
+        return dict.fromkeys(range(L), "Exposed")
     pc = _np.array(pc, dtype=_np.float32)
     pr = _np.array(pr)
     p_is_sc = _np.array(p_is_sc)

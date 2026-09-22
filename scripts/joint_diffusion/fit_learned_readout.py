@@ -211,7 +211,7 @@ class RefLib:
             self.chir = {c: int(cl.get(c, 1)) for c in self.code_of.values()}
         except Exception as e:  # pragma: no cover - defensive; L default is the common case
             typer.echo(f"[fit_learned_readout] chirality lookup FAILED, defaulting L: {e!r}")
-            self.chir = {c: 1 for c in self.code_of.values()}
+            self.chir = dict.fromkeys(self.code_of.values(), 1)
 
         # pooled Ramachandran grid (A6 fallback for parentless rotamers)
         pooled = np.zeros((self.nbins, self.nbins), np.float64)
@@ -628,12 +628,12 @@ def main(
         "phipsi_table": os.path.basename(phipsi_table),
         "ckpt_fit_cache": os.path.basename(ckpt_fit_cache),
         "residues_spec": os.path.basename(residues),
-        "subset_requested": int(len(requested)),
+        "subset_requested": len(requested),
         "subset_missing_from_refdb": missing,
         "holdout_ref_only": holdout_in,
-        "n_classes": int(len(cls)),
-        "model_n": int(len(Xm)),
-        "ref_n": int(len(Xr)),
+        "n_classes": len(cls),
+        "model_n": len(Xm),
+        "ref_n": len(Xr),
         "fallback_stats": FB,
         "fit_kind": fit_kind,
         "n_iter": niter,

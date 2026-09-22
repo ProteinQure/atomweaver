@@ -68,7 +68,9 @@ select = [
     "FURB", # refurb
     "RUF",  # ruff-specific rules
 ]
-ignore = ["COM812", "D200", "D401", "EM101", "EM102", "PD901", "PD010", "PTH123"]
+
+# Local imports avoid model/data import cycles; unused unpacked dimensions follow F841 conventions.
+ignore = ["COM812", "D200", "D401", "EM101", "EM102", "PD010", "PTH123", "PLC0415", "RUF059"]
 
 exclude = ["./docs/*"]
 

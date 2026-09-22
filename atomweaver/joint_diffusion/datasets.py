@@ -701,7 +701,7 @@ def parse_pdb_atoms(pdb_path: str | Path) -> dict[str, list[dict]]:
             # Prefer the explicit element column (77-78); fall back to name inference
             # when it's blank or the line is too short (a real NCAA-ingest footgun).
             element_col = line[76:78].strip() if len(line) > 76 else ""
-            element = element_col if element_col else infer_element_from_atom_name(atom_name)
+            element = element_col or infer_element_from_atom_name(atom_name)
 
             if chain_id not in chains:
                 chains[chain_id] = []
@@ -2223,7 +2223,9 @@ class BinderDataset(Dataset):
                     f"(interface_only would drop the restriction / fcc_per_env would mislabel envs). "
                     f"Original error: {exc!r}"
                 ) from exc
-            logging.warning("BEI classification failed; returning no interface set (soft degrade): %r", exc)
+            logging.getLogger(__name__).warning(
+                "BEI classification failed; returning no interface set (soft degrade): %r", exc
+            )
             return {}
 
     def _compute_interface_positions(self, data: dict) -> list[int]:

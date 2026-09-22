@@ -33,7 +33,28 @@ def build(eval_db, out, global_t=2.12, sigmas=(0.2, 0.4, 0.6, 0.8), min_per=192,
         eval_db, device, chirality_mismatch_penalty=0.0
     )
     idx_to_ccd = {v: k for k, v in ccd_to_idx.items()}
-    CANON = set("ALA ARG ASN ASP CYS GLN GLU GLY HIS ILE LEU LYS MET PHE PRO SER THR TRP TYR VAL".split())
+    CANON = {
+        "ALA",
+        "ARG",
+        "ASN",
+        "ASP",
+        "CYS",
+        "GLN",
+        "GLU",
+        "GLY",
+        "HIS",
+        "ILE",
+        "LEU",
+        "LYS",
+        "MET",
+        "PHE",
+        "PRO",
+        "SER",
+        "THR",
+        "TRP",
+        "TYR",
+        "VAL",
+    }
     coords, masks, elem, bbi = db["coords"], db["masks"], db["element_types"], db["backbone_indices"]
     S = 16
     iu = torch.triu_indices(S, S, 1)
