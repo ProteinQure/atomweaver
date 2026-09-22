@@ -1281,7 +1281,7 @@ def flatten_all_atoms(
 
 
 class BinderDataset(Dataset):
-    """Validated peptide-target structures for inference, cached after parsing."""
+    """Validated peptide-target structures for inference; side-chain atoms are optional."""
 
     def __init__(
         self,
@@ -1291,7 +1291,6 @@ class BinderDataset(Dataset):
         max_target_length: int | None = 256,
         file_list: Sequence[str] | None = None,
         max_files: int | None = None,
-        min_sidechain_atoms: int = 1,
         reserved_slot0: bool = False,
         proximity_target_crop: bool = True,
     ):
@@ -1299,7 +1298,6 @@ class BinderDataset(Dataset):
         self.max_sidechain_atoms = max_sidechain_atoms
         self.max_binder_length = max_binder_length
         self.max_target_length = max_target_length
-        self.min_sidechain_atoms = min_sidechain_atoms
         self.reserved_slot0 = reserved_slot0
         self.proximity_target_crop = proximity_target_crop
         self.pdb_files = (
@@ -1387,12 +1385,6 @@ class BinderDataset(Dataset):
             # Convert to tensors
             binder_data = residues_to_tensors(binder_residues, self.max_sidechain_atoms)
             target_data = residues_to_tensors(target_residues, self.max_sidechain_atoms)
-
-            # Filter by minimum sidechain atoms (skip all-glycine peptides)
-            if self.min_sidechain_atoms > 0:
-                n_sidechain_atoms = binder_data["sidechain_mask"].sum().item()
-                if n_sidechain_atoms < self.min_sidechain_atoms:
-                    return None
 
             # Carried through so __getitem__ can intersect it with the sampled design mask.
             binder_data["designable_mask"] = designable
