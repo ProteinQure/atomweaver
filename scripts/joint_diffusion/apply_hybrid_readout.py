@@ -80,13 +80,39 @@ CANON = {
 
 
 # ---------------------------------------------------------------------------- cloud parse + tensors
-def parse_cloud(path):
-    lines = Path(path).read_text().splitlines()
-    input_chain, generated_chain = "B", "C"
+def _cloud_chain_ids(lines):
     for ln in lines:
         if ln.startswith("REMARK  ATOMWEAVER_CHAINS "):
             _, _, input_chain, generated_chain = ln.split()
-            break
+            return input_chain, generated_chain
+    return "B", "C"
+
+
+def label_cloud(path, labels):
+    """Write final read-out labels into generated ATOM records; preserve every other byte."""
+    path = Path(path)
+    lines = path.read_bytes().decode().splitlines(keepends=True)
+    _, generated_chain = _cloud_chain_ids(lines)
+    residues = list(
+        dict.fromkeys(line[22:27] for line in lines if line.startswith("ATOM") and line[21] == generated_chain)
+    )
+    if len(residues) != len(labels):
+        raise ValueError(f"{path}: {len(residues)} generated residues but {len(labels)} read-out labels")
+    if any(not 1 <= len(code) <= 3 or not code.isascii() or not code.isalnum() for code in labels):
+        raise ValueError("Read-out labels must be 1-3 ASCII letters/digits to fit PDB residue names")
+    names = dict(zip(residues, labels, strict=True))
+    updated = [
+        line[:17] + f"{names[line[22:27]]:>3s}" + line[20:]
+        if line.startswith("ATOM") and line[21] == generated_chain
+        else line
+        for line in lines
+    ]
+    path.write_bytes("".join(updated).encode())
+
+
+def parse_cloud(path):
+    lines = Path(path).read_text().splitlines()
+    input_chain, generated_chain = _cloud_chain_ids(lines)
     chains = {input_chain: {}, generated_chain: {}}
     order = {input_chain: [], generated_chain: []}
     for ln in lines:
@@ -97,7 +123,7 @@ def parse_cloud(path):
             continue
         an = ln[12:16].strip()
         rn = ln[17:20].strip()
-        rnum = int(ln[22:26])
+        rnum = ln[22:27]
         xyz = (float(ln[30:38]), float(ln[38:46]), float(ln[46:54]))
         d = chains[ch]
         if rnum not in d:
@@ -193,7 +219,11 @@ def main(
         help="NDM reference residue library (.pt). "
         "Required only when NDM is actually used; skipped for --canon20 / pure-canonical vocab.",
     ),
-    clouds: str = typer.Option(..., "--clouds", help="Directory of exported cloud PDBs."),
+    clouds: str = typer.Option(
+        ...,
+        "--clouds",
+        help="Exported cloud PDBs; generated-chain residue names are updated in place from the read-out.",
+    ),
     out: str = typer.Option(..., "--out", help="Output preds.json."),
     preset: str = typer.Option(
         "b2_balanced",
@@ -368,6 +398,8 @@ def main(
     }
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     json.dump(payload, open(out, "w"), indent=1, default=float)
+    for design in designs:
+        label_cloud(Path(clouds) / f"{design['name']}.pdb", design["argmax"])
     typer.echo(f"[apply_hybrid_readout] wrote {out} ({len(designs)} designs)")
     if dump_distributions:
         ext = Path(dump_distributions).suffix.lower()
