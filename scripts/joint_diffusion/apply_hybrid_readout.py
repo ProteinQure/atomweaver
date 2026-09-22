@@ -315,18 +315,11 @@ def main(
             outp = NDM(
                 predicted_coords=sc.unsqueeze(0),
                 predicted_mask=sm.unsqueeze(0),
-                target_indices=torch.zeros(1, L, dtype=torch.long),
-                seq_mask=torch.ones(1, L, dtype=torch.bool),
                 backbone_coords=bb.unsqueeze(0),
                 backbone_mask=bm.unsqueeze(0),
                 predicted_element_types=(sel.unsqueeze(0) - 1),
             )
-            lg = outp["logits"]
-            if lg.shape[-1] != num_types:
-                B, Lx, Rx = lg.shape
-                tl = torch.full((B, Lx, num_types), float("-inf"))
-                tl.scatter_reduce_(2, rot2type.view(1, 1, Rx).expand(B, Lx, Rx), lg, reduce="amax", include_self=True)
-                lg = tl
+            lg = outp
             lg = lg.masked_fill(~representable.view(1, 1, -1), float("-inf"))[0].numpy()  # [L, num_types]
             # gather NDM score onto the Learned class order (-inf for classes absent from DB)
             sN = np.full((L, len(classes)), -np.inf, dtype=np.float64)

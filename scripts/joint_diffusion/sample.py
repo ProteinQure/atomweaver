@@ -179,7 +179,7 @@ def build_eval_discretizer(
     atom_mismatch_penalty: float = 0.5,
     chirality_mismatch_penalty: float = 50.0,
 ):
-    from atomweaver.joint_diffusion.discretization_loss import DiscretizationLoss
+    from atomweaver.joint_diffusion.matching import GeometricMatcher
 
     db = torch.load(eval_db_path, weights_only=False)
     rot, ccd_to_idx = [], {}
@@ -207,7 +207,6 @@ def build_eval_discretizer(
         "backbone_indices": db.get("backbone_indices"),
         "element_types": db.get("element_types"),
         "rotamer_to_type": rotamer_to_type_cpu,
-        "combined_weight": combined_weight,
         "element_mismatch_penalty": element_mismatch_penalty,  # 0.0=geometry-only; 0.3=the training convention
         "atom_mismatch_penalty": atom_mismatch_penalty,  # 0.5 matches training (count-aware); 0.0=count-blind
         # Mirror-invariance fix: penalize candidates of the wrong L/D handedness (NDM/combined only).
@@ -216,7 +215,10 @@ def build_eval_discretizer(
     }
     discs = {}
     for label, method in DISC_METHODS:
-        d = DiscretizationLoss(method=method, **shared).to(device)
+        d = GeometricMatcher(
+            repack_prediction=os.environ.get("ATOMWEAVER_DISC_REPACK", "1").strip() not in {"0", "false", "False", ""},
+            **shared,
+        ).to(device)
         d.eval()
         discs[label] = d
     rotamer_to_type = rotamer_to_type_cpu.to(device)
