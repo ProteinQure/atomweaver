@@ -86,14 +86,9 @@ Example
         --out my_subset_head.joblib
 """
 
-import os
-
-# CPU-only + production element vocab must be pinned BEFORE importing torch-dependent code.
-os.environ.setdefault("ATOMWEAVER_ELEMENT_VOCAB", "5")
-os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")  # keep off the GPUs; this is a CPU readout fit
-
 import collections
 import json
+import os
 import time
 import warnings
 from pathlib import Path
@@ -109,8 +104,6 @@ from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from atomweaver.joint_diffusion.readout_features import geometry_features
-
-torch.set_num_threads(int(os.environ.get("NTHREADS", "8")))
 
 app = typer.Typer(add_completion=False, help=__doc__)
 
@@ -453,6 +446,7 @@ def main(
     ckpt_name: str = typer.Option("custom", "--ckpt-name", help="Label recorded in meta['ckpt'] (e.g. atomweaver)."),
 ):
     """Fit a Learned readout head for a custom residue subset with the shipped A6 recipe."""
+    torch.set_num_threads(int(os.environ.get("NTHREADS", "8")))
     t_start = time.time()
     scope = scope.lower()
     popweight = popweight.lower()

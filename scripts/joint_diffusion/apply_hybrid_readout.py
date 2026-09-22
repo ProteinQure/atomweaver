@@ -5,7 +5,7 @@ This is the hybrid sibling of ``apply_learned_readout.py``. It produces a Learne
 per-position distribution over the candidate vocabulary (= the Learned head's ``classes``), but
 blends in the NDM geometric matcher so that NDM drives NON-canonical identity while the Learned
 head owns canonical identity. The combination is HAND-CRAFTED (fixed, interpretable formulas from
-``hybrid_lib.py``): a parameterized NDM "cliff" transform turns the raw geometric score vector into
+``atomweaver.joint_diffusion.hybrid_readout``): a parameterized NDM "cliff" transform turns the raw geometric score vector into
 a distribution, and a per-candidate-class blend merges it with the Learned distribution. Nothing is
 fitted -- every knob (eps, m, beta, gamma) is a named constant in the chosen preset.
 
@@ -13,7 +13,7 @@ Two inputs:
   * Learned head (--head) : the SAME frozen logreg bundle apply_learned_readout.py consumes
                              (bundle = {clf, classes, prior}). Defines the candidate vocabulary.
   * NDM ref-DB (--ref-db) : the reference residue library .pt (reference_library.pt),
-                             scored with build_eval_discretizer at penalties atom0.5/elem0.3/chir50.
+                             scored with GeometricMatcher at penalties atom0.5/elem0.3/chir50.
 
 Output ``preds.json`` mirrors apply_learned_readout.py's schema (meta / classes / designs), where
 each design carries per-site ``argmax`` (top-1) AND ``probs`` (the [L, C] normalized distribution,
@@ -38,24 +38,14 @@ import os
 from pathlib import Path
 from typing import Optional
 
-os.environ.setdefault("ATOMWEAVER_ELEMENT_VOCAB", "5")
-os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
-
 import joblib
 import numpy as np
 import torch
 import typer
 
+from atomweaver.joint_diffusion import hybrid_readout as H
 from atomweaver.joint_diffusion.readout_features import geometry_features
 from atomweaver.joint_diffusion.reference_library import ReferenceLibrary
-
-torch.set_num_threads(int(os.environ.get("NTHREADS", "8")))
-
-# hybrid_lib.py sits next to this script.
-import sys
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import hybrid_lib as H  # noqa: E402
 
 app = typer.Typer(add_completion=False, help=__doc__)
 
@@ -224,6 +214,7 @@ def main(
     ),
 ):
     """Read residue identity off cloud PDBs with a hand-crafted Learned+NDM hybrid."""
+    torch.set_num_threads(int(os.environ.get("NTHREADS", "8")))
     if preset not in H.SHIP_PRESETS:
         raise typer.BadParameter(f"--preset must be one of {list(H.SHIP_PRESETS)}")
     pr = H.SHIP_PRESETS[preset]
@@ -361,7 +352,7 @@ def main(
             "n_classes": len(classes),
             "natfreq": bool(natfreq),
             "canon20": bool(canon20),
-            "element_vocab": os.environ.get("ATOMWEAVER_ELEMENT_VOCAB"),
+            "element_vocab": "5",
             "mode": "hybrid",
         },
         "classes": classes,

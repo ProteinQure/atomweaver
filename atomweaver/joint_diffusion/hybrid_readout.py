@@ -204,7 +204,7 @@ def cliff_dist(S: np.ndarray, **kw) -> np.ndarray:
 # ----------------------------------------------------------------------------------------------
 # blend families: (pL, qN, is_canon) -> distribution over candidate cols
 # ----------------------------------------------------------------------------------------------
-def blend_B1_loglinear(pL: np.ndarray, qN: np.ndarray, is_canon: np.ndarray, beta: float) -> np.ndarray:
+def blend_b1_loglinear(pL: np.ndarray, qN: np.ndarray, is_canon: np.ndarray, beta: float) -> np.ndarray:
     """B1 log-linear per-class: logP(c) ~ w_c*log pL(c) + (1-w_c)*log qN(c).
 
     w_canon = 1 (canon identity from Learned only); w_ncaa = beta. Both inputs are distributions;
@@ -218,7 +218,7 @@ def blend_B1_loglinear(pL: np.ndarray, qN: np.ndarray, is_canon: np.ndarray, bet
     return _row_norm(np.exp(lp))
 
 
-def blend_B2_convex(pL: np.ndarray, qN: np.ndarray, is_canon: np.ndarray, beta: float) -> np.ndarray:
+def blend_b2_convex(pL: np.ndarray, qN: np.ndarray, is_canon: np.ndarray, beta: float) -> np.ndarray:
     """B2 convex per-class: P(c) ~ w_c*pL(c) + (1-w_c)*qN(c), renormalized.
 
     w_canon = 1; w_ncaa = beta. beta=0 => NCAA mass comes entirely from NDM, canon mass from Learned.
@@ -229,7 +229,7 @@ def blend_B2_convex(pL: np.ndarray, qN: np.ndarray, is_canon: np.ndarray, beta: 
     return _row_norm(w * pL + (1.0 - w) * qN)
 
 
-def blend_B3_gated(pL: np.ndarray, qN: np.ndarray, is_canon: np.ndarray, gamma: float) -> np.ndarray:
+def blend_b3_gated(pL: np.ndarray, qN: np.ndarray, is_canon: np.ndarray, gamma: float) -> np.ndarray:
     """B3 gated sub-order override (lowest expected canon regression).
 
     * canon-vs-NCAA TOTAL mass split AND within-canon ordering come from Learned.
@@ -271,23 +271,30 @@ def blend_B3_gated(pL: np.ndarray, qN: np.ndarray, is_canon: np.ndarray, gamma: 
 # keeps NDM's strong top-3/top-10 NCAA ranking. Canon identity is owned by the Learned head in every
 # blended preset (per-class weight w_canon=1), so the 20-way canonical top-1 is preserved (~0.235).
 # ----------------------------------------------------------------------------------------------
-_WALK = dict(
-    kind="walk_plateau", eps=0.02, eps_mode="abs", m=0.8, below="even", above_split="equal", T=0.1, plateau_guard=True
-)  # guard: winner per-member >= tail per-member (no k>4n/5 inversion)
+_WALK = {
+    "kind": "walk_plateau",
+    "eps": 0.02,
+    "eps_mode": "abs",
+    "m": 0.8,
+    "below": "even",
+    "above_split": "equal",
+    "T": 0.1,
+    "plateau_guard": True,
+}  # guard: winner per-member >= tail per-member (no k>4n/5 inversion)
 
 SHIP_PRESETS = {
     # pure-NDM cliff, logits-shaped -- reference anchor for the DMS pipeline (canon NOT protected here).
-    "ndm_cliff_anchor": dict(family="pure_ndm", cliff=dict(_WALK)),
+    "ndm_cliff_anchor": {"family": "pure_ndm", "cliff": dict(_WALK)},
     # lowest canon regression: Learned sets canon/NCAA mass split + canon order; NDM orders WITHIN NCAA.
-    "b3_gated_g1": dict(family="B3", gamma=1.0, cliff=dict(_WALK)),
+    "b3_gated_g1": {"family": "B3", "gamma": 1.0, "cliff": dict(_WALK)},
     # literal task spec: canon = Learned, NCAA identity entirely from NDM (convex, beta=0).
-    "b2_ncaa_ndm": dict(family="B2", beta=0.0, cliff=dict(_WALK)),
+    "b2_ncaa_ndm": {"family": "B2", "beta": 0.0, "cliff": dict(_WALK)},
     # balanced convex: NCAA = 1/2 Learned + 1/2 NDM (retains Learned's NCAA top-1 strength).
-    "b2_balanced": dict(family="B2", beta=0.5, cliff=dict(_WALK)),
+    "b2_balanced": {"family": "B2", "beta": 0.5, "cliff": dict(_WALK)},
     # log-linear consensus: NCAA ~ geometric mean of Learned & NDM (distinct product-form family).
-    "b1_loglinear": dict(family="B1", beta=0.5, cliff=dict(_WALK)),
+    "b1_loglinear": {"family": "B1", "beta": 0.5, "cliff": dict(_WALK)},
     # NDM-heavy dial: gamma=2 doubles the NCAA mass budget (most NDM-leaning blend; modest canon cost).
-    "b3_gated_g2": dict(family="B3", gamma=2.0, cliff=dict(_WALK)),
+    "b3_gated_g2": {"family": "B3", "gamma": 2.0, "cliff": dict(_WALK)},
 }
 
 
@@ -308,9 +315,9 @@ def apply_preset(pL: np.ndarray, sN: np.ndarray, is_canon: np.ndarray, preset: d
     if fam == "pure_ndm":
         return qN
     if fam == "B1":
-        return blend_B1_loglinear(pL, qN, is_canon, preset["beta"])
+        return blend_b1_loglinear(pL, qN, is_canon, preset["beta"])
     if fam == "B2":
-        return blend_B2_convex(pL, qN, is_canon, preset["beta"])
+        return blend_b2_convex(pL, qN, is_canon, preset["beta"])
     if fam == "B3":
-        return blend_B3_gated(pL, qN, is_canon, preset["gamma"])
+        return blend_b3_gated(pL, qN, is_canon, preset["gamma"])
     raise ValueError(f"unknown family {fam!r}")

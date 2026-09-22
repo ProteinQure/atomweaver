@@ -7,12 +7,7 @@ ResidueDatabaseMatcher and other US-align components.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import torch
-
-# Default data directory (relative to project root)
-DATA_DIR = Path(__file__).parent.parent / "data"
 
 
 def _chirality_from_reference(
@@ -82,10 +77,6 @@ def _chirality_from_reference(
     return 1 if float(triple) >= 0.0 else -1
 
 
-# Cache keyed by the residue-database object id so repeated lookups are free.
-_CHIRALITY_CACHE: dict[int, dict[str, int]] = {}
-
-
 def build_chirality_lookup(db: dict) -> dict[str, int]:
     """Build a per-residue-code chirality sign lookup from a rotamer database.
 
@@ -95,12 +86,10 @@ def build_chirality_lookup(db: dict) -> dict[str, int]:
     Residues whose chirality is undefined (glycine, alpha,alpha-disubstituted,
     capping groups) are omitted, so a missing key should default to ``+1``.
 
-    The lookup is cached per database object (keyed by ``id(db)``).
-
     Parameters
     ----------
     db : dict
-        Loaded residue database (e.g. from :func:`load_residue_database`) with
+        Loaded residue database with
         ``coords``, ``masks``, ``metadata`` and per-entry ``backbone_indices``.
 
     Returns
@@ -109,10 +98,6 @@ def build_chirality_lookup(db: dict) -> dict[str, int]:
         Mapping residue code -> chirality sign (+1 or -1). L-residues and
         unknown codes are not guaranteed present; treat absence as +1.
     """
-    cached = _CHIRALITY_CACHE.get(id(db))
-    if cached is not None:
-        return cached
-
     coords = db["coords"]
     masks = db["masks"]
     metadata = db["metadata"]
@@ -132,7 +117,6 @@ def build_chirality_lookup(db: dict) -> dict[str, int]:
                         lookup[str(code)] = sign
         row += n_rot
 
-    _CHIRALITY_CACHE[id(db)] = lookup
     return lookup
 
 
@@ -155,84 +139,3 @@ def chirality_signs_for_codes(
         One sign per code; ``+1`` for L / unknown, ``-1`` for D.
     """
     return [lookup.get(code, 1) for code in res_codes]
-
-
-def load_residue_database(
-    variant: str = "toy",
-    data_dir: Path | None = None,
-) -> dict:
-    """
-    Load a pre-built residue database.
-
-    Parameters
-    ----------
-    variant : str
-        Which database to load: 'toy' (60 residues) or 'full' (all ~3800)
-    data_dir : Path, optional
-        Custom data directory. Defaults to package data directory.
-
-    Returns
-    -------
-    dict
-        Dictionary with:
-        - coords: (num_residues, max_atoms, 3) tensor
-        - masks: (num_residues, max_atoms) boolean tensor
-        - metadata: list of dicts with ccd_code, name, smiles, etc.
-        - max_atoms: int
-        - num_residues: int
-    """
-    if data_dir is None:
-        data_dir = DATA_DIR
-
-    filename = f"residue_database_{variant}.pt"
-    path = data_dir / filename
-
-    if not path.exists():
-        msg = f"Residue database not found: {path}. Expected a reference library .pt (e.g. data/reference_library.pt)."
-        raise FileNotFoundError(msg)
-
-    return torch.load(path, weights_only=False)
-
-
-def get_id_to_index_mapping(variant: str = "toy", data_dir: Path | None = None) -> dict[str, int]:
-    """
-    Get mapping from ccd_code to index in the database.
-
-    Useful for creating target labels from residue IDs.
-
-    Parameters
-    ----------
-    variant : str
-        Which database to use
-    data_dir : Path, optional
-        Custom data directory
-
-    Returns
-    -------
-    dict[str, int]
-        Mapping from ccd_code to tensor index
-    """
-    db = load_residue_database(variant=variant, data_dir=data_dir)
-    return {m["ccd_code"]: i for i, m in enumerate(db["metadata"])}
-
-
-def get_index_to_id_mapping(variant: str = "toy", data_dir: Path | None = None) -> dict[int, str]:
-    """
-    Get mapping from index to ccd_code.
-
-    Useful for converting predictions back to residue IDs.
-
-    Parameters
-    ----------
-    variant : str
-        Which database to use
-    data_dir : Path, optional
-        Custom data directory
-
-    Returns
-    -------
-    dict[int, str]
-        Mapping from tensor index to ccd_code
-    """
-    db = load_residue_database(variant=variant, data_dir=data_dir)
-    return {i: m["ccd_code"] for i, m in enumerate(db["metadata"])}
