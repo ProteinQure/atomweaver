@@ -135,585 +135,6 @@ def apply_prefix_constraint(element_types: torch.Tensor, exempt_slot0: bool = Fa
 # Number of standard amino acid types (20 canonical + unknown)
 NUM_RESIDUE_TYPES = 21
 
-# Jackie biochemical features: 25-dim standardized descriptors for each amino acid.
-# Encodes hydrophobicity, charge, aromaticity, size, H-bonding, etc.
-# Ordering matches RESIDUE_TO_IDX: ALA=0, ARG=1, ..., VAL=19, UNK=20 (zeros).
-# Source: pq_mlcore Jackie v3 feature set (Mordred descriptors, standardized).
-JACKIE_DIM = 25
-JACKIE_FEATURES = torch.tensor(
-    [
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            -0.6727,
-            0.0000,
-            0.3247,
-            -0.1455,
-            -0.8026,
-            -0.3410,
-            -0.8165,
-            0.7273,
-            0.0422,
-            -1.1037,
-            -0.5448,
-            -0.3996,
-            -0.9391,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            -0.8206,
-            -1.2247,
-            -0.5701,
-        ],  # ALA
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            4.1284,
-            -0.4765,
-            3.1690,
-            -0.6727,
-            0.0000,
-            0.3247,
-            -1.0954,
-            -0.8026,
-            0.6192,
-            1.9052,
-            -1.0909,
-            0.5010,
-            0.0880,
-            0.0461,
-            -0.3996,
-            1.1619,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            2.9666,
-            0.8165,
-            -0.5749,
-        ],  # ARG
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            0.6835,
-            0.8222,
-            0.0000,
-            -0.3068,
-            -1.5823,
-            0.9129,
-            -0.4226,
-            -0.8165,
-            0.7273,
-            0.7729,
-            -0.5030,
-            -0.2489,
-            1.3578,
-            0.3740,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            0.4418,
-            0.8165,
-            0.7839,
-        ],  # ASN
-        [
-            -0.3333,
-            0.1302,
-            3.0000,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            2.3170,
-            0.0000,
-            -0.3068,
-            -0.8299,
-            0.9129,
-            -0.4226,
-            -0.8165,
-            0.7273,
-            0.7729,
-            -0.5030,
-            -0.2489,
-            3.2010,
-            0.3740,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            0.4418,
-            0.8165,
-            1.4692,
-        ],  # ASP
-        [
-            3.0000,
-            -2.4736,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            -0.6727,
-            0.0000,
-            0.3247,
-            -0.2586,
-            -0.8026,
-            -1.4644,
-            -0.8165,
-            0.7273,
-            0.3791,
-            -0.7465,
-            -0.4458,
-            -0.3996,
-            -0.0199,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            0.4418,
-            0.8165,
-            1.7449,
-        ],  # CYS
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            0.6835,
-            0.8222,
-            0.0000,
-            0.0484,
-            -1.0926,
-            0.9129,
-            0.6192,
-            0.5443,
-            -1.5455,
-            0.6997,
-            -0.2767,
-            -0.1509,
-            0.4791,
-            0.9801,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            0.4418,
-            0.8165,
-            0.2370,
-        ],  # GLN
-        [
-            -0.3333,
-            0.1302,
-            3.0000,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            2.3170,
-            0.0000,
-            0.0484,
-            -0.3402,
-            0.9129,
-            0.6192,
-            0.5443,
-            -1.5455,
-            0.6997,
-            -0.2767,
-            -0.1509,
-            0.4883,
-            0.9801,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            0.4418,
-            0.8165,
-            0.8293,
-        ],  # GLU
-        [
-            -0.3333,
-            -2.4736,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            -0.6727,
-            0.0000,
-            -0.1173,
-            -0.6332,
-            -0.8026,
-            -1.4644,
-            -0.8165,
-            0.7273,
-            -0.5835,
-            -1.0857,
-            -0.6428,
-            -1.2984,
-            -0.6109,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            -0.8206,
-            -1.2247,
-            0.0509,
-        ],  # GLY
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            1.2883,
-            1.9262,
-            -0.6727,
-            0.0000,
-            -1.1487,
-            -0.2134,
-            1.4948,
-            -0.5405,
-            0.5443,
-            -1.5455,
-            -1.5288,
-            1.2994,
-            0.0451,
-            -0.3996,
-            -0.4139,
-            2.3805,
-            -0.2294,
-            0.0000,
-            0.4418,
-            0.8165,
-            0.8870,
-        ],  # HIS
-        [
-            -0.3333,
-            2.7340,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            -0.6727,
-            0.0000,
-            1.0614,
-            1.1429,
-            -0.8026,
-            1.8242,
-            -0.8165,
-            0.7273,
-            0.9923,
-            -0.5156,
-            -0.2508,
-            -0.3996,
-            0.3740,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            -0.8206,
-            -1.2247,
-            -1.7118,
-        ],  # ILE
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            -0.6727,
-            0.0000,
-            1.0614,
-            1.1429,
-            -0.8026,
-            1.8242,
-            -0.8165,
-            0.7273,
-            0.7729,
-            -0.5030,
-            -0.2508,
-            -0.3996,
-            0.3740,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            -0.8206,
-            -1.2247,
-            -1.7118,
-        ],  # LEU
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            1.1795,
-            -0.4765,
-            0.6835,
-            -0.6727,
-            0.0000,
-            1.0614,
-            -0.0085,
-            -0.8026,
-            1.6610,
-            0.5443,
-            0.7273,
-            0.5211,
-            -0.0115,
-            -0.1519,
-            -0.3996,
-            1.8892,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            0.4418,
-            0.8165,
-            -1.5213,
-        ],  # LYS
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            -0.6727,
-            0.0000,
-            0.8772,
-            0.7751,
-            -0.8026,
-            -0.4226,
-            0.5443,
-            -1.5455,
-            0.5554,
-            -0.2162,
-            -0.2499,
-            -0.3996,
-            1.3589,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            -0.8206,
-            0.8165,
-            0.4523,
-        ],  # MET
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            1.6412,
-            -0.5592,
-            -0.6727,
-            0.0000,
-            -1.8854,
-            1.3897,
-            1.4948,
-            -0.5617,
-            0.5443,
-            0.7273,
-            -1.5084,
-            1.5403,
-            0.1411,
-            -0.3996,
-            -0.6109,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            -0.8206,
-            -1.2247,
-            0.1195,
-        ],  # PHE
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            -0.6727,
-            0.0000,
-            0.8772,
-            0.4651,
-            -0.8026,
-            0.6192,
-            -0.8165,
-            0.7273,
-            -1.3630,
-            1.0623,
-            -0.2508,
-            -1.2984,
-            -2.5806,
-            2.3805,
-            4.3589,
-            0.0000,
-            -2.0829,
-            -1.2247,
-            -0.5848,
-        ],  # PRO
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            0.8222,
-            0.0000,
-            0.3247,
-            -1.4356,
-            -0.8026,
-            -1.4644,
-            -0.8165,
-            0.7273,
-            0.3791,
-            -0.7465,
-            -0.4458,
-            0.4791,
-            -0.0199,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            0.4418,
-            0.8165,
-            0.2900,
-        ],  # SER
-        [
-            3.0000,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            0.8222,
-            0.0000,
-            0.6404,
-            -0.9478,
-            -0.8026,
-            -0.3410,
-            -0.8165,
-            0.7273,
-            0.7930,
-            -0.7706,
-            -0.3478,
-            1.3871,
-            -0.3423,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            0.4418,
-            0.8165,
-            -0.2630,
-        ],  # THR
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            3.0530,
-            0.6835,
-            -0.6727,
-            0.0000,
-            -2.2011,
-            1.9940,
-            1.4948,
-            -0.5617,
-            1.9052,
-            -1.0909,
-            -2.1957,
-            2.6202,
-            4.2573,
-            -0.3996,
-            -1.2018,
-            2.3805,
-            -0.2294,
-            0.0000,
-            0.4418,
-            -1.2247,
-            0.7883,
-        ],  # TRP
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            1.6412,
-            -0.5592,
-            0.8222,
-            0.0000,
-            -1.8854,
-            1.0201,
-            1.4948,
-            -0.5617,
-            1.9052,
-            -1.0909,
-            -1.4949,
-            1.4190,
-            0.2401,
-            -0.3996,
-            -0.7847,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            0.4418,
-            0.8165,
-            0.6981,
-        ],  # TYR
-        [
-            -0.3333,
-            0.1302,
-            -0.3333,
-            -0.2949,
-            -0.4765,
-            -0.5592,
-            -0.6727,
-            0.0000,
-            0.8772,
-            0.6532,
-            -0.8026,
-            0.7824,
-            -0.8165,
-            0.7273,
-            0.7930,
-            -0.7706,
-            -0.3488,
-            -0.3996,
-            -0.3423,
-            -0.4201,
-            -0.2294,
-            0.0000,
-            -0.8206,
-            -1.2247,
-            -1.4128,
-        ],  # VAL
-        [
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-            0.0000,
-        ],  # UNK
-    ],
-    dtype=torch.float32,
-)  # (21, 25)
-
-# Standard amino acid mapping
 RESIDUE_TO_IDX = {
     "ALA": 0,
     "ARG": 1,
@@ -1151,16 +572,11 @@ class TargetEncoder(nn.Module):
         Number of residue types for embedding.
     """
 
-    def __init__(self, hidden_dim: int = 128, num_residue_types: int = NUM_RESIDUE_TYPES, use_jackie: bool = False):
+    def __init__(self, hidden_dim: int = 128, num_residue_types: int = NUM_RESIDUE_TYPES):
         super().__init__()
-        self.use_jackie = use_jackie
 
         # Residue type embedding: always use learned embedding
         self.residue_embed = nn.Embedding(num_residue_types, hidden_dim // 2)
-        # Optionally also project Jackie biochemical features and add them
-        if use_jackie:
-            self.register_buffer("jackie_features", JACKIE_FEATURES)
-            self.residue_proj = nn.Linear(JACKIE_DIM, hidden_dim // 2)
 
         # Backbone structure encoder (same as BackboneEncoder)
         self.backbone_mlp = nn.Sequential(
@@ -1209,11 +625,8 @@ class TargetEncoder(nn.Module):
         backbone_flat = backbone_coords.masked_fill(~mask_expanded, 0.0).view(batch_size, seq_len, -1)
         struct_features = self.backbone_mlp(backbone_flat)  # (B, L, hidden/2)
 
-        # Encode residue types: learned embedding + optional Jackie biochemical features
+        # Encode residue types: learned embedding
         seq_features = self.residue_embed(residue_types)  # (B, L, hidden/2)
-        if self.use_jackie:
-            jackie_feat = self.jackie_features[residue_types.clamp(0, 20)]  # (B, L, 25)
-            seq_features = seq_features + self.residue_proj(jackie_feat)  # additive
 
         # Combine
         combined = torch.cat([struct_features, seq_features], dim=-1)
@@ -1925,11 +1338,8 @@ class SidechainDenoiser(nn.Module):
         num_layers = 10
         time_embed_dim = 128
         max_sidechain_atoms = 14
-        use_target_conditioning = True
         num_cross_attn_layers = 3
         num_cross_attn_heads = 8
-        use_film = True
-        use_sidechain_target_residue_attention = True
         target_condition_scale = 1.0
         cluster_target_condition_scale = 1.0
         edge_embed_dim = 16
@@ -1940,10 +1350,7 @@ class SidechainDenoiser(nn.Module):
         rbf_span_to_cutoff = False
         ca_ca_prefilter = 20.0
         dropout = 0.1
-        use_jackie = False
-        preal_gate_target = "none"
         num_element_classes = 6
-        use_element_velocity_coupling = True
         num_timesteps = 250
         use_ca_dist_element_feature = False
         zero_init_bond_attention = False
@@ -1957,25 +1364,14 @@ class SidechainDenoiser(nn.Module):
         neighbor_x0_corrupt_noise_prob = 0.9
         neighbor_x0_corrupt_coord_noise = 0.75
         neighbor_x0_corrupt_disconnect_prob = 0.0
-        use_shape_prior = True
         shape_prior_n_anchors = 4
         interaction_intent_num_classes = 4
-        interaction_intent_velocity_bias = True
         num_edge_types = 3
         graph_num_edge_types = None
         use_backbone_dihedral = False
         use_burial_feature = True
-        use_volumetric_deep_inject = True
-        use_target_deep_inject = True
-        frame_v2_deep_inject_detach = False
-        use_volumetric_existence_coupling = True
-        use_residue_frame_stream_v2 = True
         residue_frame_v2_layers = 2
         frame_v2_clean_input = True
-        use_residue_frame_v2_deep_inject = True
-        use_stereochem_head = True
-        use_stereochem_t_resolution = True
-        use_stereochem_t_resolution_feedback = True
         activation_checkpointing = False
         activation_checkpoint_stride = 1.0
         graft_init_std = 0.0
@@ -2049,7 +1445,7 @@ class SidechainDenoiser(nn.Module):
         self.volumetric_existence_proj = nn.Linear(hidden_dim, max_sidechain_atoms)
         _init_graft_weight(self.volumetric_existence_proj.weight)
         _init_graft_weight(self.volumetric_existence_proj.bias)
-        self.target_encoder = TargetEncoder(hidden_dim, use_jackie=use_jackie)
+        self.target_encoder = TargetEncoder(hidden_dim)
         pair_geom_dim = 3 + 3 + 9 + 16
         self.residue_pair_bias_proj = nn.Sequential(
             nn.Linear(pair_geom_dim, hidden_dim), nn.SiLU(), nn.Linear(hidden_dim, num_cross_attn_heads)
@@ -2415,9 +1811,9 @@ class SidechainDenoiser(nn.Module):
             if noised_element_types is not None:
                 occ_gate = (noised_element_types != 0).float()
                 occ_gate = torch.clamp(occ_gate, min=0.3)
-                occ_gate_residue = occ_gate.mean(dim=-1, keepdim=True)
+                occ_gate.mean(dim=-1, keepdim=True)
             else:
-                occ_gate_residue = torch.ones(batch_size, seq_len, 1, device=sidechain_coords.device)
+                torch.ones(batch_size, seq_len, 1, device=sidechain_coords.device)
         backbone_features = self.backbone_encoder(backbone_coords, backbone_mask)
         skip_residue_target = self.num_cross_attn_layers == 0 and False
         if target_backbone_coords is not None and (not skip_residue_target):
@@ -3148,7 +2544,6 @@ class SidechainDenoiser(nn.Module):
             e3_per_slot = stereo_feedback_e3[sc_residue_idx_valid].to(noise_valid.dtype)
             noise_valid = noise_valid + stereo_feedback_ramp * self.stereo_feedback_face_scale * e3_per_slot
         if shape_prior_anchors is not None:
-            K = self.shape_prior_n_anchors
             slot_anchors = shape_prior_anchors[sc_residue_idx_valid]
             slot_coords = sc_coords_valid.unsqueeze(1)
             anchor_dists = (slot_coords - slot_anchors).norm(dim=-1)
@@ -3259,28 +2654,17 @@ class InverseFoldingDiffusion(nn.Module):
         flow_real_distal_power = 1.0
         flow_use_conditional_groupwise = True
         flow_noise_scale = 1.0
-        use_cluster_particle_diffusion = False
-        disable_element_types = False
-        ghost_weight = 0.5
         pad_sampling_init = "bare"
-        multi_count_max_plus = 1
         decoupled_count = False
         count_ramp_threshold = 0.9
         count_overdispersion = 1.5
-        occupancy_gate_elements = False
-        mixture_gate_weight = 0.0
         ghost_var_floor = 0.3
         mixture_loss_weight = 0.0
         all_carbon_sampling = False
-        residue_count_loss_weight = 0.0
         mixture_lr_threshold = 1.5
-        use_existence_flow = False
         non_pad_element_sampling = False
         late_element_resolution = False
         occupancy_match_timestep_floor = 0.0
-        use_volumetric_head = True
-        use_available_volume = True
-        use_single_site_context = True
         volumetric_ss_context_p_max = 0.8
         volumetric_context_radius = 10.0
         volumetric_n_query = 384
@@ -3297,15 +2681,9 @@ class InverseFoldingDiffusion(nn.Module):
         volumetric_context_heads = 4
         volumetric_context_chunk = 32
         volumetric_atom_anchored_queries = False
-        use_volumetric_self_consistency = True
         self_consistency_ramp_start = 0.0
         self_consistency_ramp_end = 0.001
-        use_volumetric_deep_inject = True
-        use_volumetric_density_inject = True
-        use_bond_angle_deep_inject = False
-        use_volumetric_existence_coupling = True
         mixture_head_dropout = 0.0
-        dlrt_analytical_scale = 0.0
         dlrt_detach = False
         dlrt_ema_decay = 0.0
         sharpen_temperature_min = 1.0
@@ -3314,20 +2692,12 @@ class InverseFoldingDiffusion(nn.Module):
         use_empirical_shell_thickness = True
         shell_target_var_scale = 1.0
         donut_element_init = "mask"
-        absorbing_mask = True
         evc_velocity_blend = False
         evc_ss_noised_element_prob = 0.5
-        use_neighbor_x0_packing = True
         neighbor_x0_packing_recycles = 2
-        neighbor_x0_packing_random_recycles = False
         neighbor_x0_packing_max_recycles = 5
         neighbor_x0_packing_recycle_weights = None
         occupancy_weighted_source = False
-        split_element_existence = False
-        use_residue_frame_stream_v2 = True
-        use_stereochem_head = True
-        use_stereochem_t_resolution = True
-        use_stereochem_t_resolution_feedback = True
         t_resolution_feedback_ramp_start = 0.0
         t_resolution_feedback_ramp_end = 0.05
         distal_threshold_cap = 0.0
@@ -3948,11 +3318,6 @@ class InverseFoldingDiffusion(nn.Module):
             - 'predicted_mask': Predicted atom mask of shape (B, L, max_sc)
             - 'intermediate_atom_counts': (optional) List of atom counts per step if return_intermediates=True
         """
-        oracle_sidechain_mask = None
-        element_sampling_mode = "posterior"
-        element_stride = 1
-        posterior_pad_squash = 1.0
-        logit_anchor_alpha = 0.5
         batch_size, seq_len, max_sc = sidechain_mask.shape
         device = backbone_coords.device
         num_steps = num_steps or self.timesteps
@@ -3960,33 +3325,20 @@ class InverseFoldingDiffusion(nn.Module):
         _sample_absorbing = True
         ca_coords = backbone_coords[:, :, 1, :]
         ca_expanded = ca_coords.unsqueeze(2).expand(-1, -1, max_sc, -1)
-        leak_per_atom_mask = None
         leak_direction = None
-        leak_mask_for_elements = None
         _src_chir = chirality
         leak_direction = compute_pseudo_cb_direction(backbone_coords, chirality=_src_chir)
         x, _ = self.coord_flow.sample_prior(
             (batch_size, seq_len * max_sc, 3),
             ca_coords=ca_coords,
-            per_atom_mask=leak_per_atom_mask,
+            per_atom_mask=None,
             direction_override=leak_direction,
         )
         x = x.view(batch_size, seq_len, max_sc, 3)
         timesteps = torch.linspace(self.timesteps - 1, 0, num_steps, device=device).long()
         from .diffusion import ELEMENT_MASK, ELEMENT_PAD
 
-        if leak_mask_for_elements is not None and oracle_sidechain_mask is None:
-            oracle_sidechain_mask = leak_mask_for_elements
-        effective_oracle_mask = oracle_sidechain_mask if oracle_sidechain_mask is not None else leak_mask_for_elements
-        if effective_oracle_mask is not None:
-            gt_mask_bool = effective_oracle_mask.bool()
-            element_types = torch.where(
-                gt_mask_bool,
-                torch.ones(batch_size, seq_len, max_sc, device=device, dtype=torch.long),
-                torch.zeros(batch_size, seq_len, max_sc, device=device, dtype=torch.long),
-            )
         element_types = torch.full((batch_size, seq_len, max_sc), ELEMENT_MASK, device=device, dtype=torch.long)
-        soft_element_probs = None
         noised_mask = (element_types != ELEMENT_PAD).float()
         if hasattr(self.coord_flow, "_shell_radii"):
             from .diffusion import ELEMENT_MASK
@@ -3998,18 +3350,11 @@ class InverseFoldingDiffusion(nn.Module):
                 shell_radii = self.coord_flow._shell_radii
                 threshold = self._distal_read_threshold(shell_radii, epoch=None).view(1, 1, max_sc)
                 noised_mask = torch.where(is_mask, (dist_to_ca >= threshold).float(), noised_mask)
-        existence = None
         prev_element_pred = None
         prev_cluster_pred = None
-        noised_cluster_ids = None
-        freeze_count_step = -1
-        logit_anchor_step = -1
-        logit_anchor_scores = None
         final_residue_centroid = None
         final_residue_cloud_logvar = None
         final_mixture_posterior = None
-        cached_lrt_delta = None
-        cached_count_pred = None
         intermediate_atom_counts = [] if return_intermediates else None
         coord_traj = [] if return_coord_trajectory else None
         elem_traj = [] if return_coord_trajectory else None
@@ -4021,31 +3366,9 @@ class InverseFoldingDiffusion(nn.Module):
         intermediate_per_res_ca_dist_ghost = [] if return_intermediates else None
         intermediate_slot_pad_logit_pre = [] if return_intermediates else None
         intermediate_slot_non_pad_post = [] if return_intermediates else None
-        track_cluster_counts = return_intermediates and False
-        intermediate_cluster_expected_counts = [] if track_cluster_counts else None
-        intermediate_cluster_unique_counts = [] if track_cluster_counts else None
         if return_intermediates:
             init_counts = noised_mask.float().view(batch_size, -1).sum(dim=-1).tolist()
             intermediate_atom_counts.append(init_counts)
-        if track_cluster_counts and noised_cluster_ids is not None:
-            valid_seq_mask = (
-                seq_mask if seq_mask is not None else torch.ones(batch_size, seq_len, dtype=torch.bool, device=device)
-            )
-            initial_unique_counts = []
-            initial_expected_counts = []
-            for b in range(batch_size):
-                total_unique = 0
-                total_expected = 0.0
-                for seq_idx in range(seq_len):
-                    if not valid_seq_mask[b, seq_idx]:
-                        continue
-                    total_unique += torch.unique(noised_cluster_ids[b, seq_idx]).numel()
-                    total_expected += float(max_sc)
-                initial_unique_counts.append(float(total_unique))
-                initial_expected_counts.append(total_expected)
-            intermediate_atom_counts.append(initial_unique_counts)
-            intermediate_cluster_unique_counts.append(initial_unique_counts)
-            intermediate_cluster_expected_counts.append(initial_expected_counts)
         evc_sampling = None
         from .diffusion import ELEMENT_MASK, ELEMENT_PAD
 
@@ -4054,7 +3377,6 @@ class InverseFoldingDiffusion(nn.Module):
         else:
             is_resolved_real = ((element_types != ELEMENT_PAD) & (element_types != ELEMENT_MASK)).float()
             evc_sampling = is_resolved_real
-        cvc_sampling = None
         if design_mask is not None and inpaint_gt_coords is not None:
             _t0 = torch.full((batch_size,), timesteps[0].item(), device=device, dtype=torch.long)
             x, element_types, noised_mask, evc_sampling = self._pin_inpaint(
@@ -4079,11 +3401,7 @@ class InverseFoldingDiffusion(nn.Module):
             elem_traj.append(element_types.detach().to("cpu").clone())
             mask_traj.append((element_types != ELEMENT_PAD).detach().to("cpu").clone())
         _vol_consumer_active = True
-        _avail_vol = (
-            self._compute_available_volume(backbone_coords, backbone_mask, target_coords, target_mask)
-            if _vol_consumer_active
-            else None
-        )
+        _avail_vol = self._compute_available_volume(backbone_coords, backbone_mask, target_coords, target_mask)
         x0_prev_coords: torch.Tensor | None = None
         x0_prev_mask: torch.Tensor | None = None
         x0_prev_element: torch.Tensor | None = None
@@ -4095,7 +3413,7 @@ class InverseFoldingDiffusion(nn.Module):
             noised_count = noised_mask.sum(dim=-1)
             _denoise_kwargs = {
                 "noised_element_types": element_types,
-                "noised_cluster_ids": noised_cluster_ids,
+                "noised_cluster_ids": None,
                 "noised_count": noised_count,
                 "prev_element_pred": prev_element_pred,
                 "prev_cluster_pred": prev_cluster_pred,
@@ -4111,8 +3429,8 @@ class InverseFoldingDiffusion(nn.Module):
                 "target_atom_residue_type": target_atom_residue_type,
                 "target_atom_is_backbone": target_atom_is_backbone,
                 "element_velocity_conditioning": evc_sampling,
-                "count_velocity_conditioning": cvc_sampling,
-                "soft_element_probs": soft_element_probs,
+                "count_velocity_conditioning": None,
+                "soft_element_probs": None,
                 "ar_state": inpaint_ar_state,
                 "vol_hidden": vol_hidden_sample,
                 "vol_density_inject": vol_density_inject_sample,
@@ -4164,45 +3482,8 @@ class InverseFoldingDiffusion(nn.Module):
                         clean_context_coords=inpaint_gt_coords,
                         clean_context_mask=inpaint_gt_mask,
                     )
-            if _vol_consumer_active:
-                if x0_prev_coords is None:
-                    _vh_boot_out = self.volumetric_head(
-                        backbone_coords=backbone_coords,
-                        backbone_mask=backbone_mask,
-                        seq_mask=seq_mask,
-                        target_coords=target_coords,
-                        target_mask=target_mask,
-                        target_element=target_atom_element_type,
-                        target_is_backbone=target_atom_is_backbone,
-                        available_volume=_avail_vol,
-                    )
-                    _vh_bootstrap = _vh_boot_out["vol_hidden"]
-                    _vd_bootstrap = self.volumetric_density_inject_proj(_vh_boot_out["vol_density_pred"].detach())
-                    _boot_out = self.denoiser(
-                        x,
-                        seq_mask
-                        if seq_mask is not None
-                        else torch.ones(batch_size, seq_len, dtype=torch.bool, device=device),
-                        backbone_coords,
-                        backbone_mask,
-                        t,
-                        neighbor_x0_coords=nx0_coords,
-                        neighbor_x0_mask=nx0_mask,
-                        neighbor_x0_trust=nx0_trust,
-                        neighbor_x0_apply=nx0_apply,
-                        t_original_res=t_orig_s,
-                        t_conditioning_res=t_cond_s,
-                        recycle_index=nx0_recycle_index,
-                        **{**_denoise_kwargs, "vol_hidden": _vh_bootstrap, "vol_density_inject": _vd_bootstrap},
-                    )
-                    _ctx_coords = self._x0_from_model_output(
-                        _boot_out["noise_pred"], x, t, ca_coords, mask_probs=noised_mask
-                    ).detach()
-                    _ctx_mask = noised_mask.detach()
-                    _ctx_element = element_types.detach()
-                else:
-                    _ctx_coords, _ctx_mask, _ctx_element = (x0_prev_coords, x0_prev_mask, x0_prev_element)
-                _vh_ss_out = self.volumetric_head(
+            if x0_prev_coords is None:
+                _vh_boot_out = self.volumetric_head(
                     backbone_coords=backbone_coords,
                     backbone_mask=backbone_mask,
                     seq_mask=seq_mask,
@@ -4211,15 +3492,51 @@ class InverseFoldingDiffusion(nn.Module):
                     target_element=target_atom_element_type,
                     target_is_backbone=target_atom_is_backbone,
                     available_volume=_avail_vol,
-                    context_sidechain_coords=_ctx_coords,
-                    context_sidechain_mask=_ctx_mask,
-                    context_sidechain_element=_ctx_element,
                 )
-                vol_hidden_sample = _vh_ss_out["vol_hidden"]
-                _denoise_kwargs["vol_hidden"] = vol_hidden_sample
-                _denoise_kwargs["vol_density_inject"] = self.volumetric_density_inject_proj(
-                    _vh_ss_out["vol_density_pred"].detach()
+                _vh_bootstrap = _vh_boot_out["vol_hidden"]
+                _vd_bootstrap = self.volumetric_density_inject_proj(_vh_boot_out["vol_density_pred"].detach())
+                _boot_out = self.denoiser(
+                    x,
+                    seq_mask
+                    if seq_mask is not None
+                    else torch.ones(batch_size, seq_len, dtype=torch.bool, device=device),
+                    backbone_coords,
+                    backbone_mask,
+                    t,
+                    neighbor_x0_coords=nx0_coords,
+                    neighbor_x0_mask=nx0_mask,
+                    neighbor_x0_trust=nx0_trust,
+                    neighbor_x0_apply=nx0_apply,
+                    t_original_res=t_orig_s,
+                    t_conditioning_res=t_cond_s,
+                    recycle_index=nx0_recycle_index,
+                    **{**_denoise_kwargs, "vol_hidden": _vh_bootstrap, "vol_density_inject": _vd_bootstrap},
                 )
+                _ctx_coords = self._x0_from_model_output(
+                    _boot_out["noise_pred"], x, t, ca_coords, mask_probs=noised_mask
+                ).detach()
+                _ctx_mask = noised_mask.detach()
+                _ctx_element = element_types.detach()
+            else:
+                _ctx_coords, _ctx_mask, _ctx_element = (x0_prev_coords, x0_prev_mask, x0_prev_element)
+            _vh_ss_out = self.volumetric_head(
+                backbone_coords=backbone_coords,
+                backbone_mask=backbone_mask,
+                seq_mask=seq_mask,
+                target_coords=target_coords,
+                target_mask=target_mask,
+                target_element=target_atom_element_type,
+                target_is_backbone=target_atom_is_backbone,
+                available_volume=_avail_vol,
+                context_sidechain_coords=_ctx_coords,
+                context_sidechain_mask=_ctx_mask,
+                context_sidechain_element=_ctx_element,
+            )
+            vol_hidden_sample = _vh_ss_out["vol_hidden"]
+            _denoise_kwargs["vol_hidden"] = vol_hidden_sample
+            _denoise_kwargs["vol_density_inject"] = self.volumetric_density_inject_proj(
+                _vh_ss_out["vol_density_pred"].detach()
+            )
             denoiser_outputs = self.denoiser(
                 x,
                 seq_mask if seq_mask is not None else torch.ones(batch_size, seq_len, dtype=torch.bool, device=device),
@@ -4243,7 +3560,6 @@ class InverseFoldingDiffusion(nn.Module):
                 element_logits, denoiser_outputs["backbone_features"], backbone_coords, backbone_mask
             )
             cluster_logits = denoiser_outputs["cluster_logits"]
-            cluster_occupancy_probs = None
             if return_intermediates:
                 _lm = denoiser_outputs.get("residue_centroid") if self.mixture_loss_weight > 0 else None
                 _lv = denoiser_outputs.get("residue_cloud_logvar") if self.mixture_loss_weight > 0 else None
@@ -4253,8 +3569,8 @@ class InverseFoldingDiffusion(nn.Module):
                     t=t,
                     learned_centroid=_lm,
                     learned_cloud_logvar=_lv,
-                    residue_lrt_delta=cached_lrt_delta,
-                    residue_count_pred=cached_count_pred,
+                    residue_lrt_delta=None,
+                    residue_count_pred=None,
                     temperature=mix_temperature,
                 )
                 if seq_mask is not None:
@@ -4271,119 +3587,42 @@ class InverseFoldingDiffusion(nn.Module):
                 intermediate_per_res_ca_dist_ghost.append(
                     (slot_dist_pre * p_ghost).sum(dim=-1).div(ghost_denom).detach().cpu()
                 )
-            existence_velocity = None
-            if logit_anchor_step >= 0 and step_i == logit_anchor_step:
-                pad_logits = element_logits[:, :, :, ELEMENT_PAD]
-                nonpad_logits = element_logits[:, :, :, 1:].max(dim=-1).values
-                logit_anchor_scores = (nonpad_logits - pad_logits).detach()
-            if logit_anchor_scores is not None and step_i > logit_anchor_step:
-                element_logits = element_logits.clone()
-                element_logits[:, :, :, ELEMENT_PAD] -= logit_anchor_alpha * logit_anchor_scores
             if return_intermediates:
                 intermediate_slot_pad_logit_pre.append(element_logits[..., ELEMENT_PAD].detach().cpu())
-            do_element_step = element_stride <= 1 or step_i % element_stride == 0
-            if do_element_step:
-                if element_sampling_temp_max != 1.0:
-                    frac = t_idx.float() / max(self.timesteps - 1, 1)
-                    elem_temp = 1.0 + (element_sampling_temp_max - 1.0) * frac**element_sampling_temp_power
-                else:
-                    elem_temp = 1.0
-                if oracle_sidechain_mask is not None:
-                    gt_mask_bool = oracle_sidechain_mask.bool()
-                    element_logits = element_logits.clone()
-                    ghost_mask = ~gt_mask_bool
-                    ghost_logit_vals = torch.full((self.num_element_classes,), -1000000000.0, device=device)
-                    ghost_logit_vals[ELEMENT_PAD] = 0.0
-                    element_logits[ghost_mask] = ghost_logit_vals
-                elem_sched_kwargs = {}
-                mask_for_powers = torch.ones(batch_size, seq_len, max_sc, dtype=torch.bool, device=device)
-                elem_slot_powers = self._element_slot_powers(mask_for_powers)
-                sab, sabp, sb = self.element_diffusion.compute_slot_schedule(t, elem_slot_powers)
-                elem_sched_kwargs = {"slot_alpha_bar": sab, "slot_alpha_bar_prev": sabp, "slot_beta": sb}
-                use_reflow = element_sampling_mode in ("reflow", "reflow_cond")
-                if use_reflow:
-                    reflow_kwargs = {}
-                    if "slot_alpha_bar_prev" in elem_sched_kwargs:
-                        reflow_kwargs["slot_alpha_bar_prev"] = elem_sched_kwargs["slot_alpha_bar_prev"]
-                    conditional = element_sampling_mode == "reflow_cond"
-                    element_types_new = self.element_diffusion.p_sample_reflow(
-                        element_types,
-                        t,
-                        element_logits,
-                        temperature=elem_temp,
-                        conditional=conditional,
-                        **reflow_kwargs,
-                    )
-                else:
-                    effective_squash = posterior_pad_squash
-                    element_types_new = self.element_diffusion.p_sample(
-                        element_types,
-                        t,
-                        element_logits,
-                        temperature=elem_temp,
-                        posterior_pad_squash=effective_squash,
-                        absorbing_mask=_sample_absorbing,
-                        **elem_sched_kwargs,
-                    )
-                if oracle_sidechain_mask is not None:
-                    gt_mask_bool = oracle_sidechain_mask.bool()
-                    element_types_new = torch.where(
-                        gt_mask_bool & (element_types_new == ELEMENT_PAD),
-                        torch.ones_like(element_types_new),
-                        element_types_new,
-                    )
-                    element_types_new = torch.where(
-                        gt_mask_bool, element_types_new, torch.zeros_like(element_types_new)
-                    )
-                else:
-                    element_types_new = apply_prefix_constraint(
-                        element_types_new, exempt_slot0=reserved_slot0_prefix_exempt
-                    )
-                    old_count = noised_count.long()
-                    new_count = (element_types_new != ELEMENT_PAD).sum(dim=-1)
-                    clamped_count = new_count
-                    needs_decrease = new_count > clamped_count
-                    if needs_decrease.any():
-                        last_occ = clamped_count.clamp(min=0).long()
-                        slot_indices = torch.arange(max_sc, device=device).view(1, 1, max_sc)
-                        decrease_mask = slot_indices < last_occ.unsqueeze(-1)
-                        element_types_new = torch.where(
-                            needs_decrease.unsqueeze(-1), element_types_new * decrease_mask.long(), element_types_new
-                        )
-                    needs_increase = new_count < clamped_count
-                    if needs_increase.any():
-                        target_count = clamped_count
-                        slot_indices = torch.arange(max_sc, device=device).view(1, 1, max_sc)
-                        restore_mask = (slot_indices < target_count.unsqueeze(-1)) & (element_types_new == ELEMENT_PAD)
-                        restore_values = torch.where(
-                            element_types != ELEMENT_PAD, element_types, torch.ones_like(element_types)
-                        )
-                        element_types_new = torch.where(
-                            needs_increase.unsqueeze(-1) & restore_mask, restore_values, element_types_new
-                        )
-                element_types = element_types_new
-            if freeze_count_step >= 0 and step_i == freeze_count_step and (oracle_sidechain_mask is None):
-                pred_types = element_logits.argmax(dim=-1)
-                frozen_mask = ((pred_types != ELEMENT_PAD) & (pred_types != ELEMENT_MASK)).long()
-                prefix_mask, _ = frozen_mask.cummin(dim=-1)
-                oracle_sidechain_mask = prefix_mask
+            if element_sampling_temp_max != 1.0:
+                frac = t_idx.float() / max(self.timesteps - 1, 1)
+                elem_temp = 1.0 + (element_sampling_temp_max - 1.0) * frac**element_sampling_temp_power
+            else:
+                elem_temp = 1.0
+            elem_sched_kwargs = {}
+            mask_for_powers = torch.ones(batch_size, seq_len, max_sc, dtype=torch.bool, device=device)
+            elem_slot_powers = self._element_slot_powers(mask_for_powers)
+            sab, sabp, sb = self.element_diffusion.compute_slot_schedule(t, elem_slot_powers)
+            elem_sched_kwargs = {"slot_alpha_bar": sab, "slot_alpha_bar_prev": sabp, "slot_beta": sb}
+            effective_squash = 1.0
+            element_types_new = self.element_diffusion.p_sample(
+                element_types,
+                t,
+                element_logits,
+                temperature=elem_temp,
+                posterior_pad_squash=effective_squash,
+                absorbing_mask=True,
+                **elem_sched_kwargs,
+            )
+            element_types_new = apply_prefix_constraint(element_types_new, exempt_slot0=reserved_slot0_prefix_exempt)
+            element_types = element_types_new
             noised_mask = (element_types != ELEMENT_PAD).float()
             if evc_sampling is not None:
-                step_frac = 1.0 - step_i / max(num_steps - 1, 1)
+                1.0 - step_i / max(num_steps - 1, 1)
                 if getattr(self, "evc_ss_noised_element_prob", 0.0) > 0:
                     evc_sampling = evc_from_element_state(element_types)
                 else:
                     evc_sampling = ((element_types != ELEMENT_PAD) & (element_types != ELEMENT_MASK)).float()
             prev_element_pred = torch.softmax(element_logits, dim=-1).detach()
             prev_cluster_pred = torch.softmax(cluster_logits, dim=-1).detach()
-            if noised_cluster_ids is not None:
-                noised_cluster_ids = cluster_logits.argmax(dim=-1)
-            if _vol_consumer_active:
-                x0_prev_coords = self._x0_from_model_output(
-                    model_output, x, t, ca_coords, mask_probs=noised_mask
-                ).detach()
-                x0_prev_mask = noised_mask.detach()
-                x0_prev_element = element_types.detach()
+            x0_prev_coords = self._x0_from_model_output(model_output, x, t, ca_coords, mask_probs=noised_mask).detach()
+            x0_prev_mask = noised_mask.detach()
+            x0_prev_element = element_types.detach()
             x_flat = x.view(batch_size, -1, 3)
             model_output_flat = model_output.view(batch_size, -1, 3)
             if evc_sampling is not None and getattr(self, "evc_velocity_blend", False):
@@ -4427,8 +3666,8 @@ class InverseFoldingDiffusion(nn.Module):
                     learned_cloud_logvar=denoiser_outputs.get("residue_cloud_logvar")
                     if self.mixture_loss_weight > 0
                     else None,
-                    residue_lrt_delta=cached_lrt_delta,
-                    residue_count_pred=cached_count_pred,
+                    residue_lrt_delta=None,
+                    residue_count_pred=None,
                     temperature=mix_temperature,
                 )
                 if seq_mask is not None:
@@ -4471,15 +3710,9 @@ class InverseFoldingDiffusion(nn.Module):
             result["coord_trajectory"] = coord_traj
             result["elem_trajectory"] = elem_traj
             result["mask_trajectory"] = mask_traj
-        if noised_cluster_ids is not None:
-            result["predicted_cluster_ids"] = noised_cluster_ids
         if return_intermediates:
             result["intermediate_atom_counts"] = intermediate_atom_counts
             result["intermediate_mixture_counts"] = intermediate_mixture_counts
-            if intermediate_cluster_expected_counts is not None:
-                result["intermediate_cluster_expected_counts"] = intermediate_cluster_expected_counts
-            if intermediate_cluster_unique_counts is not None:
-                result["intermediate_cluster_unique_counts"] = intermediate_cluster_unique_counts
             if intermediate_per_res_soft_pre:
                 result["intermediate_per_res_soft_pre"] = intermediate_per_res_soft_pre
                 result["intermediate_per_res_hard"] = intermediate_per_res_hard
@@ -4503,7 +3736,7 @@ class InverseFoldingDiffusion(nn.Module):
                 t=t_zero,
                 learned_centroid=diag_centroid,
                 learned_cloud_logvar=diag_logvar,
-                residue_lrt_delta=cached_lrt_delta,
+                residue_lrt_delta=None,
                 temperature=self.sharpen_temperature_min,
             )
             if seq_mask is not None:
@@ -4514,8 +3747,4 @@ class InverseFoldingDiffusion(nn.Module):
             result["residue_centroid"] = final_residue_centroid.detach()
         if final_residue_cloud_logvar is not None:
             result["residue_cloud_logvar"] = final_residue_cloud_logvar.detach()
-        if existence is not None:
-            result["existence"] = existence.detach()
-        if cached_lrt_delta is not None:
-            result["cached_lrt_delta"] = cached_lrt_delta.detach()
         return result
