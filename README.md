@@ -62,7 +62,7 @@ with the balanced hybrid discretizer over the 300-residue vocabulary, and writes
 |---|---|
 | `OUTDIR/designs.fasta` | one record per (input, sample); canonical residues as 1-letter codes, NCAAs as bracketed CCD codes, e.g. `A[DAL]C[MK8]...` |
 | `OUTDIR/designs.csv` | per-position top-3 identities with probabilities |
-| `OUTDIR/clouds/` | the raw predicted atom-cloud PDBs |
+| `OUTDIR/clouds/` | predicted atom-cloud PDBs labeled with hybrid read-out residue identities |
 | `OUTDIR/preds.json` | the full read-out distributions over all 300 types |
 
 Each PDB in `clouds/` preserves the target's original `ATOM`, `HETATM`, and `ANISOU` records,
@@ -72,7 +72,13 @@ and atom metadata. The full input target is exported even when conditioning uses
 Two additional chains contain the input peptide and generated side-chain cloud (backbone plus sampled
 atoms named `{element}{slot}`). These use B and C when available, otherwise unused chain IDs, so target
 chains are never renamed. `REMARK  ATOMWEAVER_CHAINS <input-chain> <generated-chain>` identifies their
-roles for the read-out. The generated cloud determines `designs.csv` and `designs.fasta`.
+roles for the read-out. Generated residue names use the final hybrid read-out argmax (default
+`b2_balanced`), matching `preds.json` and `designs.fasta`. Relabeling changes only the residue-name
+fields; generated coordinates, atom names, elements, and target/input-peptide records are untouched.
+
+Standalone `sample.py` writes generated residues as `UNK` until `apply_hybrid_readout.py` assigns
+their identities in place. The sampler no longer takes `--ref-db`; that library belongs to the
+read-out. Existing clouds labeled `ALA` can be corrected by rerunning the read-out without resampling.
 
 Useful options:
 

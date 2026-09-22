@@ -42,9 +42,6 @@ def test_target_atom_records_preserved(tmp_path, extra_target):
         output,
         [0, 1, 2],
         batch["res_names"][0],
-        {0: "ALA"},
-        torch.zeros(3, dtype=torch.long),
-        "",
         "",
         target_records=records,
     )
@@ -60,5 +57,6 @@ def test_target_atom_records_preserved(tmp_path, extra_target):
     cloud_path = tmp_path / "cloud.pdb"
     cloud_path.write_text(exported)
     generated, input_peptide = parse_cloud(cloud_path)
-    assert generated == parse_cloud(ROOT / "tests/data/clouds/reference_s0.pdb")[0]
+    reference = parse_cloud(ROOT / "tests/data/clouds/reference_s0.pdb")[0]
+    assert generated == [residue | {"rn": "UNK"} for residue in reference]
     assert [residue["rn"] for residue in input_peptide] == batch["res_names"][0][:3]

@@ -104,12 +104,13 @@ def _target_pdb_records(pdb_path, peptide_chain):
     ]
 
 
-def _make_cloud_pdb(batch, out, p_idx, ccds, idx_to_ccd, r_top1_row, des_seq, gt_seq, *, target_records):
+def _make_cloud_pdb(batch, out, p_idx, ccds, gt_seq, *, target_records):
     """Export the original target alongside input-peptide and generated-cloud copies.
 
     Preserve target atom records verbatim. Choose unused chain IDs for the peptide
     copies (prefer B/C) and identify their roles for the read-out in a REMARK.
-    p_idx contains exported peptide positions in sequence order.
+    p_idx contains exported peptide positions in sequence order. Generated residues
+    remain UNK until the hybrid read-out assigns their identities.
     """
     target_chains = {line[21] for line in target_records}
     available = [chain for chain in ascii_uppercase + ascii_lowercase + digits if chain not in target_chains]
@@ -126,7 +127,6 @@ def _make_cloud_pdb(batch, out, p_idx, ccds, idx_to_ccd, r_top1_row, des_seq, gt
     pscm = out["predicted_mask"][0].cpu()
     pel = out["element_types"][0].cpu()  # (L,maxsc) model encoding
     lines = [
-        f"REMARK  Designed (de-novo): {des_seq}",
         f"REMARK  True sequence:        {gt_seq}",
         "REMARK  Target atom records preserved from input",
         f"REMARK  ATOMWEAVER_CHAINS {input_chain} {generated_chain}",
@@ -144,7 +144,7 @@ def _make_cloud_pdb(batch, out, p_idx, ccds, idx_to_ccd, r_top1_row, des_seq, gt
     # Input peptide and generated cloud use separate, unoccupied chain IDs.
     for chain, resnames, sc, scm, el_src in (
         (input_chain, [ccds[p] for p in p_idx], gsc, gscm, None),
-        (generated_chain, [idx_to_ccd.get(int(r_top1_row[p]), "GLY") for p in p_idx], psc, pscm, pel),
+        (generated_chain, ["UNK"] * len(p_idx), psc, pscm, pel),
     ):
         for k, p in enumerate(p_idx):
             rn = (resnames[k] or "UNK")[:3].upper()
@@ -201,7 +201,6 @@ def main(
     pdb_dir: str = typer.Option(..., help="Directory of input PDBs (peptide backbone + optional target)."),
     checkpoint: str = typer.Option(..., help="Model checkpoint (.ckpt/.pt)."),
     sampling_db: str = typer.Option(..., help="Residue DB for model load (builds name_to_idx)."),
-    ref_db: str = typer.Option(..., "--ref-db", help="Reference residue library (.pt) for cloud residue-name labels."),
     repo: str = typer.Option(".", help="atomweaver checkout root."),
     design_positions: str = typer.Option(
         "",
@@ -282,17 +281,6 @@ def main(
     # Match the dataset's atom-slot width to the loaded model (v60-lineage = 16, legacy = 14)
     # so GT sidechains aren't truncated; falls back to 14 if the model lacks the flow buffer.
     eval_max_sc = int(getattr(model.coord_flow, "_shell_radii", torch.zeros(14)).shape[0])
-
-    # Reference library -> type-index -> CCD map (cosmetic cloud residue-name labels; identity is read
-    # off later by apply_hybrid_readout from the cloud GEOMETRY, not these names).
-    _db = torch.load(ref_db, weights_only=False)
-    ccd_to_idx: dict = {}
-    for _i, _m in enumerate(_db["metadata"]):
-        for _pid in _m.get("pdb_ids") or []:
-            if _pid:
-                ccd_to_idx.setdefault(_pid, _i)
-    idx_to_ccd = {v: k for k, v in ccd_to_idx.items()}
-    # Per-CCD L/D chirality lookup, consumed only by the opt-in --oracle-chirality cone steering.
 
     dataset = PeptideDataset(
         pdb_dir, max_binder_length=32, max_sidechain_atoms=eval_max_sc, reserved_slot0=reserved_slot0
@@ -380,12 +368,9 @@ def main(
                 pred_coords, pred_mask, pred_el = out["sidechain_coords"], out["predicted_mask"], out["element_types"]
                 if export_clouds:
                     pep_pos = [p for p in range(L) if bool(design[0, p])]
-                    _placeholder = torch.zeros(L, dtype=torch.long)
                     gt_seq = "".join(THREE2ONE.get(ccds[p], "X") for p in pep_pos)
                     Path(export_clouds).mkdir(parents=True, exist_ok=True)
-                    pdb_str = _make_cloud_pdb(
-                        batch, out, pep_pos, ccds, idx_to_ccd, _placeholder, "", gt_seq, target_records=target_records
-                    )
+                    pdb_str = _make_cloud_pdb(batch, out, pep_pos, ccds, gt_seq, target_records=target_records)
                     (Path(export_clouds) / f"{pdb_name}_s{_s}.pdb").write_text(pdb_str)
         n_done += 1
     typer.echo(f"[sampler] done: {n_done} input(s) sampled.")
