@@ -1,0 +1,17 @@
+# Release assets
+weights/
+*.ckpt
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.uv/
+uv.lock
+
+# Run outputs
+*.log
+
+# Tooling caches
+.ruff_cache/
