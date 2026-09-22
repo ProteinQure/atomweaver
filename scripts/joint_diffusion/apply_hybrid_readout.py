@@ -46,6 +46,7 @@ import numpy as np
 import torch
 import typer
 
+from atomweaver.joint_diffusion.readout_features import geometry_features
 from atomweaver.joint_diffusion.reference_library import ReferenceLibrary
 
 torch.set_num_threads(int(os.environ.get("NTHREADS", "8")))
@@ -64,7 +65,6 @@ MAXSC = 16
 CANON20_HEAD = "data/readout_head_canon20.joblib"
 ELMAP = {"C": 1, "N": 2, "O": 3, "S": 4}  # sidechain char -> DB element index (+1); default 4=X
 BB_EL = [1, 0, 0, 2]
-IU20 = torch.triu_indices(20, 20, 1)
 CANON = {
     "ALA",
     "ARG",
@@ -154,15 +154,7 @@ def learned_features(Cres, bb, bm, sc, sm, sel):
     xyz = xyz[:, :20]
     m = m[:, :20]
     fe = fe[:, :20]
-    d = torch.cdist(xyz, xyz)[:, IU20[0], IU20[1]]
-    rp = m[:, IU20[0]] & m[:, IU20[1]]
-    d = torch.where(rp, d, torch.full_like(d, -1.0))
-    ei = fe.clone()
-    ei[~m] = 4
-    ei = ei.clamp(0, 4)
-    eo = torch.zeros(L, 20, 5)
-    eo.scatter_(2, ei.unsqueeze(2), 1.0)
-    feat = torch.cat([d, eo.reshape(L, -1)], 1).numpy()
+    feat = geometry_features(xyz, m, fe)
 
     def dih(p0, p1, p2, p3):
         b0 = p0 - p1

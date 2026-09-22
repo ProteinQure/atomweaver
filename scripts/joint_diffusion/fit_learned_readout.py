@@ -108,6 +108,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+from atomweaver.joint_diffusion.readout_features import geometry_features
+
 torch.set_num_threads(int(os.environ.get("NTHREADS", "8")))
 
 app = typer.Typer(add_completion=False, help=__doc__)
@@ -139,26 +141,6 @@ FEATURE_SPEC = (
     "sin/cos (prevC-N-CA-C, N-CA-C-nextN)"
 )
 SLOT_CONV = "reserved_slot0 => Cbeta-first; MAXSC=16 sidechain slots; 20 atoms = 4 backbone (N,CA,C,O) + 16 sidechain"
-
-S20 = 20
-iu20 = torch.triu_indices(S20, S20, 1)
-
-
-# ----------------------------------------------------------------------------------------------
-# Feature build (VERBATIM from fit_ship_heads.py / fit_eval_clean300.py)
-# ----------------------------------------------------------------------------------------------
-def _feats_from_coords(xyz, m, el):
-    """290-dim geometry+element block (190 pairwise dists + 100 element one-hots)."""
-    d = torch.cdist(xyz, xyz)[:, iu20[0], iu20[1]]
-    rp = m[:, iu20[0]] & m[:, iu20[1]]
-    d = torch.where(rp, d, torch.full_like(d, -1.0))
-    ei = el.clone()
-    ei[~m] = 4
-    ei = ei.clamp(0, 4).long()
-    eo = torch.zeros(xyz.shape[0], S20, 5)
-    eo.scatter_(2, ei.unsqueeze(2), 1.0)
-    return torch.cat([d, eo.reshape(xyz.shape[0], -1)], 1).numpy()
-
 
 # curated NCAA -> canonical parent map (VERBATIM); used to source a rotamer's phi/psi grid.
 _CUR = {
@@ -312,7 +294,7 @@ class RefLib:
             nrot = xyz.shape[0]
             reps = max(1, int(np.ceil(CAP_R / nrot)))
             Xc, Mc, Ec = self.corrupt(xyz, m, el, DROP, SIGMA, reps)
-            Fc = _feats_from_coords(Xc, Mc, Ec)
+            Fc = geometry_features(Xc, Mc, Ec)
             pp = self.sample_pp_rows(c, parent_pp, Fc.shape[0], rng)
             Fc = np.concatenate([Fc, pp], 1)
             tags = self.tags.get(c, [])

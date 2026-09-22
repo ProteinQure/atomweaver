@@ -18,6 +18,8 @@ import joblib
 import numpy as np
 import torch
 
+from atomweaver.joint_diffusion.readout_features import geometry_features
+
 MAXSC = 16
 
 
@@ -36,13 +38,6 @@ def cloud_features(pred_coords, pred_mask, pred_elem_db, S=MAXSC):
     x = x.reshape(B * L, S, 3)
     m = m.reshape(B * L, S)
     e = e.reshape(B * L, S)
-    iu = torch.triu_indices(S, S, 1)
-    d = torch.cdist(x, x)[:, iu[0], iu[1]]
-    rp = m[:, iu[0]] & m[:, iu[1]]
-    d = torch.where(rp, d, torch.full_like(d, -1.0))
-    eo = torch.zeros(B * L, S, 5)
-    ei = e.clone()
-    ei[~m] = 4  # ghost slots take the PAD column; this is the only legitimate use of index 4
     # The one-hot is five wide because the cache was fit under the production 5-element vocabulary
     # {C, N, O, X, PAD}. Under ATOMWEAVER_ELEMENT_VOCAB=12 -- which is what diffusion.py DEFAULTS to --
     # DB ids run past 3, and the old `clamp(0, 4)` folded every one of them (P, F, Cl, Br, I, Se, B)
@@ -58,9 +53,7 @@ def cloud_features(pred_coords, pred_mask, pred_elem_db, S=MAXSC):
             "running under ATOMWEAVER_ELEMENT_VOCAB=12 with a cache built for the production vocab 5; "
             "set ATOMWEAVER_ELEMENT_VOCAB=5 to match the cache, or rebuild the cache."
         )
-    ei = ei.clamp(0, 4)
-    eo.scatter_(2, ei.unsqueeze(2), 1.0)
-    F = torch.cat([d, eo.reshape(B * L, -1)], 1).numpy()
+    F = geometry_features(x, m, e)
     return np.nan_to_num(F, nan=-1.0).astype(np.float32)
 
 

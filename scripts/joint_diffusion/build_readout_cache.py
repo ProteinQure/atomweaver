@@ -23,6 +23,8 @@ import numpy as np
 import torch
 from sklearn.linear_model import LogisticRegression
 
+from atomweaver.joint_diffusion.readout_features import geometry_features
+
 
 def build(eval_db, out, global_t=2.12, sigmas=(0.2, 0.4, 0.6, 0.8), min_per=192, seed=0, device="cpu"):
     import joblib
@@ -56,19 +58,6 @@ def build(eval_db, out, global_t=2.12, sigmas=(0.2, 0.4, 0.6, 0.8), min_per=192,
     }
     coords, masks, elem, bbi = db["coords"], db["masks"], db["element_types"], db["backbone_indices"]
     S = 16
-    iu = torch.triu_indices(S, S, 1)
-
-    def feats(xyz, m, el):
-        d = torch.cdist(xyz, xyz)[:, iu[0], iu[1]]
-        rp = m[:, iu[0]] & m[:, iu[1]]
-        d = torch.where(rp, d, torch.full_like(d, -1.0))
-        eo = torch.zeros(xyz.shape[0], S, 5)
-        ei = el.clone()
-        ei[~m] = 4
-        ei = ei.clamp(0, 4)
-        eo.scatter_(2, ei.long().unsqueeze(2), 1.0)
-        return torch.cat([d, eo.reshape(xyz.shape[0], -1)], 1).numpy()
-
     reptypes = [t for t in range(rep.numel()) if bool(rep[t]) and (r2t == t).any()]
     canon_t = [t for t in reptypes if idx_to_ccd.get(t) in CANON]
     g = torch.Generator().manual_seed(seed)
@@ -93,7 +82,9 @@ def build(eval_db, out, global_t=2.12, sigmas=(0.2, 0.4, 0.6, 0.8), min_per=192,
                 nz = torch.randn(npat, S, 3, generator=g) * s
                 nz[:, ~mm, :] = 0
                 rx.append(
-                    feats(x0.unsqueeze(0) + nz, mm.unsqueeze(0).expand(npat, -1), ee.unsqueeze(0).expand(npat, -1))
+                    geometry_features(
+                        x0.unsqueeze(0) + nz, mm.unsqueeze(0).expand(npat, -1), ee.unsqueeze(0).expand(npat, -1)
+                    )
                 )
                 ry.append(np.full(npat, t))
     X = np.nan_to_num(np.concatenate(rx), nan=-1.0)
