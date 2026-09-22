@@ -453,7 +453,6 @@ def main(
     dataset = PeptideDataset(
         pdb_dir, max_binder_length=32, max_sidechain_atoms=eval_max_sc, reserved_slot0=reserved_slot0
     )
-    dataset._build_valid_indices()  # force real count; __len__ otherwise returns a 0.9*n_files ESTIMATE
     collate = partial(collate_peptides, name_to_idx=lm.name_to_idx)
     test_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0, collate_fn=collate)
     typer.echo(f"[sampler] {len(test_loader.dataset)} input PDB(s); steps={num_steps} samples/input={num_samples}")
