@@ -57,9 +57,11 @@ def assert_equivalent(actual, expected):
 def test_released_sampling(model, case):
     """Preserve joint design, clean context pinning, and optional recycling."""
     reference = torch.load(ROOT / "tests/data" / f"{case}.pt", weights_only=True)
+    target_before = {key: value.clone() for key, value in reference["inputs"].items() if key.startswith("target_")}
     torch.manual_seed(123)
     actual = model.sample(**reference["inputs"])
     assert_equivalent(actual, reference["outputs"])
+    assert_equivalent({key: reference["inputs"][key] for key in target_before}, target_before)
 
 
 @pytest.mark.skipif(

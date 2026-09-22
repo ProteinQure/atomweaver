@@ -65,10 +65,14 @@ with the balanced hybrid discretizer over the 300-residue vocabulary, and writes
 | `OUTDIR/clouds/` | the raw predicted atom-cloud PDBs |
 | `OUTDIR/preds.json` | the full read-out distributions over all 300 types |
 
-Each PDB in `clouds/` has **three chains**: **A** = the target backbone; **B** = the input peptide
-(backbone plus its reference side chains, with any NCAA CCD codes preserved); **C** = the generated
-side-chain cloud (backbone plus the sampled atoms, named `{element}{slot}`). Chain **C** is the model's
-output -- the identities read off it are what land in `designs.csv` / `designs.fasta`.
+Each PDB in `clouds/` preserves the target's original `ATOM`, `HETATM`, and `ANISOU` records,
+including residue and atom names, side chains, hydrogens, coordinates, chain IDs, residue numbering,
+and atom metadata. The full input target is exported even when conditioning uses a cropped target.
+
+Two additional chains contain the input peptide and generated side-chain cloud (backbone plus sampled
+atoms named `{element}{slot}`). These use B and C when available, otherwise unused chain IDs, so target
+chains are never renamed. `REMARK  ATOMWEAVER_CHAINS <input-chain> <generated-chain>` identifies their
+roles for the read-out. The generated cloud determines `designs.csv` and `designs.fasta`.
 
 Useful options:
 

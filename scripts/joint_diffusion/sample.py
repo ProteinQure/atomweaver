@@ -17,6 +17,7 @@ Modes:
 """
 
 import warnings
+from string import ascii_lowercase, ascii_uppercase, digits
 
 # Quiet the noisy load-time warnings from the ML stack (torch / sklearn version notes);
 # real problems still surface as DeprecationWarning / RuntimeWarning, which stay visible.
@@ -94,13 +95,29 @@ def _atom_line(n, aname, rname, ch, resnum, xyz, el):
     )
 
 
-def _make_cloud_pdb(batch, out, p_idx, ccds, idx_to_ccd, r_top1_row, des_seq, gt_seq):
-    """3-chain cloud PDB: A=target bb, B=GT peptide (bb+GT sidechain), C=generated cloud.
+def _target_pdb_records(pdb_path, peptide_chain):
+    """Keep original target atom records, including atoms outside the conditioning crop."""
+    return [
+        line
+        for line in Path(pdb_path).read_text().splitlines()
+        if line.startswith(("ATOM  ", "HETATM", "ANISOU")) and (line[21].strip() or "A") != peptide_chain
+    ]
 
-    Mirrors the training-time writer: coords are absolute; generated sidechain atoms are
-    named {element}{slot}; GT/designed residue names give chains B/C identities (NCAA CCDs
-    preserved on chain B). p_idx = peptide positions (list of L-indices, in order).
+
+def _make_cloud_pdb(batch, out, p_idx, ccds, idx_to_ccd, r_top1_row, des_seq, gt_seq, *, target_records):
+    """Export the original target alongside input-peptide and generated-cloud copies.
+
+    Preserve target atom records verbatim. Choose unused chain IDs for the peptide
+    copies (prefer B/C) and identify their roles for the read-out in a REMARK.
+    p_idx contains exported peptide positions in sequence order.
     """
+    target_chains = {line[21] for line in target_records}
+    available = [chain for chain in ascii_uppercase + ascii_lowercase + digits if chain not in target_chains]
+    if len(available) < 2:
+        raise ValueError("Cloud export needs two unused PDB chain IDs for the peptide copies")
+    generated_chain = "C" if "C" in available else available[0]
+    available.remove(generated_chain)
+    input_chain = "B" if "B" in available else available[0]
     bb = batch["backbone_coords"][0].cpu()  # (L,4,3)
     bbm = batch["backbone_mask"][0].cpu()  # (L,4)
     gsc = batch["sidechain_coords"][0].cpu()  # GT sidechain (L,maxsc,3)
@@ -111,25 +128,23 @@ def _make_cloud_pdb(batch, out, p_idx, ccds, idx_to_ccd, r_top1_row, des_seq, gt
     lines = [
         f"REMARK  Designed (de-novo): {des_seq}",
         f"REMARK  True sequence:        {gt_seq}",
-        "REMARK  Chain A = target bb, B = GT peptide, C = generated cloud",
+        "REMARK  Target atom records preserved from input",
+        f"REMARK  ATOMWEAVER_CHAINS {input_chain} {generated_chain}",
+        f"REMARK  Chain {input_chain} = GT peptide, {generated_chain} = generated cloud",
     ]
-    n = 1
-    # Chain A: target backbone (placeholder GLY resname -- context only)
-    tbb = batch.get("target_backbone_coords")
-    if tbb is not None:
-        tbb = tbb[0].cpu()
-        tbbm = batch.get("target_backbone_mask")
-        tbbm = tbbm[0].cpu() if tbbm is not None else torch.ones(tbb.shape[:2], dtype=torch.bool)
-        for ri in range(tbb.shape[0]):
-            for ai, an in enumerate(_BB_NAMES):
-                if bool(tbbm[ri, ai]):
-                    lines.append(_atom_line(n, an, "GLY", "A", ri + 1, tbb[ri, ai].tolist(), an[0]))
-                    n += 1
+    previous_chain = None
+    for record in target_records:
+        if previous_chain is not None and record[21] != previous_chain:
+            lines.append("TER")
+        lines.append(record)
+        previous_chain = record[21]
+    if target_records:
         lines.append("TER")
-    # Chain B (GT) + Chain C (generated)
+    n = max((int(line[6:11]) for line in target_records), default=0) + 1
+    # Input peptide and generated cloud use separate, unoccupied chain IDs.
     for chain, resnames, sc, scm, el_src in (
-        ("B", [ccds[p] for p in p_idx], gsc, gscm, None),
-        ("C", [idx_to_ccd.get(int(r_top1_row[p]), "GLY") for p in p_idx], psc, pscm, pel),
+        (input_chain, [ccds[p] for p in p_idx], gsc, gscm, None),
+        (generated_chain, [idx_to_ccd.get(int(r_top1_row[p]), "GLY") for p in p_idx], psc, pscm, pel),
     ):
         for k, p in enumerate(p_idx):
             rn = (resnames[k] or "UNK")[:3].upper()
@@ -302,7 +317,8 @@ def main(
         pdb_path = str(Path(pdb_dir) / f"{pdb_name}.pdb")
         if not Path(pdb_path).exists():
             continue
-        _, ccds = peptide_chain_ccds(pdb_path, pep_chain=peptide_chain_from_filename(pdb_path))
+        peptide_chain, ccds = peptide_chain_ccds(pdb_path, pep_chain=peptide_chain_from_filename(pdb_path))
+        target_records = _target_pdb_records(pdb_path, peptide_chain) if export_clouds else []
         B, L, maxsc = batch["sidechain_mask"].shape
         if len(ccds) != L:
             typer.echo(f"  [skip {pdb_name}] CCD/len mismatch ({len(ccds)} vs {L})")
@@ -367,7 +383,9 @@ def main(
                     _placeholder = torch.zeros(L, dtype=torch.long)
                     gt_seq = "".join(THREE2ONE.get(ccds[p], "X") for p in pep_pos)
                     Path(export_clouds).mkdir(parents=True, exist_ok=True)
-                    pdb_str = _make_cloud_pdb(batch, out, pep_pos, ccds, idx_to_ccd, _placeholder, "", gt_seq)
+                    pdb_str = _make_cloud_pdb(
+                        batch, out, pep_pos, ccds, idx_to_ccd, _placeholder, "", gt_seq, target_records=target_records
+                    )
                     (Path(export_clouds) / f"{pdb_name}_s{_s}.pdb").write_text(pdb_str)
         n_done += 1
     typer.echo(f"[sampler] done: {n_done} input(s) sampled.")
