@@ -1,9 +1,4 @@
-"""
-Data loading utilities for residue databases.
-
-Provides functions to load pre-built residue databases for use with
-ResidueDatabaseMatcher and other US-align components.
-"""
+"""Geometric chirality lookup for reference residue libraries."""
 
 from __future__ import annotations
 

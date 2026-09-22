@@ -18,7 +18,7 @@ Modes:
 
 import warnings
 
-# Quiet the noisy load-time warnings from the ML stack (torch / sklearn version notes / biotite);
+# Quiet the noisy load-time warnings from the ML stack (torch / sklearn version notes);
 # real problems still surface as DeprecationWarning / RuntimeWarning, which stay visible.
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -204,8 +204,7 @@ def main(
         "--reserved-slot0/--no-reserved-slot0",
         help="reserved-slot0 slotization for the eval dataset (slot0=N-connecting, slot1=Cbeta, radial, "
         "cap-13). DEFAULT: auto-detected from the checkpoint's stored reserved_slot0 hparam (+ cross-checked "
-        "against the model's per-slot fill-rate buffer). Pass --reserved-slot0/--no-reserved-slot0 only to "
-        "override for an older ckpt that did not store it; if it DISAGREES with the stored value the eval errors.",
+        "against the model's per-slot fill-rate buffer). An explicit value must agree with the checkpoint.",
     ),
     reserved_slot0_prefix_exempt: bool = typer.Option(
         False,

@@ -10,7 +10,8 @@ introduced simply by **adding one reference structure to the library, with no re
 
 This repository provides the trained model weights, inference code to run the model on your own
 structures, and the 300-residue reference library, together with tools to extend the residue vocabulary
-and refit the read-out.
+and refit the read-out. The supported architecture is the released `atomweaver.pt`; historical
+research configurations and model-training APIs are not maintained.
 
 > Method: *AtomWeaver: Multi-Component Flow Matching with a Structured Geometric Prior Facilitates
 > Non-Canonical Peptide Design* (see [Citation](#citation)).
@@ -27,8 +28,9 @@ cd atomweaver
 pip install -e .        # or: uv sync
 ```
 
-Dependencies: `torch`, `numpy`, `scipy`, `scikit-learn`, `joblib`, `typer`, `matplotlib`,
-`biotite`, `pytorch_lightning`. A CUDA GPU is required for sampling; the read-out runs on CPU.
+Dependencies: `torch`, `numpy`, `scipy`, `scikit-learn`, `joblib`, and `typer`.
+The design command uses CUDA for sampling; the lower-level `sample.py --device cpu` also supports CPU
+inference. The read-out runs on CPU.
 
 ### Model weights
 
@@ -40,8 +42,7 @@ mkdir -p weights
 # download atomweaver.pt from the latest release into weights/
 ```
 
-Everything else the model needs: the 300-residue reference library, the read-out head, and the
-read-out cache is bundled in `data/` and used by default.
+The reference libraries and read-out heads are bundled in `data/` and used by default.
 
 ---
 
@@ -115,28 +116,54 @@ python scripts/joint_diffusion/fit_learned_readout.py \
 python scripts/joint_diffusion/design.py --pdb-dir examples/ --out OUTDIR --head my_head.joblib
 ```
 
-Using a genuinely **new** residue (outside the shipped 300) additionally needs its reference rotamers in
-the `--ref-db` library and a rebuilt sampling cache (`build_readout_cache.py --eval-db my_library.pt`); the
-bundled library already covers the full 300.
+A **new** residue outside the shipped 300 needs reference rotamers in the fitting `--ref-db` library
+and a refitted head. Pass that library to design with `--eval-db my_library.pt` and the fitted head
+with `--head my_head.joblib`. The bundled library already covers the full 300.
 
 ---
 
 ## Repository layout
 
 ```
-scripts/joint_diffusion/design.py            # one-command design front door
 scripts/joint_diffusion/
-  ├─ sample.py                                # sampler (design.py calls this)
-  ├─ apply_hybrid_readout.py, hybrid_lib.py   # balanced hybrid discretizer (read-out)
-  ├─ fit_learned_readout.py                   # refit the read-out head
-  └─ build_readout_cache.py                   # rebuild the sampling cache after a vocab change
-atomweaver/joint_diffusion/                     # model: flow matching, SE(3) denoiser, shell prior,
-                                              #        model loader, discretization matcher
-data/                                         # reference library, read-out heads, sampling cache,
-                                              #        phi/psi table
-examples/                                     # a worked example input (peptide + target)
-weights/                                      # download atomweaver.pt + readout_train_clouds.npz (Release assets) here
+  ├─ design.py                  # sampling, read-out, FASTA/CSV export
+  ├─ sample.py                  # joint and subset sampling
+  ├─ apply_hybrid_readout.py     # hybrid read-out CLI
+  ├─ fit_learned_readout.py      # custom-vocabulary read-out fitting
+  └─ build_readout_cache.py      # optional reference-only classifier cache utility
+atomweaver/joint_diffusion/
+  ├─ models.py, diffusion.py    # fixed released architecture and sampling math
+  ├─ model_loader.py           # strict checkpoint loading
+  ├─ sampling.py               # runtime shell scaling and recycle settings
+  ├─ datasets.py               # PDB parsing, cropping, and batching
+  ├─ reference_library.py      # shared reference-library loading
+  └─ matching.py, hybrid_readout.py, readout_features.py
+                               # geometric scoring, probability blending, shared features
+data/                          # reference libraries, read-out heads, phi/psi table
+examples/                      # worked example input
+weights/                       # downloaded model weights and read-out training clouds
+tests/                         # exact CPU regressions against the original implementation
 ```
+
+## Development and numerical compatibility
+
+```bash
+pip install -e '.[dev]'
+ruff check .
+ruff format --check .
+pytest -q
+```
+
+The regression fixtures were captured from the original implementation (`edbaf8c`) with the released
+checkpoint. They compare tensors with zero tolerance, including initialization RNG state, joint design,
+subset pinning, recycling, parsed datasets, read-out probabilities, and seeded custom-head fitting.
+Download the model weights to run sampling tests; those tests skip when the weights are absent.
+See [fixture provenance](tests/data/README.md) for exact dependency versions and the optional 250-step
+comparison. Exact equality is checked within the same CPU software environment; different PyTorch,
+NumPy, or scikit-learn versions can produce different floating-point results.
+
+Registered auxiliary modules and buffers are retained where needed to preserve checkpoint keys and
+the original initialization order, including random-number consumption.
 
 ---
 

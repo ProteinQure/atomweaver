@@ -3192,10 +3192,6 @@ class InverseFoldingDiffusion(nn.Module):
             Target residue type indices of shape (B, L_t).
         target_seq_mask : torch.Tensor, optional
             Mask for valid target residues of shape (B, L_t).
-        use_ddim : bool, optional
-            Whether to use DDIM sampling for coordinates. Default False.
-        ddim_eta : float, optional
-            Stochasticity parameter for DDIM. Only used when use_ddim=True.
         return_intermediates : bool, optional
             If True, return intermediate atom counts at each sampling step. Default False.
 

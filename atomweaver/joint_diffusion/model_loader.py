@@ -43,12 +43,7 @@ _CANONICAL_NAME_TO_CODE = [
 
 
 def build_name_to_idx(db_metadata: list) -> dict[str, int]:
-    """Map residue name / pdb_id / 3-letter code -> residue DB row index.
-
-    Extracted verbatim from the discretization-loss setup so the pretrain-only volumetric-decoy-CE path can
-    build the SAME lookup (used by the collate to fill ``batch['residue_indices']``) without constructing the
-    full discretization loss.
-    """
+    """Map known residue names and PDB identifiers to reference-library type indices."""
     name_to_idx: dict[str, int] = {}
     for i, meta in enumerate(db_metadata):
         for pdb_id in meta.get("pdb_ids", []):

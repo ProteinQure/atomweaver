@@ -1,65 +1,8 @@
-"""
-Diffusion process utilities for SE(3)-equivariant denoising.
+"""Coordinate flow matching and discrete element schedules for released inference.
 
-This module implements the forward diffusion process (adding noise) and provides
-utilities for the reverse process (denoising) used in diffusion models.
-
-Standard Diffusion
-------------------
-The standard DDPM formulation adds Gaussian noise to data x_0 according to:
-
-    x_t = sqrt(alpha_bar_t) * x_0 + sqrt(1 - alpha_bar_t) * epsilon
-
-where epsilon ~ N(0, I) and alpha_bar_t is the cumulative product of (1 - beta_t).
-
-For SE(3)-equivariant diffusion on coordinates, we apply this noise independently
-to each coordinate dimension, which preserves equivariance since Gaussian noise
-is isotropic.
-
-Future Work: Groupwise / Hierarchical Diffusion
------------------------------------------------
-A key research direction is to use DIFFERENT noise schedules for different atoms
-based on their distance from the backbone. The intuition is:
-
-**Backbone-proximal atoms (Cb carbons):**
-- Define the "broad direction" of the side chain
-- Should be denoised FIRST (less noise in forward, emerge early in reverse)
-- More constrained by backbone geometry, so resolve them first
-
-**Distal atoms (side chain tips, aromatic rings, etc.):**
-- Fine structural details
-- Should be denoised LAST (more noise in forward, stay noisy longer in reverse)
-- Depend on positions of proximal atoms, so resolve them after Cb is placed
-
-This creates a coarse-to-fine hierarchy:
-1. Early reverse steps: resolve coarse structure (Cb positions)
-2. Late reverse steps: refine fine details (distal atoms conditioned on Cb)
-
-Implementation approaches:
-
-1. **Blockwise schedules**: Partition atoms into groups (e.g., by bond distance
-   from backbone), use different beta schedules per group.
-
-2. **Continuous depth-based schedules**: Define noise level as a function of
-   atom "depth" d (bonds from backbone):
-       beta_t(d) = beta_min + (beta_max - beta_min) * f(d, t)
-   where f increases noise for distal atoms at early timesteps.
-
-3. **Cascaded diffusion**: Two-stage model:
-   - Stage 1: Predict Cβ positions given backbone
-   - Stage 2: Predict full side chain conditioned on Cβ
-
-4. **Learned schedules**: Let the model learn optimal per-atom noise levels
-   via a small auxiliary network.
-
-Advantages of hierarchical diffusion:
-- Better tractability for atom-level clouds
-- Physically motivated inductive bias
-- Potentially faster convergence (easier problem at each stage)
-- Natural curriculum learning
-
-For now, we implement standard uniform diffusion. The infrastructure is designed
-to be extensible to per-atom schedules via the `atom_depths` parameter.
+Gaussian schedule buffers remain registered for checkpoint compatibility. The
+active coordinate process draws the shell prior and follows learned velocities;
+element identities use the absorbing categorical posterior.
 """
 
 from __future__ import annotations
