@@ -3075,9 +3075,6 @@ class InverseFoldingDiffusion(nn.Module):
         inpaint_gt_elements,
         inpaint_gt_mask,
         inpaint_mode,
-        t,
-        ca_coords,
-        leak_direction,
     ):
         """Replacement-inpaint pin: set non-designed binder positions to GT (coords/elements/mask/EVC).
 
@@ -3107,6 +3104,34 @@ class InverseFoldingDiffusion(nn.Module):
             if evc_sampling is not None and inpaint_gt_mask is not None:
                 evc_sampling = torch.where(keep, inpaint_gt_mask.float(), evc_sampling)
         return (x, element_types, noised_mask, evc_sampling)
+
+    def _initial_sample_state(self, backbone_coords, ca_coords, max_sc, chirality):
+        """Draw the shell prior and initialize discrete elements and their geometric mask."""
+        batch_size, seq_len = ca_coords.shape[:2]
+        device = backbone_coords.device
+        leak_direction = compute_pseudo_cb_direction(backbone_coords, chirality=chirality)
+        x, _ = self.coord_flow.sample_prior(
+            (batch_size, seq_len * max_sc, 3),
+            ca_coords=ca_coords,
+            per_atom_mask=None,
+            direction_override=leak_direction,
+        )
+        x = x.view(batch_size, seq_len, max_sc, 3)
+        from .diffusion import ELEMENT_MASK, ELEMENT_PAD
+
+        element_types = torch.full((batch_size, seq_len, max_sc), ELEMENT_MASK, device=device, dtype=torch.long)
+        noised_mask = (element_types != ELEMENT_PAD).float()
+        if hasattr(self.coord_flow, "_shell_radii"):
+            from .diffusion import ELEMENT_MASK
+
+            is_mask = element_types == ELEMENT_MASK
+            if is_mask.any():
+                ca_exp = ca_coords.unsqueeze(2).expand(-1, -1, max_sc, -1)
+                dist_to_ca = (x - ca_exp).norm(dim=-1)
+                shell_radii = self.coord_flow._shell_radii
+                threshold = self._distal_read_threshold(shell_radii, epoch=None).view(1, 1, max_sc)
+                noised_mask = torch.where(is_mask, (dist_to_ca >= threshold).float(), noised_mask)
+        return x, element_types, noised_mask
 
     @torch.no_grad()
     def sample(
@@ -3187,34 +3212,12 @@ class InverseFoldingDiffusion(nn.Module):
         device = backbone_coords.device
         num_steps = num_steps or self.timesteps
         _sample_recycles = max(1, neighbor_x0_packing_recycles or 1)
-        _sample_absorbing = True
         ca_coords = backbone_coords[:, :, 1, :]
         ca_expanded = ca_coords.unsqueeze(2).expand(-1, -1, max_sc, -1)
-        leak_direction = None
-        _src_chir = chirality
-        leak_direction = compute_pseudo_cb_direction(backbone_coords, chirality=_src_chir)
-        x, _ = self.coord_flow.sample_prior(
-            (batch_size, seq_len * max_sc, 3),
-            ca_coords=ca_coords,
-            per_atom_mask=None,
-            direction_override=leak_direction,
-        )
-        x = x.view(batch_size, seq_len, max_sc, 3)
+        x, element_types, noised_mask = self._initial_sample_state(backbone_coords, ca_coords, max_sc, chirality)
         timesteps = torch.linspace(self.timesteps - 1, 0, num_steps, device=device).long()
         from .diffusion import ELEMENT_MASK, ELEMENT_PAD
 
-        element_types = torch.full((batch_size, seq_len, max_sc), ELEMENT_MASK, device=device, dtype=torch.long)
-        noised_mask = (element_types != ELEMENT_PAD).float()
-        if hasattr(self.coord_flow, "_shell_radii"):
-            from .diffusion import ELEMENT_MASK
-
-            is_mask = element_types == ELEMENT_MASK
-            if is_mask.any():
-                ca_exp = ca_coords.unsqueeze(2).expand(-1, -1, max_sc, -1)
-                dist_to_ca = (x - ca_exp).norm(dim=-1)
-                shell_radii = self.coord_flow._shell_radii
-                threshold = self._distal_read_threshold(shell_radii, epoch=None).view(1, 1, max_sc)
-                noised_mask = torch.where(is_mask, (dist_to_ca >= threshold).float(), noised_mask)
         prev_element_pred = None
         prev_cluster_pred = None
         final_residue_centroid = None
@@ -3235,7 +3238,6 @@ class InverseFoldingDiffusion(nn.Module):
             init_counts = noised_mask.float().view(batch_size, -1).sum(dim=-1).tolist()
             intermediate_atom_counts.append(init_counts)
         evc_sampling = None
-        from .diffusion import ELEMENT_MASK, ELEMENT_PAD
 
         if getattr(self, "evc_ss_noised_element_prob", 0.0) > 0:
             evc_sampling = evc_from_element_state(element_types)
@@ -3243,7 +3245,6 @@ class InverseFoldingDiffusion(nn.Module):
             is_resolved_real = ((element_types != ELEMENT_PAD) & (element_types != ELEMENT_MASK)).float()
             evc_sampling = is_resolved_real
         if design_mask is not None and inpaint_gt_coords is not None:
-            _t0 = torch.full((batch_size,), timesteps[0].item(), device=device, dtype=torch.long)
             x, element_types, noised_mask, evc_sampling = self._pin_inpaint(
                 x,
                 element_types,
@@ -3254,9 +3255,6 @@ class InverseFoldingDiffusion(nn.Module):
                 inpaint_gt_elements=inpaint_gt_elements,
                 inpaint_gt_mask=inpaint_gt_mask,
                 inpaint_mode=inpaint_mode,
-                t=_t0,
-                ca_coords=ca_coords,
-                leak_direction=leak_direction,
             )
         inpaint_ar_state = None
         if design_mask is not None and inpaint_gt_coords is not None:
@@ -3506,9 +3504,6 @@ class InverseFoldingDiffusion(nn.Module):
                 inpaint_gt_elements=inpaint_gt_elements,
                 inpaint_gt_mask=inpaint_gt_mask,
                 inpaint_mode=inpaint_mode,
-                t=t,
-                ca_coords=ca_coords,
-                leak_direction=leak_direction,
             )
             if return_coord_trajectory:
                 coord_traj.append(x.detach().to("cpu", torch.float32).clone())
