@@ -5223,51 +5223,18 @@ class InverseFoldingDiffusion(nn.Module):
         target_atom_element_type: torch.Tensor | None = None,
         target_atom_residue_type: torch.Tensor | None = None,
         target_atom_is_backbone: torch.Tensor | None = None,
-        use_ddim: bool = False,  # Use DDPM (stochastic) by default - performs better than DDIM
-        ddim_eta: float = 1.0,  # Full stochasticity (DDPM equivalent)
-        return_intermediates: bool = False,  # Return atom counts at each step
-        return_coord_trajectory: bool = False,  # Capture full per-step coords/elements/mask (for viz)
-        element_sampling_temp_max: float = 25.0,  # Max temperature for element logits at t=T
-        element_sampling_temp_power: float = 5.0,  # Power for temp schedule (higher = drops faster)
-        disc_count_guidance: object | None = None,  # DiscretizationLoss for count guidance
-        disc_count_guidance_k: int = 2,  # Run disc guidance every k steps
-        max_count_delta: int = 0,  # Max atom count change per reverse step (0=no clamp, 1=±1 per step)
-        oracle_sidechain_mask: torch.Tensor | None = None,  # GT mask for oracle ablation
-        count_head_element_bias: float = 0.0,  # Strength of count-head->element bias (0=disabled)
-        non_pad_logit_bias: float = 0.0,  # Non-PAD boost (0=disabled). Counteracts PAD-heavy prior.
-        non_pad_bias_nres_scale: float = 0.0,  # Scale bias by (1 + scale*(n_res - 11)); 0=off, 0.05=mild
-        non_pad_bias_time_decay: str = "none",  # Time schedule: "none", "linear" (bias->0), "cosine"
-        element_sampling_mode: str = "posterior",  # "posterior", "reflow", "reflow_cond", "greedy" (argmax x_0)
-        reflow_start_frac: float = 1.0,  # Fraction of timesteps to use reflow (1.0=all, 0.5=top half only)
-        element_stride: int = 1,  # Update elements every N coord steps (1=every step, 10=every 10th step)
-        element_early_stop_frac: float = 1.0,  # Stop element updates after this fraction of steps (1.0=never stop, 0.8=stop at 80%)
-        posterior_pad_squash: float = 1.0,  # Squash posterior PAD probability (<1 reduces PAD bias)
-        squash_schedule: str = "constant",  # "constant" or "linear" (time-dependent: aggressive at high noise)
-        evc_mask_init_value: float = 0.0,  # EVC conditioning for MASK/PAD tokens at init (0.0=ghost, 0.5=neutral, 1.0=real)
-        evc_dist_override_frac: float = 0.0,  # Use dist-from-CA as EVC for first N% of steps (0=disabled, 0.5=first half)
-        element_dist_logit_bias: float = 0.0,  # Bias element logits by distance from CA (>0: far->non-PAD, near->PAD)
-        mask_persistence_bias: float = 0.0,  # Suppress PAD logit when element is MASK (prevent premature PAD collapse)
-        reserved_slot0_prefix_exempt: bool = False,  # exempt reserved-slot0 (N-connecting) from the hard prefix constraint
-        count_ghost_velocity: float = 0.0,  # Ghost velocity override strength (0=off, >0: blend by sigmoid(k*(count-slot-0.5)), 999=hard)
-        gt_sidechain_coords: torch.Tensor | None = None,  # GT sidechain coords for leak positive controls
-        gt_sidechain_mask: torch.Tensor | None = None,  # GT sidechain mask for leak positive controls
-        freeze_count_at_frac: float = -1.0,  # Freeze model's own count prediction at this trajectory fraction (-1=off, 0.05=5%, 0.25=25%)
-        logit_anchor_frac: float = -1.0,  # Snapshot logit ranking at this trajectory fraction (-1=off, 0.05=5%)
-        logit_anchor_alpha: float = 0.5,  # Anchor bias strength (0=off, 0.5=sweet spot, >1=overconstrained)
-        # --- Replacement-inpainting (K-mask done on-manifold, NOT fold-to-target) ---
-        design_mask: torch.Tensor | None = None,  # (B, L) bool: True = positions to DESIGN (free); False = pinned to GT
-        inpaint_gt_coords: torch.Tensor | None = None,  # (B, L, max_sc, 3) GT sidechain coords for pinned positions
-        inpaint_gt_elements: torch.Tensor | None = None,  # (B, L, max_sc) GT element types (PAD=0,C=1,N=2,O=3,S=4)
-        inpaint_gt_mask: torch.Tensor | None = None,  # (B, L, max_sc) GT atom-existence mask for pinned positions
-        inpaint_mode: str = "clean",  # "clean" = pin GT x0 every step; "noised" = pin GT noised-to-t (RePaint-style)
-        chirality: torch.Tensor | None = None,  # (B,L) L/D sign for the pseudo-CB cone (+1 L / -1 D); None=+1 (L)
-        noised_count_override: torch.Tensor
-        | None = None,  # (B,L) override self-fed noised_count at designed positions (count-conditioning ablation)
-        neighbor_x0_packing_recycles: int
-        | None = None,  # ARBITRARY N, independent of the training value (each pass is told its absolute index j); 1 = cheap mode (no extra pass, t_cond == t_orig), >1 = recycled (t_cond = 0)
-        forced_atom_counts: torch.Tensor
-        | None = None,  # (B,L) int: force EXACTLY K real atoms per residue (slots 0..K-1 REAL->shell, K..GHOST->CA; reserved-slot0 prefix layout). Reuses the leak_gt_count donut-source + per-step oracle path with a K-derived mask instead of GT. NO GT leak. Used by the count-search eval.
-        **kwargs,  # noqa: ARG002 -- Accept legacy mask-related kwargs for backward compat
+        return_intermediates: bool = False,
+        return_coord_trajectory: bool = False,
+        element_sampling_temp_max: float = 25.0,
+        element_sampling_temp_power: float = 5.0,
+        reserved_slot0_prefix_exempt: bool = False,
+        design_mask: torch.Tensor | None = None,
+        inpaint_gt_coords: torch.Tensor | None = None,
+        inpaint_gt_elements: torch.Tensor | None = None,
+        inpaint_gt_mask: torch.Tensor | None = None,
+        inpaint_mode: str = "clean",
+        chirality: torch.Tensor | None = None,
+        neighbor_x0_packing_recycles: int | None = None,
     ) -> dict[str, torch.Tensor]:
         """
         Sample side-chain coordinates and element types given backbone.
@@ -5313,6 +5280,12 @@ class InverseFoldingDiffusion(nn.Module):
             - 'predicted_mask': Predicted atom mask of shape (B, L, max_sc)
             - 'intermediate_atom_counts': (optional) List of atom counts per step if return_intermediates=True
         """
+        oracle_sidechain_mask = None
+        element_sampling_mode = "posterior"
+        element_stride = 1
+        posterior_pad_squash = 1.0
+        logit_anchor_alpha = 0.5
+
         batch_size, seq_len, max_sc = sidechain_mask.shape
         device = backbone_coords.device
 
@@ -5349,15 +5322,6 @@ class InverseFoldingDiffusion(nn.Module):
         # (production checkpoints have it False) and uses NO ground truth. When forcing is active the
         # donut source depends only on the shared t=T RNG draw and the deterministic K-gating, so seeding
         # identically across the K passes makes the shell displacement byte-identical (count = only var).
-        if forced_atom_counts is not None:
-            _slot_idx = torch.arange(max_sc, device=device).view(1, 1, max_sc)  # (1,1,max_sc)
-            _forced_k = forced_atom_counts.to(device).long().clamp(min=0, max=max_sc)  # (B,L)
-            forced_mask = (_slot_idx < _forced_k.unsqueeze(-1)).float()  # (B,L,max_sc): 1 = real, 0 = ghost
-            if seq_mask is not None:
-                # padded residues stay all-ghost (no spurious forced atoms outside the peptide)
-                forced_mask = forced_mask * seq_mask.to(device).view(batch_size, seq_len, 1).float()
-            leak_per_atom_mask = forced_mask.reshape(batch_size, -1, 1)  # donut source: real->shell, ghost->CA
-            leak_mask_for_elements = forced_mask  # element init + per-step ghost->PAD oracle pin
         _src_chir = chirality
         leak_direction = compute_pseudo_cb_direction(backbone_coords, chirality=_src_chir)
         # -1: sigmoid-gated cone init (SAMPLING side -- mirrors the training q_sample prior above so
@@ -5435,14 +5399,10 @@ class InverseFoldingDiffusion(nn.Module):
 
         # Freeze-count: compute the step at which to snapshot model's count prediction
         freeze_count_step = -1
-        if freeze_count_at_frac >= 0:
-            freeze_count_step = max(1, int(freeze_count_at_frac * len(timesteps)))
 
         # Logit anchoring: snapshot per-slot ranking at anchor_frac, then bias toward it
         logit_anchor_step = -1
         logit_anchor_scores = None  # Will be (B, L, max_sc) real-vs-PAD scores
-        if logit_anchor_frac >= 0:
-            logit_anchor_step = max(1, int(logit_anchor_frac * len(timesteps)))
 
         # Track final-step mixture head outputs for diagnostics
         final_residue_centroid = None
@@ -5510,11 +5470,7 @@ class InverseFoldingDiffusion(nn.Module):
             evc_sampling = evc_from_element_state(element_types)
         else:
             is_resolved_real = ((element_types != ELEMENT_PAD) & (element_types != ELEMENT_MASK)).float()
-            if evc_mask_init_value > 0.0:
-                is_unresolved = ((element_types == ELEMENT_PAD) | (element_types == ELEMENT_MASK)).float()
-                evc_sampling = is_resolved_real + evc_mask_init_value * is_unresolved
-            else:
-                evc_sampling = is_resolved_real
+            evc_sampling = is_resolved_real
 
         # Count-velocity coupling: initialized from cached_count_pred after first step.
         # None until first denoiser call produces count_pred.
@@ -5616,9 +5572,6 @@ class InverseFoldingDiffusion(nn.Module):
             noised_count = noised_mask.sum(dim=-1)  # (B, L)
             # Count-conditioning ablation: override the self-fed count at DESIGNED positions
             # (pinned/context positions keep self-fed, which already equals GT via _pin_inpaint).
-            if noised_count_override is not None:
-                _ovr = noised_count_override.to(noised_count.dtype)
-                noised_count = torch.where(design_mask, _ovr, noised_count) if design_mask is not None else _ovr
 
             _denoise_kwargs = {
                 "noised_element_types": element_types,
@@ -5844,8 +5797,6 @@ class InverseFoldingDiffusion(nn.Module):
             # Prior cloud blending: replace denoiser's residue centroid/logvar with blended version
 
             # Cache LRT delta and count prediction from first step -- backbone-only, constant across steps
-            if cached_count_pred is None and (self.dlrt_analytical_scale > 0 or count_ghost_velocity > 0):
-                cached_count_pred = denoiser_outputs.get("residue_count_pred")
             # CVC: set from count_pred on first step (stable, backbone-only signal)
 
             # Per-residue trajectory: pre-update soft count from consistent state (x, t, denoiser_outputs)
@@ -5892,54 +5843,11 @@ class InverseFoldingDiffusion(nn.Module):
 
             # Non-PAD logit bias: boost non-PAD logits during sampling.
             # Counteracts the PAD-heavy prior (71%) that suppresses atom creation.
-            if non_pad_logit_bias > 0:
-                element_logits = (
-                    element_logits.clone()
-                    if not (
-                        self.occupancy_gate_elements
-                        or self.mixture_gate_weight > 0
-                        or (count_head_element_bias > 0 and self.residue_count_loss_weight > 0)
-                    )
-                    else element_logits
-                )
-                effective_bias = non_pad_logit_bias
-                if non_pad_bias_nres_scale > 0:
-                    # Use actual residue count (not padded seq_len)
-                    n_res = int(seq_mask.sum().item()) if seq_mask is not None else seq_len
-                    # Scale up for large peptides, never below base bias
-                    effective_bias *= max(1.0, 1.0 + non_pad_bias_nres_scale * (n_res - 11))
-                if non_pad_bias_time_decay == "linear":
-                    # Full bias at high noise (step 0), zero at low noise (last step)
-                    frac = 1.0 - step_i / max(num_steps - 1, 1)
-                    effective_bias *= frac
-                elif non_pad_bias_time_decay == "cosine":
-                    import math
-
-                    frac = 0.5 * (1.0 + math.cos(math.pi * step_i / max(num_steps - 1, 1)))
-                    effective_bias *= frac
-                element_logits[..., 1:] += effective_bias  # Boost C, N, O, S equally
 
             # Distance-based element logit bias: far from CA -> non-PAD, near CA -> PAD.
             # Coords->elements coupling at sampling time.
-            if element_dist_logit_bias > 0:
-                dist_from_ca = (x - ca_expanded).norm(dim=-1)  # (B, L, max_sc)
-                # Sigmoid centered at 2.5Å: atoms >2.5Å -> positive (non-PAD), <2.5Å -> negative (PAD)
-                dist_signal = torch.sigmoid((dist_from_ca - 2.5) * 2.0) * 2.0 - 1.0  # range [-1, 1]
-                bias = dist_signal * element_dist_logit_bias
-                element_logits = (
-                    element_logits.clone() if not isinstance(element_logits, torch.Tensor) else element_logits
-                )
-                element_logits[..., 0] -= bias  # suppress PAD for far atoms, boost for near
-                element_logits[..., 1:] += (bias / max(self.num_element_classes - 1, 1)).unsqueeze(-1)
 
             # MASK persistence bias: suppress PAD logit for MASK tokens to prevent premature collapse.
-            if mask_persistence_bias > 0 and self.donut_element_init == "mask":
-                from .diffusion import ELEMENT_MASK
-
-                is_mask = (element_types == ELEMENT_MASK).float()
-                if is_mask.any():
-                    element_logits = element_logits.clone()
-                    element_logits[..., 0] -= mask_persistence_bias * is_mask  # suppress PAD for MASK tokens
 
             # Logit anchoring: snapshot per-slot real-vs-PAD score at anchor step
             # Not applicable in split mode (no PAD class in element logits)
@@ -5962,8 +5870,6 @@ class InverseFoldingDiffusion(nn.Module):
             # effective beta and making PAD->non-PAD transitions easier in the posterior.
             do_element_step = (element_stride <= 1) or (step_i % element_stride == 0)
             # Element early stop: freeze element/mask after element_early_stop_frac of trajectory
-            if element_early_stop_frac < 1.0 and step_i >= int(element_early_stop_frac * num_steps):
-                do_element_step = False
             # === Split existence/element reverse step ===
             if not self.disable_element_types and do_element_step and not self.split_element_existence:
                 # Temperature schedule: hot at high t to escape all-PAD, cool to 1.0 at t=0
@@ -5984,22 +5890,6 @@ class InverseFoldingDiffusion(nn.Module):
 
                 # For element_stride > 1, compute the target timestep for this element step.
                 # The posterior needs alpha_bar_prev from the target (not just t-1).
-                if element_stride > 1:
-                    next_elem_step_i = min(step_i + element_stride, len(timesteps) - 1)
-                    t_elem_prev_idx = timesteps[next_elem_step_i]
-                    t_elem_prev = torch.full((batch_size,), t_elem_prev_idx.item(), device=device, dtype=torch.long)
-                    # Override alphas_cumprod_prev for this larger step
-                    elem_alpha_bar_prev = self.element_diffusion.alphas_cumprod[t_elem_prev]
-                    for _ in range(element_types.dim() - 1):
-                        elem_alpha_bar_prev = elem_alpha_bar_prev.unsqueeze(-1)
-                    # Compute effective beta for this larger step:
-                    # beta_eff = 1 - alpha_bar_t / alpha_bar_{t_target}
-                    # (probability of being absorbed between t_target and t)
-                    elem_alpha_bar = self.element_diffusion.alphas_cumprod[t]
-                    for _ in range(element_types.dim() - 1):
-                        elem_alpha_bar = elem_alpha_bar.unsqueeze(-1)
-                    elem_beta = 1.0 - elem_alpha_bar / (elem_alpha_bar_prev + 1e-8)
-                    elem_beta = elem_beta.clamp(min=0, max=0.999)
 
                 # Compute per-slot element schedule for reverse step if groupwise enabled
                 elem_sched_kwargs = {}
@@ -6016,17 +5906,8 @@ class InverseFoldingDiffusion(nn.Module):
                 # Sample slot 0 first. If PAD -> all remaining are PAD. Otherwise continue.
                 use_reflow = element_sampling_mode in ("reflow", "reflow_cond")
                 # Threshold hybrid: use reflow only above reflow_start_frac of timesteps
-                if use_reflow and reflow_start_frac < 1.0:
-                    t_frac = t_idx.float() / max(self.timesteps - 1, 1)
-                    use_reflow = t_frac >= (1.0 - reflow_start_frac)
 
-                if element_sampling_mode == "greedy":
-                    # Greedy: use model's argmax x_0 prediction directly as x_{t-1}
-                    # No posterior, no re-corruption -- bypasses PAD bias completely.
-                    # Model sees clean element types at each step (slight train/sample mismatch
-                    # at intermediate noise, but elements carry less info than coordinates).
-                    element_types_new = torch.softmax(element_logits, dim=-1).argmax(dim=-1)
-                elif use_reflow:
+                if use_reflow:
                     # Reflow: predict x_0, re-corrupt to t-1 (bypasses PAD-biased posterior)
                     reflow_kwargs = {}
                     if "slot_alpha_bar_prev" in elem_sched_kwargs:
@@ -6043,25 +5924,7 @@ class InverseFoldingDiffusion(nn.Module):
                 else:
                     # For element_stride > 1 (non-groupwise), override schedule for larger step
                     # Time-dependent squash schedules
-                    if squash_schedule != "constant" and posterior_pad_squash != 1.0:
-                        t_norm = t_idx.item() / max(self.timesteps - 1, 1)
-                        if squash_schedule == "linear":
-                            # Linear: squash_base at t=T, 1.0 at t=0
-                            effective_squash = 1.0 - (1.0 - posterior_pad_squash) * t_norm
-                        elif squash_schedule.startswith("cosine"):
-                            # Cosine: stays near squash_base longer, only relaxes near t=0
-                            import math
-
-                            effective_squash = posterior_pad_squash + (1.0 - posterior_pad_squash) * (
-                                1.0 - math.cos(math.pi / 2 * (1.0 - t_norm))
-                            )
-                        elif squash_schedule == "step":
-                            # Step: full squash for t > T/2, no squash below
-                            effective_squash = posterior_pad_squash if t_norm > 0.5 else 1.0
-                        else:
-                            effective_squash = posterior_pad_squash
-                    else:
-                        effective_squash = posterior_pad_squash
+                    effective_squash = posterior_pad_squash
                     element_types_new = self.element_diffusion.p_sample(
                         element_types,
                         t,
@@ -6096,12 +5959,7 @@ class InverseFoldingDiffusion(nn.Module):
                     # max_count_delta=1 is standard, 0=no clamp (unlimited count changes)
                     old_count = noised_count.long()  # (B, L) -- count before this step
                     new_count = (element_types_new != ELEMENT_PAD).sum(dim=-1)  # (B, L)
-                    if max_count_delta > 0:
-                        clamped_count = new_count.clamp(
-                            min=(old_count - max_count_delta).clamp(min=0), max=old_count + max_count_delta
-                        )
-                    else:
-                        clamped_count = new_count  # no clamping
+                    clamped_count = new_count  # no clamping
                     # If count needs to decrease, zero out the last occupied slot
                     needs_decrease = new_count > clamped_count  # (B, L)
                     if needs_decrease.any():
@@ -6160,11 +6018,6 @@ class InverseFoldingDiffusion(nn.Module):
                 # Distance-from-CA override: for early steps, use geometric signal
                 # instead of (noisy) element predictions to avoid death spiral.
                 step_frac = 1.0 - step_i / max(num_steps - 1, 1)  # 1.0 at first step -> 0.0 at last
-                if evc_dist_override_frac > 0 and step_frac > (1.0 - evc_dist_override_frac):
-                    # Use sigmoid of distance from CA: far atoms -> ~1.0 (real), close -> ~0.0 (ghost)
-                    dist_from_ca = (x - ca_expanded).norm(dim=-1)  # (B, L, max_sc)
-                    # Threshold at 2.0Å with sharpness 2.0: atoms >2Å from CA are likely real
-                    evc_sampling = torch.sigmoid((dist_from_ca - 2.0) * 2.0)
                 if getattr(self, "evc_ss_noised_element_prob", 0.0) > 0:
                     # Honest 3-way read: REAL->1.0, MASK->0.5 (unknown/absorbing), PAD->0.0 (ghost). Matches
                     # the noised-element EVC training signal; MASK is NOT conflated with confirmed ghost.
@@ -6204,15 +6057,6 @@ class InverseFoldingDiffusion(nn.Module):
             # Count-based ghost velocity override: blend learned velocity with analytical
             # ghost velocity (-> CA) based on predicted atom count per residue.
             # k controls sharpness: k=4 soft sigmoid, k=999 hard threshold.
-            if count_ghost_velocity > 0 and cached_count_pred is not None:
-                v_ghost = self.coord_flow.analytical_ghost_velocity(x_flat, t, ca_coords)
-                count_pred = cached_count_pred.detach()  # (B, L)
-                slot_idx = torch.arange(max_sc, device=device).float().view(1, 1, -1)  # (1, 1, max_sc)
-                # P(real) per slot via sigmoid: smooth for small k, hard for large k
-                p_real_slot = torch.sigmoid(count_ghost_velocity * (count_pred.unsqueeze(-1) - slot_idx - 0.5))
-                # Reshape to flat atom dim: (B, L, max_sc) -> (B, L*max_sc, 1)
-                p_real_flat = p_real_slot.reshape(batch_size, -1, 1)
-                model_output_flat = p_real_flat * model_output_flat + (1.0 - p_real_flat) * v_ghost
 
             # EVC-gated velocity: blend learned velocity with ghost velocity using EVC state
             if evc_sampling is not None and getattr(self, "evc_velocity_blend", False):
@@ -6236,45 +6080,6 @@ class InverseFoldingDiffusion(nn.Module):
                 ).view_as(x)
 
             # Disc-guided count adjustment every k steps
-            if disc_count_guidance is not None and (t_idx.item() % disc_count_guidance_k == 0):
-                # Get predicted x0 coords for scoring
-                x0_for_disc = self.coord_flow.predict_x0_from_velocity(
-                    x.view(batch_size, -1, 3),
-                    t,
-                    model_output.view(batch_size, -1, 3),
-                    ca_coords=ca_coords,
-                    mask_probs=noised_mask.view(batch_size, -1, 1),
-                ).view(batch_size, seq_len, max_sc, 3)
-
-                # Pass ghost_weight so PAD slots contribute softly to NDM (matching training),
-                # and element types so element-aware references can be used.
-                disc_ghost_w = self.ghost_weight if self.ghost_weight > 0 else 0.1
-                best_variant = disc_count_guidance.select_best_count(
-                    x0_for_disc,
-                    noised_mask,
-                    seq_mask=seq_mask,
-                    backbone_coords=backbone_coords,
-                    backbone_mask=backbone_mask,
-                    predicted_element_types=element_types - 1,  # model PAD=0,C=1.. -> disc C=0,N=1..
-                    max_plus=self.multi_count_max_plus,
-                    ghost_weight=disc_ghost_w,
-                )
-                # Apply: variant 0->delta=-1, 1->delta=0, 2->delta=+1, 3->delta=+2, etc.
-                current_count = (element_types != ELEMENT_PAD).sum(dim=-1)  # (B, L)
-                target_count = current_count + (best_variant - 1)  # variant index 0 maps to delta -1
-                target_count = target_count.clamp(min=0, max=max_sc)
-                # Adjust element types to match target count
-                slot_indices = torch.arange(max_sc, device=device).view(1, 1, max_sc)
-                new_mask = slot_indices < target_count.unsqueeze(-1)
-                # For slots being added, use C (most common element)
-                element_types = torch.where(
-                    new_mask & (element_types == ELEMENT_PAD),
-                    torch.ones_like(element_types),  # C=1
-                    element_types,
-                )
-                # For slots being removed, set to PAD
-                element_types = torch.where(~new_mask, torch.zeros_like(element_types), element_types)
-                noised_mask = (element_types != ELEMENT_PAD).float()
 
             # --- Replacement-inpainting: re-pin non-designed positions to GT after each reverse update
             # (keeps the joint denoiser ON-manifold; the pre-loop pin already covered the first step's

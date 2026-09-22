@@ -390,11 +390,6 @@ def main(
     coord_process_type = ""  # production: use the checkpoint's coord process
     graph_num_edge_types = 3  # production: peptide graph regime
     inpaint_mode = "clean"  # production: clean pinning for --design-positions subset
-    non_pad_logit_bias = 0.0
-    posterior_pad_squash = 1.0
-    max_count_delta = 0
-    count_head_element_bias = 0.0
-    mask_persistence_bias = 0.0
 
     # Resolve the sampling recipe first, so a bad value is caught in milliseconds rather than after
     # the model has loaded.
@@ -503,11 +498,6 @@ def main(
             seq_mask=seq_mask,
             num_steps=num_steps,
             element_sampling_temp_max=1.0,
-            non_pad_logit_bias=non_pad_logit_bias,
-            posterior_pad_squash=posterior_pad_squash,
-            max_count_delta=max_count_delta,
-            count_head_element_bias=count_head_element_bias,
-            mask_persistence_bias=mask_persistence_bias,
             reserved_slot0_prefix_exempt=reserved_slot0_prefix_exempt,
             chirality=chirality,
             **_target_kwargs(batch),
