@@ -1,5 +1,6 @@
 """Numerical regressions captured from the original released inference code."""
 
+import inspect
 import os
 from pathlib import Path
 
@@ -8,8 +9,16 @@ import torch
 
 from atomweaver.joint_diffusion.model_loader import load_model
 from atomweaver.joint_diffusion.sampling import SamplingConfig, apply_sampling_config
+from scripts.joint_diffusion import sample
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_sampler_enables_reserved_slot0_prefix_exemption_by_default():
+    """Direct sampler use retains the production fix for reserved slot 0."""
+    option = inspect.signature(sample.main).parameters["reserved_slot0_prefix_exempt"].default
+    assert option.default is True
+    assert option.param_decls == ("--reserved-slot0-prefix-exempt/--no-reserved-slot0-prefix-exempt",)
 
 
 @pytest.fixture(scope="module")

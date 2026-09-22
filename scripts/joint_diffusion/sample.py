@@ -207,8 +207,12 @@ def main(
         "against the model's per-slot fill-rate buffer). An explicit value must agree with the checkpoint.",
     ),
     reserved_slot0_prefix_exempt: bool = typer.Option(
-        False,
-        help="exempt reserved-slot0 from the hard prefix constraint at sampling (the slot-0/prefix collapse fix)",
+        True,
+        "--reserved-slot0-prefix-exempt/--no-reserved-slot0-prefix-exempt",
+        help=(
+            "exempt reserved-slot0 from the hard prefix constraint at sampling. Enabled by default to prevent "
+            "the slot-0/prefix collapse; pass --no-reserved-slot0-prefix-exempt only for an intentional ablation."
+        ),
     ),
 ):
     from functools import partial
