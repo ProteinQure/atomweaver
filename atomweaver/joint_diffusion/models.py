@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import math
 import os
-import sys
 from typing import TYPE_CHECKING
 
 import torch
@@ -21,14 +20,11 @@ if TYPE_CHECKING:
 
 from .diffusion import ELEMENT_PAD, NUM_ELEMENT_TYPES, TimestepEmbedding
 from .egnn import (
-    EDGE_TYPE_BINDER_TARGET,
     EdgeTypeEmbedding,
     build_multi_type_radius_graph,
 )
-from .latent_matching import CleanContextStream, LatentPoolHead, clean_summary
 from .residue_frame_stream import (
     _STEREO_HEAD_LPRIOR_BIAS,
-    ResidueFrameStream,
     ResidueFrameStreamV2,
     build_local_frames,
 )
@@ -3038,11 +3034,6 @@ class SidechainDenoiser(nn.Module):
         # the two so downstream logic is a single guard, and no deep-inject modules are built (nor any
         # tensors added to the state_dict) unless BOTH are requested.
         self.use_residue_frame_deep_inject = bool(use_residue_frame_stream and use_residue_frame_deep_inject)
-        if use_residue_frame_stream:
-            self.residue_frame_stream = ResidueFrameStream(
-                hidden_dim=hidden_dim,
-                n_layers=residue_frame_layers,
-            )
 
         # v2 residue-frame graph (binder+target residues; orientation-only heads: in-frame
         # centroid + χ1 (cos,sin); no count/radial). SE(3)-INVARIANT exactly like v1 -- geometry
@@ -3055,19 +3046,13 @@ class SidechainDenoiser(nn.Module):
         # supervised stereochemistry head lives INSIDE the v2 stream; the IFD has already AND'd
         # this flag with use_residue_frame_stream_v2, so it is only ever True when the v2 stream is on.
         self.use_stereochem_head = bool(use_stereochem_head)
-        if use_residue_frame_stream and use_residue_frame_stream_v2:
-            raise ValueError(
-                "use_residue_frame_stream and use_residue_frame_stream_v2 are mutually exclusive "
-                "(both inject into backbone_features). Enable exactly one."
-            )
-        if self.use_residue_frame_stream_v2:
-            self.residue_frame_stream_v2 = ResidueFrameStreamV2(
-                hidden_dim=hidden_dim,
-                n_layers=residue_frame_v2_layers,
-                clean_input=frame_v2_clean_input,
-                num_residue_types=NUM_RESIDUE_TYPES,
-                use_stereochem_head=self.use_stereochem_head,
-            )
+        self.residue_frame_stream_v2 = ResidueFrameStreamV2(
+            hidden_dim=hidden_dim,
+            n_layers=residue_frame_v2_layers,
+            clean_input=frame_v2_clean_input,
+            num_residue_types=NUM_RESIDUE_TYPES,
+            use_stereochem_head=self.use_stereochem_head,
+        )
         # t-resolution head. Lives on the DENOISER (not inside the v2 module) because it is
         # t-DEPENDENT and reads the current side-chain atom cloud + `t` -- both available only here, not in
         # the static frame stream. A small MLP maps the 3 in-frame e3 (out-of-plane) atom-cloud moments to a
@@ -3078,13 +3063,12 @@ class SidechainDenoiser(nn.Module):
         # (_STEREO_HEAD_LPRIOR_BIAS) so an untrained atom head gives sigmoid(atom_logit)≈0 (L-leaning),
         # keeping P(D)_t≈P(D)_prior on a fresh graft rather than pulling it toward 0.5.
         self.use_stereochem_t_resolution = bool(use_stereochem_t_resolution)
-        if self.use_stereochem_t_resolution:
-            self.stereo_t_atom_head = nn.Sequential(
-                nn.Linear(_STEREO_T_ATOM_FEAT_DIM, hidden_dim),
-                nn.SiLU(),
-                nn.Linear(hidden_dim, 1),
-            )
-            nn.init.constant_(self.stereo_t_atom_head[-1].bias, _STEREO_HEAD_LPRIOR_BIAS)
+        self.stereo_t_atom_head = nn.Sequential(
+            nn.Linear(_STEREO_T_ATOM_FEAT_DIM, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, 1),
+        )
+        nn.init.constant_(self.stereo_t_atom_head[-1].bias, _STEREO_HEAD_LPRIOR_BIAS)
         # coord-flow feedback modules. Built ONLY when opted in (the IFD has AND'd the flag with
         # use_stereochem_t_resolution) => no params / no RNG advance when off (byte-identical). Every OUTPUT of
         # the feedback is ZERO at graft/resume, so the whole coupling is EXACTLY 0 at init (byte-identical, and
@@ -3094,28 +3078,15 @@ class SidechainDenoiser(nn.Module):
         # e3 velocity bias. The face->latent `stereo_feedback_embed` is a normal Linear because its output only
         # ever feeds the zero-init deep-inject, so the injected residual is still 0 at init.
         self.use_stereochem_t_resolution_feedback = bool(use_stereochem_t_resolution_feedback)
-        if self.use_stereochem_t_resolution_feedback:
-            self.stereo_feedback_embed = nn.Linear(1, hidden_dim)  # face_pref (scalar) -> per-residue latent
-            self.stereo_feedback_deep_proj = nn.ModuleList(
-                [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
-            )
-            for _proj in self.stereo_feedback_deep_proj:
-                _init_graft_weight(_proj.weight)
-            # LEARNED sign + magnitude of the explicit e3 push (zero-init => 0 at graft). The model discovers how
-            # hard, and toward which sign of e3, to steer for the resolved face.
-            self.stereo_feedback_face_scale = nn.Parameter(torch.zeros(1))
-        if self.use_residue_frame_deep_inject:
-            # One BIAS-FREE, ZERO-INIT projection per SE(3) layer (num_layers == len(transformer.layers)).
-            # Each maps the per-residue frame latent -> a per-node residual added to the layer's INVARIANT
-            # (type-0) node features only (see _forward_single). Zero-init => exact no-op at graft/resume;
-            # gradient still reaches these projections (grad_W = grad_out^T @ in, with in = the residue latent),
-            # so the deep path is live-but-identity at init (NOT a zero-init-both-ends deadlock). Same
-            # category-3 graft-init framework as clean_inject_proj (respects graft_init_std; zeros by default).
-            self.residue_frame_deep_proj = nn.ModuleList(
-                [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
-            )
-            for _proj in self.residue_frame_deep_proj:
-                _init_graft_weight(_proj.weight)
+        self.stereo_feedback_embed = nn.Linear(1, hidden_dim)  # face_pref (scalar) -> per-residue latent
+        self.stereo_feedback_deep_proj = nn.ModuleList(
+            [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
+        )
+        for _proj in self.stereo_feedback_deep_proj:
+            _init_graft_weight(_proj.weight)
+        # LEARNED sign + magnitude of the explicit e3 push (zero-init => 0 at graft). The model discovers how
+        # hard, and toward which sign of e3, to steer for the resolved face.
+        self.stereo_feedback_face_scale = nn.Parameter(torch.zeros(1))
 
         # NEW: v2 residue-frame deep per-layer injection. One BIAS-FREE, ZERO-INIT projection per SE(3) layer,
         # structurally IDENTICAL to residue_frame_deep_proj / volumetric_deep_proj: each maps the v2 stream's
@@ -3137,12 +3108,11 @@ class SidechainDenoiser(nn.Module):
         # run VM1 empirically benefits from) inside the v2 architecture. Byte-identical when off.
         self.use_residue_frame_v2_deep_inject = bool(use_residue_frame_stream_v2 and use_residue_frame_v2_deep_inject)
         self.frame_v2_deep_inject_detach = bool(frame_v2_deep_inject_detach)
-        if self.use_residue_frame_v2_deep_inject:
-            self.residue_frame_v2_deep_proj = nn.ModuleList(
-                [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
-            )
-            for _proj in self.residue_frame_v2_deep_proj:
-                _init_graft_weight(_proj.weight)
+        self.residue_frame_v2_deep_proj = nn.ModuleList(
+            [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
+        )
+        for _proj in self.residue_frame_v2_deep_proj:
+            _init_graft_weight(_proj.weight)
 
         # volumetric deep per-layer injection. One BIAS-FREE, ZERO-INIT projection per SE(3) layer,
         # mirroring residue_frame_deep_proj EXACTLY. Each maps the (detached) per-residue `vol_hidden` latent
@@ -3153,12 +3123,11 @@ class SidechainDenoiser(nn.Module):
         # flag is on (IFD has already AND'd it with use_volumetric_head), so nothing is added to the
         # state_dict when off. `vol_hidden` has width hidden_dim (the head is constructed with hidden_dim).
         self.use_volumetric_deep_inject = bool(use_volumetric_deep_inject)
-        if self.use_volumetric_deep_inject:
-            self.volumetric_deep_proj = nn.ModuleList(
-                [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
-            )
-            for _proj in self.volumetric_deep_proj:
-                _init_graft_weight(_proj.weight)
+        self.volumetric_deep_proj = nn.ModuleList(
+            [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
+        )
+        for _proj in self.volumetric_deep_proj:
+            _init_graft_weight(_proj.weight)
 
         # TARGET deep per-layer injection (run10). One BIAS-FREE ZERO-INIT projection per SE(3) layer, mirroring
         # residue_frame_deep_proj / volumetric_deep_proj EXACTLY. Maps the (detached) per-sc-node target-context
@@ -3167,12 +3136,11 @@ class SidechainDenoiser(nn.Module):
         # layer 0 (`sidechain_target_film`) -- at every SE(3) layer. Zero-init => exact no-op at init/resume =>
         # byte-identical off; gradient still reaches the projections. Gated at forward on sc_target_attn is not None.
         self.use_target_deep_inject = bool(use_target_deep_inject)
-        if self.use_target_deep_inject:
-            self.target_deep_proj = nn.ModuleList(
-                [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
-            )
-            for _proj in self.target_deep_proj:
-                _init_graft_weight(_proj.weight)
+        self.target_deep_proj = nn.ModuleList(
+            [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
+        )
+        for _proj in self.target_deep_proj:
+            _init_graft_weight(_proj.weight)
 
         # BACKBONE deep-inject (run10-next): reinforce the BackboneEncoder per-residue latent (backbone geometry
         # + target cross-attention + FiLM) -- otherwise applied only at SE(3) layer 0 (concatenated into the initial
@@ -3180,12 +3148,6 @@ class SidechainDenoiser(nn.Module):
         # (the backbone encoder is upstream + heavily shared; do not reshape it via a new per-layer path). Zero-init
         # => byte-identical off. `backbone_features` (L, hidden) is already a _forward_single arg, so no new threading.
         self.use_backbone_deep_inject = bool(use_backbone_deep_inject)
-        if self.use_backbone_deep_inject:
-            self.backbone_deep_proj = nn.ModuleList(
-                [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
-            )
-            for _proj in self.backbone_deep_proj:
-                _init_graft_weight(_proj.weight)
 
         # x0 BOND-ANGLE deep-inject. `bond_angle_inject_encoder` maps the (L, BOND_ANGLE_DESC_DIM) per-residue
         # angle descriptor of the predicted-x0 cloud -> a per-residue latent (L, hidden). `bond_angle_deep_proj`
@@ -3196,17 +3158,6 @@ class SidechainDenoiser(nn.Module):
         # encoder is NOT zero-init (it is a fresh reader of the descriptor), but its output is gated by the
         # zero-init proj, so nothing perturbs the flow until training moves proj off zero.
         self.use_bond_angle_deep_inject = bool(use_bond_angle_deep_inject)
-        if self.use_bond_angle_deep_inject:
-            self.bond_angle_inject_encoder = nn.Sequential(
-                nn.Linear(BOND_GEOM_DESC_DIM, hidden_dim),
-                nn.SiLU(),
-                nn.Linear(hidden_dim, hidden_dim),
-            )
-            self.bond_angle_deep_proj = nn.ModuleList(
-                [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
-            )
-            for _proj in self.bond_angle_deep_proj:
-                _init_graft_weight(_proj.weight)
 
         # volumetric -> existence coupling. ONE ZERO-INIT projection mapping the (detached) per-residue
         # `vol_hidden` latent -> a PER-SLOT existence-logit bias (L, max_sc). The bias is SUBTRACTED from the
@@ -3221,62 +3172,46 @@ class SidechainDenoiser(nn.Module):
         # (not per-residue) for expressiveness; since it is zero-init and only a single additive DOF per slot,
         # it stays a gentle learned lever that cannot destabilise the PAD-sink at init.
         self.use_volumetric_existence_coupling = bool(use_volumetric_existence_coupling)
-        if self.use_volumetric_existence_coupling:
-            self.volumetric_existence_proj = nn.Linear(hidden_dim, max_sidechain_atoms)
-            _init_graft_weight(self.volumetric_existence_proj.weight)
-            _init_graft_weight(self.volumetric_existence_proj.bias)
+        self.volumetric_existence_proj = nn.Linear(hidden_dim, max_sidechain_atoms)
+        _init_graft_weight(self.volumetric_existence_proj.weight)
+        _init_graft_weight(self.volumetric_existence_proj.bias)
 
         # Target encoder and cross-attention (for sequence-level context)
-        if use_target_conditioning:
-            self.target_encoder = TargetEncoder(hidden_dim, use_jackie=use_jackie)
-            pair_geom_dim = 3 + 3 + 9 + 16
-            self.residue_pair_bias_proj = nn.Sequential(
-                nn.Linear(pair_geom_dim, hidden_dim),
-                nn.SiLU(),
-                nn.Linear(hidden_dim, num_cross_attn_heads),
-            )
-            self.sidechain_pair_bias_proj = nn.Sequential(
-                nn.Linear(pair_geom_dim, hidden_dim),
-                nn.SiLU(),
-                nn.Linear(hidden_dim, num_cross_attn_heads),
-            )
-            if use_bidirectional_target_conditioning:
-                self.target_to_backbone_attention_layers = nn.ModuleList(
-                    [
-                        CrossAttention(hidden_dim, num_heads=num_cross_attn_heads, dropout=dropout)
-                        for _ in range(num_cross_attn_layers)
-                    ]
-                )
-                self.target_to_backbone_norms = nn.ModuleList(
-                    [nn.LayerNorm(hidden_dim) for _ in range(num_cross_attn_layers)]
-                )
-            # Stack of cross-attention layers (configurable depth)
-            self.cross_attention_layers = nn.ModuleList(
-                [
-                    CrossAttention(hidden_dim, num_heads=num_cross_attn_heads, dropout=dropout)
-                    for _ in range(num_cross_attn_layers)
-                ]
-            )
-            self.cross_attn_norms = nn.ModuleList([nn.LayerNorm(hidden_dim) for _ in range(num_cross_attn_layers)])
-            if use_sidechain_target_residue_attention:
-                self.sidechain_target_attention = CrossAttention(
-                    hidden_dim, num_heads=num_cross_attn_heads, dropout=dropout
-                )
-                self.sidechain_target_norm = nn.LayerNorm(hidden_dim)
-                self.sidechain_target_film = FiLMLayer(hidden_dim, hidden_dim)
-                self.cluster_target_context_proj = nn.Sequential(
-                    nn.Linear(hidden_dim, hidden_dim),
-                    nn.SiLU(),
-                    nn.Linear(hidden_dim, hidden_dim),
-                )
-                # Backward-compatible no-op init for checkpoints created before this branch existed.
-                nn.init.zeros_(self.cluster_target_context_proj[0].weight)
-                nn.init.zeros_(self.cluster_target_context_proj[0].bias)
-                nn.init.zeros_(self.cluster_target_context_proj[2].weight)
-                nn.init.zeros_(self.cluster_target_context_proj[2].bias)
-            # Optional FiLM layer: target global features modulate backbone features
-            if use_film:
-                self.target_film = FiLMLayer(hidden_dim, hidden_dim)
+        self.target_encoder = TargetEncoder(hidden_dim, use_jackie=use_jackie)
+        pair_geom_dim = 3 + 3 + 9 + 16
+        self.residue_pair_bias_proj = nn.Sequential(
+            nn.Linear(pair_geom_dim, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, num_cross_attn_heads),
+        )
+        self.sidechain_pair_bias_proj = nn.Sequential(
+            nn.Linear(pair_geom_dim, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, num_cross_attn_heads),
+        )
+        # Stack of cross-attention layers (configurable depth)
+        self.cross_attention_layers = nn.ModuleList(
+            [
+                CrossAttention(hidden_dim, num_heads=num_cross_attn_heads, dropout=dropout)
+                for _ in range(num_cross_attn_layers)
+            ]
+        )
+        self.cross_attn_norms = nn.ModuleList([nn.LayerNorm(hidden_dim) for _ in range(num_cross_attn_layers)])
+        self.sidechain_target_attention = CrossAttention(hidden_dim, num_heads=num_cross_attn_heads, dropout=dropout)
+        self.sidechain_target_norm = nn.LayerNorm(hidden_dim)
+        self.sidechain_target_film = FiLMLayer(hidden_dim, hidden_dim)
+        self.cluster_target_context_proj = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+        )
+        # Backward-compatible no-op init for checkpoints created before this branch existed.
+        nn.init.zeros_(self.cluster_target_context_proj[0].weight)
+        nn.init.zeros_(self.cluster_target_context_proj[0].bias)
+        nn.init.zeros_(self.cluster_target_context_proj[2].weight)
+        nn.init.zeros_(self.cluster_target_context_proj[2].bias)
+        # Optional FiLM layer: target global features modulate backbone features
+        self.target_film = FiLMLayer(hidden_dim, hidden_dim)
 
         # Timestep embedding
         self.time_embed = TimestepEmbedding(time_embed_dim, hidden_dim)
@@ -3296,9 +3231,6 @@ class SidechainDenoiser(nn.Module):
         # Residue type embedding for target atoms: always use learned embedding
         self.target_residue_type_embed = nn.Embedding(21, hidden_dim // 4)  # 20 amino acids + unknown
         # Optionally also project Jackie biochemical features and add them
-        if use_jackie:
-            self.register_buffer("jackie_features_graph", JACKIE_FEATURES)
-            self.target_residue_type_proj = nn.Linear(JACKIE_DIM, hidden_dim // 4)
         self.target_is_backbone_embed = nn.Embedding(2, hidden_dim // 8)  # 0=sidechain, 1=backbone
         # Project concatenated target features to hidden_dim
         # 3 * (hidden//4) + hidden//8 = 3*hidden/4 + hidden/8 = 7*hidden/8
@@ -3316,12 +3248,7 @@ class SidechainDenoiser(nn.Module):
         # resolvable embeddings. Param-shape change, so it only activates behind the flag; a base
         # checkpoint (trained "linear") loads unchanged when the flag is left at "linear".
         self.count_embed_mode = count_embed_mode
-        if count_embed_mode == "ordinal":
-            self.noised_count_embed = nn.Embedding(max_sidechain_atoms + 1, hidden_dim // 8)
-        elif count_embed_mode == "linear":
-            self.noised_count_embed = nn.Linear(1, hidden_dim // 8)
-        else:
-            raise ValueError(f"count_embed_mode must be 'linear' or 'ordinal', got {count_embed_mode!r}")
+        self.noised_count_embed = nn.Linear(1, hidden_dim // 8)
 
         # Self-conditioning: previous prediction embeddings
         # During training, we sometimes run the model twice - first to get predictions,
@@ -3367,8 +3294,6 @@ class SidechainDenoiser(nn.Module):
             + hidden_dim  # backbone_context
             + hidden_dim  # time
         )
-        if use_coord_self_conditioning:
-            sc_proj_in += hidden_dim // 8  # coord_self_cond
         self.sc_node_proj = nn.Linear(sc_proj_in, hidden_dim)
         # Projection for binder backbone nodes: atom_embed + backbone_context + time
         self.bb_node_proj = nn.Linear(hidden_dim // 4 + hidden_dim + hidden_dim, hidden_dim)
@@ -3402,53 +3327,27 @@ class SidechainDenoiser(nn.Module):
         )
 
         # Intra-residue slot attention: structured all-to-all communication within each residue
-        if use_slot_attention:
-            self.slot_attention = IntraResidueSlotAttention(
-                hidden_dim=hidden_dim,
-                num_heads=num_slot_attn_heads,
-                num_layers=num_slot_attn_layers,
-                max_slots=max_sidechain_atoms,
-                dropout=dropout,
-            )
 
         # Directional slot attention: distal scouts -> proximal sticky slots (one-way)
-        if use_directional_slot_attention:
-            self.directional_slot_attention = DirectionalSlotAttention(
-                hidden_dim=hidden_dim,
-                num_heads=num_slot_attn_heads,
-                max_slots=max_sidechain_atoms,
-                n_scouts=n_scouts,
-                dropout=dropout,
-            )
 
         # Element-velocity coupling: FiLM modulation of sc_out_features by PAD/non-PAD state
-        if use_element_velocity_coupling:
-            self.evc_film = FiLMLayer(hidden_dim, hidden_dim)
-            self.evc_state_proj = nn.Sequential(
-                nn.Linear(1, hidden_dim // 4),
-                nn.SiLU(),
-                nn.Linear(hidden_dim // 4, hidden_dim),
-            )
-            # Nonzero state_proj init so EVC learns from step 0. This is a from-scratch lineage (no
-            # pre-EVC checkpoint to preserve), so we do NOT want the old zero-init identity start:
-            # a zero state_proj + zero FiLM weights are mutually gradient-starved (the EVC deadlock).
-            # The FiLM bias stays zero so the FiLM contribution itself starts identity-ish, while the
-            # nonzero state_proj weight is what breaks the deadlock and makes EVC live from the start.
-            nn.init.normal_(self.evc_state_proj[-1].weight, std=0.02)
-            nn.init.zeros_(self.evc_state_proj[-1].bias)
+        self.evc_film = FiLMLayer(hidden_dim, hidden_dim)
+        self.evc_state_proj = nn.Sequential(
+            nn.Linear(1, hidden_dim // 4),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 4, hidden_dim),
+        )
+        # Nonzero state_proj init so EVC learns from step 0. This is a from-scratch lineage (no
+        # pre-EVC checkpoint to preserve), so we do NOT want the old zero-init identity start:
+        # a zero state_proj + zero FiLM weights are mutually gradient-starved (the EVC deadlock).
+        # The FiLM bias stays zero so the FiLM contribution itself starts identity-ish, while the
+        # nonzero state_proj weight is what breaks the deadlock and makes EVC live from the start.
+        nn.init.normal_(self.evc_state_proj[-1].weight, std=0.02)
+        nn.init.zeros_(self.evc_state_proj[-1].bias)
 
         # Count-velocity coupling: FiLM modulation of sc_out_features by per-residue count.
         # Uses count head predictions (backbone-only, stable) -> per-slot P(real) via sigmoid.
         # Unlike EVC (noisy at sampling start), count predictions are available and stable from step 0.
-        if use_count_velocity_coupling:
-            self.cvc_film = FiLMLayer(hidden_dim, hidden_dim)
-            self.cvc_proj = nn.Sequential(
-                nn.Linear(1, hidden_dim // 4),
-                nn.SiLU(),
-                nn.Linear(hidden_dim // 4, hidden_dim),
-            )
-            nn.init.zeros_(self.cvc_proj[-1].weight)
-            nn.init.zeros_(self.cvc_proj[-1].bias)
 
         # Output projection for noise prediction
         self.output_proj = nn.Linear(hidden_dim, 3)
@@ -3485,123 +3384,84 @@ class SidechainDenoiser(nn.Module):
         )
 
         # Intra-residue bond attention: refines per-slot features using predicted bond graph
-        if use_bond_attention:
-            self.bond_attention = IntraResidueBondAttention(
-                hidden_dim=hidden_dim,
-                max_sc=max_sidechain_atoms,
-                num_heads=4,
-                dropout=dropout,
-                zero_init_out=zero_init_bond_attention,
-            )
+        self.bond_attention = IntraResidueBondAttention(
+            hidden_dim=hidden_dim,
+            max_sc=max_sidechain_atoms,
+            num_heads=4,
+            dropout=dropout,
+            zero_init_out=zero_init_bond_attention,
+        )
 
         # Valence demand track: per-slot prediction of remaining heavy-atom valence (0-4).
         # Supervised from GT bond counts. Feeds predicted valence as FiLM conditioning to
         # element and coord heads -- an oxygen with 2 bonds satisfied behaves differently
         # from one with 1 remaining.
-        if use_valence_demand:
-            self.valence_head = nn.Sequential(
-                nn.Linear(hidden_dim, hidden_dim // 4),
-                nn.SiLU(),
-                nn.Linear(hidden_dim // 4, 5),  # 5 classes: 0,1,2,3,4 bonds
-            )
-            # FiLM conditioning: predicted valence modulates features before output heads
-            self.valence_film = FiLMLayer(hidden_dim, hidden_dim)
-            self.valence_embed = nn.Sequential(
-                nn.Linear(5, hidden_dim // 4),
-                nn.SiLU(),
-                nn.Linear(hidden_dim // 4, hidden_dim),
-            )
-            # Zero-init so valence conditioning is identity at start
-            nn.init.zeros_(self.valence_embed[-1].weight)
-            nn.init.zeros_(self.valence_embed[-1].bias)
 
         # Learned sidechain shape prior: predict K anchor points per residue from backbone+target
         # features. During coord flow, bias velocities toward nearest predicted anchor.
         # Supervised by matching anchors to GT atom positions.
         self.use_shape_prior = use_shape_prior
-        if use_shape_prior:
-            self.shape_prior_n_anchors = shape_prior_n_anchors
-            self.shape_prior_head = nn.Sequential(
-                nn.Linear(hidden_dim, hidden_dim),
-                nn.SiLU(),
-                nn.Linear(hidden_dim, self.shape_prior_n_anchors * 3),  # K anchors × 3D
-            )
-            # Zero-init so anchors start at CA (no bias initially)
-            nn.init.zeros_(self.shape_prior_head[-1].weight)
-            nn.init.zeros_(self.shape_prior_head[-1].bias)
-            # Learnable velocity bias strength (starts small)
-            self.shape_prior_bias_scale = nn.Parameter(torch.tensor(0.1))
+        self.shape_prior_n_anchors = shape_prior_n_anchors
+        self.shape_prior_head = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, self.shape_prior_n_anchors * 3),  # K anchors × 3D
+        )
+        # Zero-init so anchors start at CA (no bias initially)
+        nn.init.zeros_(self.shape_prior_head[-1].weight)
+        nn.init.zeros_(self.shape_prior_head[-1].bias)
+        # Learnable velocity bias strength (starts small)
+        self.shape_prior_bias_scale = nn.Parameter(torch.tensor(0.1))
 
         # Cross-residue packing attention: inter-residue contact prediction + attention
-        if use_cross_residue_packing:
-            self.cross_residue_packing = CrossResiduePackingAttention(
-                hidden_dim=hidden_dim,
-                max_sc=max_sidechain_atoms,
-                num_heads=4,
-                dropout=dropout,
-                spatial=cross_residue_packing_spatial,
-                k_neighbors=cross_residue_packing_k,
-                radius=cross_residue_packing_radius,
-                min_seq_sep=cross_residue_packing_min_seq_sep,
-            )
+        self.cross_residue_packing = CrossResiduePackingAttention(
+            hidden_dim=hidden_dim,
+            max_sc=max_sidechain_atoms,
+            num_heads=4,
+            dropout=dropout,
+            spatial=cross_residue_packing_spatial,
+            k_neighbors=cross_residue_packing_k,
+            radius=cross_residue_packing_radius,
+            min_seq_sep=cross_residue_packing_min_seq_sep,
+        )
 
         # === Feature: neighbour-x0 packing context ===
         # Zero-init projection of the anti-self neighbour-x0 context vector, added as a residual
         # to the sidechain node features. Zero weight => exact no-op at graft (safe retrofit onto
         # any existing checkpoint) but the gradient w.r.t. the weight is the (non-zero) feature
         # vector, so the branch is NOT dead.
-        if use_neighbor_x0_packing:
-            self.neighbor_x0_proj = nn.Linear(NEIGHBOR_X0_FEAT_DIM, hidden_dim, bias=False)
-            _init_graft_weight(self.neighbor_x0_proj.weight)
-            # Two-timestep encoding. The model already knows t_original (the residue's own noise
-            # level); this branch adds the DELTA to t_conditioning (the nominal noise level of the
-            # coordinates it is being shown). The input is the difference of the two time embeddings
-            # plus the normalised scalar gap, so it is EXACTLY zero whenever
-            # t_conditioning == t_original -- i.e. today's single-t behaviour is an exact special
-            # case for ANY value of the weights, not just at init (bias=False is load-bearing).
-            # That is what makes the new regime a smooth extension an existing checkpoint can be
-            # fine-tuned into rather than a distribution it has never seen.
-            self.t_cond_delta_proj = nn.Linear(hidden_dim + 1, hidden_dim, bias=False)
-            _init_graft_weight(self.t_cond_delta_proj.weight)
-            # Recycle-index encoding. Tells the model WHICH refinement pass it is on, so the recycle
-            # count no longer has to match between training and sampling. Built on the ABSOLUTE pass
-            # index j (1-based), NEVER the fraction j/N: pass 2-of-2 and pass 2-of-5 receive literally
-            # identical conditioning (both are conditioned on exactly one prior refinement), and future
-            # passes cannot influence the current input, so conditioning quality is a function of j
-            # alone and is INDEPENDENT of N. Encoding j/N would hand the model different codes (1.0 vs
-            # 0.4) for identical inputs -- noise by construction. Same bias-free difference trick as
-            # t_cond_delta_proj: the input is (embed(j) - embed(1), 1 - 1/j), identically zero at j=1,
-            # so the unconditioned first pass is bit-exact for ANY weights. See _forward_single.
-            self.recycle_index_proj = nn.Linear(hidden_dim + 1, hidden_dim, bias=False)
-            _init_graft_weight(self.recycle_index_proj.weight)
+        self.neighbor_x0_proj = nn.Linear(NEIGHBOR_X0_FEAT_DIM, hidden_dim, bias=False)
+        _init_graft_weight(self.neighbor_x0_proj.weight)
+        # Two-timestep encoding. The model already knows t_original (the residue's own noise
+        # level); this branch adds the DELTA to t_conditioning (the nominal noise level of the
+        # coordinates it is being shown). The input is the difference of the two time embeddings
+        # plus the normalised scalar gap, so it is EXACTLY zero whenever
+        # t_conditioning == t_original -- i.e. today's single-t behaviour is an exact special
+        # case for ANY value of the weights, not just at init (bias=False is load-bearing).
+        # That is what makes the new regime a smooth extension an existing checkpoint can be
+        # fine-tuned into rather than a distribution it has never seen.
+        self.t_cond_delta_proj = nn.Linear(hidden_dim + 1, hidden_dim, bias=False)
+        _init_graft_weight(self.t_cond_delta_proj.weight)
+        # Recycle-index encoding. Tells the model WHICH refinement pass it is on, so the recycle
+        # count no longer has to match between training and sampling. Built on the ABSOLUTE pass
+        # index j (1-based), NEVER the fraction j/N: pass 2-of-2 and pass 2-of-5 receive literally
+        # identical conditioning (both are conditioned on exactly one prior refinement), and future
+        # passes cannot influence the current input, so conditioning quality is a function of j
+        # alone and is INDEPENDENT of N. Encoding j/N would hand the model different codes (1.0 vs
+        # 0.4) for identical inputs -- noise by construction. Same bias-free difference trick as
+        # t_cond_delta_proj: the input is (embed(j) - embed(1), 1 - 1/j), identically zero at j=1,
+        # so the unconditioned first pass is bit-exact for ANY weights. See _forward_single.
+        self.recycle_index_proj = nn.Linear(hidden_dim + 1, hidden_dim, bias=False)
+        _init_graft_weight(self.recycle_index_proj.weight)
 
         # === Feature: Coordinate self-conditioning ===
         # Project previous step's predicted x₀ coords into per-slot features.
         # Zero-init for backward compatibility with existing checkpoints.
-        if use_coord_self_conditioning:
-            self.coord_self_cond_proj = nn.Linear(3, hidden_dim // 8)
-            nn.init.zeros_(self.coord_self_cond_proj.weight)
-            nn.init.zeros_(self.coord_self_cond_proj.bias)
 
         # === Feature: Residue-level plan latent ===
         # Predict per-residue latent (dim=16) from backbone+target features.
         # Supervised by GT residue type through information bottleneck.
         # Modulates per-slot features via additive projection.
-        if use_plan_latent:
-            self.plan_latent_dim = 16
-            self.plan_latent_head = nn.Sequential(
-                nn.Linear(hidden_dim, hidden_dim // 2),
-                nn.SiLU(),
-                nn.Linear(hidden_dim // 2, self.plan_latent_dim),
-            )
-            # Frozen GT embedding: 20 AA types -> 16-dim latent (information bottleneck)
-            self.plan_latent_gt_embed = nn.Embedding(21, self.plan_latent_dim)  # 20 AA + unknown
-            self.plan_latent_gt_embed.weight.requires_grad = False
-            # Initialize with random orthogonal-ish vectors for good separation
-            nn.init.normal_(self.plan_latent_gt_embed.weight, std=0.5)
-            # Project plan latent to hidden_dim for additive modulation of per-slot features
-            self.plan_latent_to_slot = nn.Linear(self.plan_latent_dim, hidden_dim, bias=False)
-            nn.init.zeros_(self.plan_latent_to_slot.weight)
 
         # === Feature: Target-interaction intent ===
         # Per-slot prediction of interaction mode with target. Can be 2-class (binary
@@ -3609,21 +3469,16 @@ class SidechainDenoiser(nn.Module):
         # toward nearest target atom is optional and orthogonal to the classification.
         self.interaction_intent_num_classes = interaction_intent_num_classes
         self.interaction_intent_velocity_bias = interaction_intent_velocity_bias
-        if use_interaction_intent:
-            self.interaction_intent_head = nn.Linear(hidden_dim, interaction_intent_num_classes)
-            nn.init.zeros_(self.interaction_intent_head.weight)
-            nn.init.zeros_(self.interaction_intent_head.bias)
-            # Learnable velocity bias scale for interacting atoms (only used if velocity_bias=True)
-            self.interaction_bias_scale = nn.Parameter(torch.tensor(0.05))
+        self.interaction_intent_head = nn.Linear(hidden_dim, interaction_intent_num_classes)
+        nn.init.zeros_(self.interaction_intent_head.weight)
+        nn.init.zeros_(self.interaction_intent_head.bias)
+        # Learnable velocity bias scale for interacting atoms (only used if velocity_bias=True)
+        self.interaction_bias_scale = nn.Parameter(torch.tensor(0.05))
 
         # === Feature: Chirality attention ===
         # Signed volume from first 3 atoms per residue -> per-slot scalar feature.
         # Breaks SE(3) equivariance to distinguish L vs D configurations.
         self.use_chirality = use_chirality
-        if use_chirality:
-            self.chirality_proj = nn.Linear(1, hidden_dim)
-            nn.init.zeros_(self.chirality_proj.weight)
-            nn.init.zeros_(self.chirality_proj.bias)
 
         # Stage 2 per-residue mixture heads: predict shared sidechain cloud parameters.
         # All real atoms within a residue share one centroid and one variance,
@@ -3679,44 +3534,6 @@ class SidechainDenoiser(nn.Module):
         self.global_latent_embed_dim = int(global_latent_embed_dim)
         self.global_latent_condition_main_stream = global_latent_condition_main_stream
         self.global_latent_film_layers = global_latent_film_layers
-        if use_global_latent_matching:
-            # Clean-stream depth MATCHES the main SE(3) depth so each main layer has a corresponding
-            # clean-stream layer output for the per-layer interweave (clean_stream_n_layers=null).
-            self.clean_context_stream = CleanContextStream(
-                hidden_dim=hidden_dim,
-                n_layers=num_layers,
-                num_heads=num_cross_attn_heads,
-            )
-            self.latent_pool_head = LatentPoolHead(
-                hidden_dim=hidden_dim,
-                embed_dim=global_latent_embed_dim,
-                pool_hidden=global_latent_pool_hidden,
-                num_heads=num_cross_attn_heads,
-                pool_radius=global_latent_pool_radius,
-                confidence=global_latent_confidence,
-                confidence_hidden=global_latent_confidence_hidden,
-            )
-            # Per-layer interweave (the clean_inject_proj): one BIAS-FREE, ZERO-INIT projection per
-            # main SE(3) layer. The clean-stream layer-i output (mapped to graph nodes) is projected and
-            # added into the main node features before main layer i. Zero-init => EXACT no-op at init,
-            # ramps as it learns (same safe-graft pattern as neighbor_x0_proj / t_cond_delta_proj). Unlike
-            # the confidence FiLM below, this path is NOT detached: the main-task loss trains the clean
-            # stream + these projections to produce useful per-layer pocket->main conditioning.
-            self.clean_inject_proj = nn.ModuleList(
-                [nn.Linear(hidden_dim, hidden_dim, bias=False) for _ in range(num_layers)]
-            )
-            for _proj in self.clean_inject_proj:
-                _init_graft_weight(_proj.weight)
-            if global_latent_condition_main_stream:
-                # cond_dim = 1 (confidence) + embed_dim (relu(conf) * z_pred); FiLMLayer is zero-init identity.
-                self.latent_film = FiLMLayer(hidden_dim, 1 + global_latent_embed_dim)
-                # Category-3 graft init: re-init the FiLM identity params (weights + biases) off zero when
-                # requested, through the SAME isolated-RNG helper (done here, not in FiLMLayer, so other
-                # FiLM layers keep their zero-init). At graft_std=0 this re-zeros already-zero params (no-op).
-                _init_graft_weight(self.latent_film.scale_proj.weight)
-                _init_graft_weight(self.latent_film.scale_proj.bias)
-                _init_graft_weight(self.latent_film.shift_proj.weight)
-                _init_graft_weight(self.latent_film.shift_proj.bias)
 
     def _t_resolution_weight(self, t: torch.Tensor) -> torch.Tensor:
         """per-TIMESTEP blend weight w(t) for the atom-informed stereochem resolution.
@@ -3966,47 +3783,15 @@ class SidechainDenoiser(nn.Module):
             residue_pair_geometry = compute_residue_pair_geometry(backbone_coords, target_backbone_coords)
             residue_pair_bias = self.residue_pair_bias_proj(residue_pair_geometry).permute(0, 3, 1, 2)
 
-            if self.use_bidirectional_target_conditioning:
-                for target_cross_attn, target_norm, backbone_cross_attn, backbone_norm in zip(
-                    self.target_to_backbone_attention_layers,
-                    self.target_to_backbone_norms,
-                    self.cross_attention_layers,
-                    self.cross_attn_norms,
-                    strict=False,
-                ):
-                    # Let fixed target residues read the current peptide state first, then
-                    # feed that peptide-aware target context back into the peptide.
-                    target_attn_out = target_cross_attn(
-                        query=target_features,
-                        key=backbone_features,
-                        value=backbone_features,
-                        key_mask=seq_mask,
-                        attn_bias=residue_pair_bias.transpose(-2, -1),
-                    )
-                    target_features = target_norm(target_features + target_attn_out)
-                    backbone_attn_out = backbone_cross_attn(
-                        query=backbone_features,
-                        key=target_features,
-                        value=target_features,
-                        key_mask=target_seq_mask,
-                        attn_bias=residue_pair_bias,
-                    )
-                    if self.preal_gate_target == "cross_attention":
-                        backbone_attn_out = backbone_attn_out * occ_gate_residue
-                    backbone_features = backbone_norm(backbone_features + backbone_attn_out)
-            else:
-                # Legacy one-way peptide<-target conditioning.
-                for cross_attn, norm in zip(self.cross_attention_layers, self.cross_attn_norms, strict=False):
-                    cross_attn_out = cross_attn(
-                        query=backbone_features,
-                        key=target_features,
-                        value=target_features,
-                        key_mask=target_seq_mask,
-                        attn_bias=residue_pair_bias,
-                    )
-                    if self.preal_gate_target == "cross_attention":
-                        cross_attn_out = cross_attn_out * occ_gate_residue
-                    backbone_features = norm(backbone_features + cross_attn_out)
+            for cross_attn, norm in zip(self.cross_attention_layers, self.cross_attn_norms, strict=False):
+                cross_attn_out = cross_attn(
+                    query=backbone_features,
+                    key=target_features,
+                    value=target_features,
+                    key_mask=target_seq_mask,
+                    attn_bias=residue_pair_bias,
+                )
+                backbone_features = norm(backbone_features + cross_attn_out)
         else:
             target_features = None
             residue_pair_geometry = None
@@ -4031,26 +3816,13 @@ class SidechainDenoiser(nn.Module):
             # FiLM: modulate backbone features based on global target context
             target_global_expanded = target_global.unsqueeze(1).expand_as(backbone_features)  # (B, L, hidden)
             film_out = self.target_film(backbone_features, target_global_expanded)
-            if self.preal_gate_target == "film":
-                # Blend: gate=0.3 -> mostly keep original, gate=1.0 -> full FiLM
-                backbone_features = backbone_features + (film_out - backbone_features) * occ_gate_residue
-            else:
-                backbone_features = film_out
+            backbone_features = film_out
 
         # DRAFT residue-frame stream: reason over residues in their local frames, inject a ZERO-INIT
         # additive residual into the pocket-conditioned per-residue features (byte-identical at graft,
         # so every downstream head + _forward_single is unchanged when off / at init), and stash the
         # coarse-latent predictions for the losses in InverseFoldingDiffusion.forward.
         residue_frame_outputs = None
-        if self.use_residue_frame_stream:
-            # Graft-safety: feed a DETACHED copy of backbone_features to the stream, so the stream's
-            # supervision/consistency losses train the stream's own params but never backprop into the
-            # base encoder (the stream reads the base as read-only conditioning). The injection below is
-            # still added live (zero-init -> resume-safe), so its downstream gradient reaches the stream.
-            residue_frame_outputs = self.residue_frame_stream(
-                backbone_features.detach(), backbone_coords, backbone_mask, seq_mask
-            )
-            backbone_features = backbone_features + residue_frame_outputs["rf_injection"]
 
         # v2 residue-frame graph. Same graft convention as v1 (detached read of the pocket-
         # conditioned features so the stream's losses never backprop into the base encoder; zero-init
@@ -4058,22 +3830,21 @@ class SidechainDenoiser(nn.Module):
         # residues (Cα + type) as extra attention keys -- still SE(3)-invariant. Mutually exclusive with
         # v1 (enforced at construction). Skipped entirely (byte-identical) unless the v2 flag is on.
         residue_frame_v2_outputs = None
-        if self.use_residue_frame_stream_v2:
-            residue_frame_v2_outputs = self.residue_frame_stream_v2(
-                backbone_features.detach(),
-                backbone_coords,
-                backbone_mask,
-                seq_mask,
-                target_backbone_coords=target_backbone_coords,
-                target_backbone_mask=target_backbone_mask,
-                target_residue_types=target_residue_types,
-                target_seq_mask=target_seq_mask,
-                # hand the volumetric latent to the stereochem head (DETACHED -- graft-safety,
-                # so the stereo BCE trains only its own head/vol-proj, never the volumetric head). None
-                # when volumetric is off => the head falls back to frame features alone.
-                vol_hidden=(vol_hidden.detach() if vol_hidden is not None else None),
-            )
-            backbone_features = backbone_features + residue_frame_v2_outputs["rf_injection"]
+        residue_frame_v2_outputs = self.residue_frame_stream_v2(
+            backbone_features.detach(),
+            backbone_coords,
+            backbone_mask,
+            seq_mask,
+            target_backbone_coords=target_backbone_coords,
+            target_backbone_mask=target_backbone_mask,
+            target_residue_types=target_residue_types,
+            target_seq_mask=target_seq_mask,
+            # hand the volumetric latent to the stereochem head (DETACHED -- graft-safety,
+            # so the stereo BCE trains only its own head/vol-proj, never the volumetric head). None
+            # when volumetric is off => the head falls back to frame features alone.
+            vol_hidden=(vol_hidden.detach() if vol_hidden is not None else None),
+        )
+        backbone_features = backbone_features + residue_frame_v2_outputs["rf_injection"]
 
         # t-resolution head. Compute the EVOLVING P(D)_t here (in forward, once per batch), where
         # the current side-chain atoms + `t` + the static P(D)_prior (rfv2_stereo_logit) are all in scope.
@@ -4125,8 +3896,6 @@ class SidechainDenoiser(nn.Module):
         # trains ONLY its own per-layer projections and never backprops into the stream trunk (which is
         # trained by its supervision/consistency losses + the live neck injection above). None when off.
         residue_frame_hidden_deep = None
-        if self.use_residue_frame_deep_inject and residue_frame_outputs is not None:
-            residue_frame_hidden_deep = residue_frame_outputs["rf_hidden"].detach()
 
         # NEW: v2 residue-frame deep per-layer injection. The v2 stream ran a few lines up (inside THIS forward,
         # so it is recomputed at every sampling reverse step too -> no inference-silence risk), exposing its
@@ -4175,42 +3944,21 @@ class SidechainDenoiser(nn.Module):
         global_latent_conf = None
         latent_clean_summary = None
         clean_per_layer = None
-        if self.use_global_latent_matching:
-            seq_mask_bool = (
-                seq_mask.bool()
-                if seq_mask is not None
-                else torch.ones(batch_size, seq_len, dtype=torch.bool, device=sidechain_coords.device)
-            )
-            ca_coords_gl = backbone_coords[:, :, 1, :]  # (B, L, 3) -- CA is index 1
-            # Detach the input: the clean stream + its downstream projections train from the latent loss
-            # AND the main-task loss (via the per-layer injection), but neither perturbs the shared
-            # backbone encoder through this path. `clean_per_layer` (list length num_layers) feeds the
-            # per-layer interweave; `clean_feats` (final layer) feeds the pool head.
-            clean_feats, clean_per_layer = self.clean_context_stream(
-                backbone_features.detach(), ca_coords_gl, seq_mask_bool
-            )
-            global_latent_z_pred, global_latent_conf = self.latent_pool_head(clean_feats, ca_coords_gl, seq_mask_bool)
-            if self.global_latent_condition_main_stream:
-                # Detached [conf, relu(conf) * z_pred] -> FiLM'd into generated atoms in _forward_single.
-                latent_clean_summary = clean_summary(global_latent_z_pred, global_latent_conf)  # (B, L, 1+D)
 
         # Residue-level count prediction from backbone+target features (before sidechain processing)
         residue_count_pred = self.residue_count_head(backbone_features).squeeze(-1)  # (B, L)
 
         # Shape prior: predict K anchor points per residue from backbone+target features
         shape_prior_anchors = None
-        if self.use_shape_prior:
-            K = self.shape_prior_n_anchors
-            anchor_offsets = self.shape_prior_head(backbone_features)  # (B, L, K*3)
-            anchor_offsets = anchor_offsets.view(batch_size, seq_len, K, 3)  # (B, L, K, 3)
-            # Anchors are offsets from CA
-            ca_coords = backbone_coords[:, :, 1, :]  # (B, L, 3) -- CA is index 1
-            shape_prior_anchors = ca_coords.unsqueeze(2) + anchor_offsets  # (B, L, K, 3)
+        K = self.shape_prior_n_anchors
+        anchor_offsets = self.shape_prior_head(backbone_features)  # (B, L, K*3)
+        anchor_offsets = anchor_offsets.view(batch_size, seq_len, K, 3)  # (B, L, K, 3)
+        # Anchors are offsets from CA
+        ca_coords = backbone_coords[:, :, 1, :]  # (B, L, 3) -- CA is index 1
+        shape_prior_anchors = ca_coords.unsqueeze(2) + anchor_offsets  # (B, L, K, 3)
 
         # Plan latent: predict per-residue latent from backbone+target features
         plan_latent = None
-        if self.use_plan_latent:
-            plan_latent = self.plan_latent_head(backbone_features)  # (B, L, plan_latent_dim)
 
         # Per-residue LRT delta: predict how much to adjust the global LRT per residue
         lrt_input = backbone_features.detach() if getattr(self, "_dlrt_detach", False) else backbone_features
@@ -4231,10 +3979,6 @@ class SidechainDenoiser(nn.Module):
         # t_norm = t / T. Default weight 1.0 -> factor is exactly 1.0 everywhere -> bit-exact no-op, so
         # the multiplier tensor is left as None (never touches the residual) unless the feature is on.
         neighbor_x0_highnoise_factor_all = None
-        if self.use_neighbor_x0_packing and self.neighbor_x0_highnoise_weight != 1.0:
-            _t_norm = (t.float() / max(self.num_timesteps, 1)).clamp(0.0, 1.0)  # (B,)
-            _hn_ramp = ((_t_norm - 0.5) / 0.5).clamp(0.0, 1.0)  # (B,) 0 below t_norm=0.5, ->1 at t_norm=1
-            neighbor_x0_highnoise_factor_all = 1.0 + (self.neighbor_x0_highnoise_weight - 1.0) * _hn_ramp  # (B,)
 
         # Build combined mask for backbone (still uses backbone_mask for valid backbone atoms)
         bb_combined_mask = backbone_mask * seq_mask.unsqueeze(-1) if seq_mask is not None else backbone_mask
@@ -4596,21 +4340,11 @@ class SidechainDenoiser(nn.Module):
 
         # Get noised_count values for valid atoms (used as input feature)
         # noised_count is shape (L,). Broadcast to (N_sc,) using residue indices.
-        if self.count_embed_mode == "ordinal":
-            # Ordinal: index an Embedding table by the integer count clamped to [0, max_sidechain_atoms].
-            if noised_count is not None:
-                count_idx = noised_count[sc_residue_idx_valid]  # (N_sc,)
-            else:
-                count_idx = torch.full((len(sc_valid_idx),), float(max_sc), device=device)
-            count_idx = count_idx.round().clamp(0, self.max_sidechain_atoms).long()  # (N_sc,)
-            sc_noised_count_features = self.noised_count_embed(count_idx)  # (N_sc, hidden//8)
+        if noised_count is not None:
+            noised_count_valid = noised_count[sc_residue_idx_valid].unsqueeze(-1)  # (N_sc, 1)
         else:
-            # Linear: monotone ramp of the raw scalar count (historical default).
-            if noised_count is not None:
-                noised_count_valid = noised_count[sc_residue_idx_valid].unsqueeze(-1)  # (N_sc, 1)
-            else:
-                noised_count_valid = torch.full((len(sc_valid_idx), 1), float(max_sc), device=device)
-            sc_noised_count_features = self.noised_count_embed(noised_count_valid)  # (N_sc, hidden//8)
+            noised_count_valid = torch.full((len(sc_valid_idx), 1), float(max_sc), device=device)
+        sc_noised_count_features = self.noised_count_embed(noised_count_valid)  # (N_sc, hidden//8)
 
         # Get residue index for each sidechain atom (clamped to max supported)
         sc_residue_idx_clamped = sc_residue_idx_valid.clamp(0, self.max_residue_idx - 1)
@@ -4676,14 +4410,6 @@ class SidechainDenoiser(nn.Module):
             sc_time_features,
         ]
         # Coordinate self-conditioning: project previous step's predicted x₀ into features
-        if self.use_coord_self_conditioning:
-            if prev_coord_pred is not None:
-                prev_coords_flat = prev_coord_pred.reshape(-1, 3)  # (L*max_sc, 3)
-                prev_coords_valid = prev_coords_flat[sc_valid_idx]  # (N_sc, 3)
-            else:
-                prev_coords_valid = torch.zeros(len(sc_valid_idx), 3, device=device)
-            sc_coord_self_cond = self.coord_self_cond_proj(prev_coords_valid)  # (N_sc, hidden//8)
-            cat_features.append(sc_coord_self_cond)
         sc_node_features = self.sc_node_proj(torch.cat(cat_features, dim=-1))  # (N_sc, hidden)
 
         # Autoregressive / K-mask state features: added as a residual after sc_node_proj (zero-init proj keeps
@@ -4703,144 +4429,88 @@ class SidechainDenoiser(nn.Module):
         # endpoints (or, for clean-context/inpainting positions, their given GT side chains). Added as
         # a zero-init residual so this is an exact no-op at graft. See compute_neighbor_x0_features for
         # the anti-self rule -- a residue never receives its own x0 estimate back.
-        if self.use_neighbor_x0_packing:
-            gate = 1.0 if neighbor_x0_apply is None else neighbor_x0_apply.to(sc_node_features.dtype)
-            if neighbor_x0_coords is not None:
-                nb_mask = (
-                    neighbor_x0_mask.bool()
-                    if neighbor_x0_mask is not None
-                    else torch.ones(seq_len, max_sc, dtype=torch.bool, device=device)
-                )
-                nb_trust = (
-                    neighbor_x0_trust.to(sc_node_features.dtype)
-                    if neighbor_x0_trust is not None
-                    else torch.ones(seq_len, device=device, dtype=sc_node_features.dtype)
-                )
-                _nx0_coords = neighbor_x0_coords.to(sc_coords_valid.dtype)
-                _nb_valid = nb_mask & seq_mask.bool().unsqueeze(-1)
-                # TRAINING-ONLY corruption of the neighbour-x0 packing signal (weaken-the-neighbour ablation):
-                # make the neighbour context unreliable so the model learns to DISCOUNT it. Off (byte-identical,
-                # no RNG) unless a knob is >0. Values come purely from constructed hparams (env is resolved at the
-                # LAUNCH layer into these hparams -- no forward-time env read). NEVER at inference (guarded on
-                # self.training). See corrupt_neighbor_x0.
-                _c_add = self.neighbor_x0_corrupt_add_prob
-                _c_drop = self.neighbor_x0_corrupt_drop_prob
-                _c_noise_prob = self.neighbor_x0_corrupt_noise_prob
-                _c_noise_std = self.neighbor_x0_corrupt_coord_noise
-                _c_disc = self.neighbor_x0_corrupt_disconnect_prob
-                # FIX B: only run corruption when at least one sample in the batch actually applies the
-                # packing residual (gate != 0). Otherwise the residual is zeroed downstream anyway, so
-                # corrupting here would only burn RNG and drift an apply=0 sample.
-                _gate_on = (neighbor_x0_apply is None) or bool((neighbor_x0_apply != 0).any())
-                if self.training and _gate_on and (_c_add > 0.0 or _c_drop > 0.0 or _c_noise_prob > 0.0):
-                    if not SidechainDenoiser._nx0_corrupt_announced:
-                        print(
-                            f"[nx0-corrupt] add={_c_add} drop={_c_drop} noise_prob={_c_noise_prob} "
-                            f"noise={_c_noise_std} disconnect={_c_disc} active",
-                            file=sys.stderr,
-                            flush=True,
-                        )
-                        SidechainDenoiser._nx0_corrupt_announced = True
-                    _ca_res = backbone_coords[:, 1, :].to(sc_coords_valid.dtype)  # (L, 3) per-residue Cα
-                    # FIX C: protect clean/pinned context (trust==1.0 EXACTLY) -- corruption only ever hits
-                    # the designed / co-generated neighbours (trust = 1 - t/T, strictly < 1). Gap >= 1/T so
-                    # a >= 1 - 1e-4 threshold reliably separates the two.
-                    _protect = nb_trust >= (1.0 - 1e-4)  # (L,) bool
-                    # FIX B: isolate corruption RNG on a dedicated device generator so the L,S-dependent draw
-                    # COUNT never perturbs the device (CUDA) global stream that dropout/SE3 consume. Seed it
-                    # from ONE draw off the CPU global RNG (torch.randint's default generator is the CPU one)
-                    # -> advances the CPU global by exactly 1, leaves the CUDA global untouched, stays
-                    # deterministic/resumable.
-                    _cgen = torch.Generator(device=_nx0_coords.device)
-                    _cgen.manual_seed(int(torch.randint(0, 2**62, (1,)).item()))
-                    _nx0_coords, _nb_valid = corrupt_neighbor_x0(
-                        _nx0_coords,
-                        _nb_valid,
-                        _ca_res,
-                        add_prob=_c_add,
-                        drop_prob=_c_drop,
-                        noise_prob=_c_noise_prob,
-                        noise_std=_c_noise_std,
-                        disconnect_prob=_c_disc,
-                        radius=self.neighbor_x0_packing_radius,
-                        generator=_cgen,
-                        protect_mask=_protect,
-                    )
-                nb_feats = compute_neighbor_x0_features(
-                    query_coords=sc_coords_valid,
-                    query_residue_idx=sc_residue_idx_valid,
-                    neighbor_coords=_nx0_coords,
-                    neighbor_valid=_nb_valid,
-                    neighbor_trust=nb_trust,
-                    radius=self.neighbor_x0_packing_radius,
-                )  # (N_sc, NEIGHBOR_X0_FEAT_DIM)
-                nb_residual = self.neighbor_x0_proj(nb_feats.to(sc_node_features.dtype))
-                # High-noise-weighted packing (FEATURE 2): scale the packing residual by the per-sample
-                # multiplier (1.0 => unchanged => bit-exact). None on the default no-op path, so the
-                # residual is untouched. Broadcasts over (N_sc, hidden). Applied in BOTH training and
-                # sampling because both regimes reach this single denoiser path.
-                if neighbor_x0_highnoise_factor is not None:
-                    nb_residual = nb_residual * neighbor_x0_highnoise_factor.to(nb_residual.dtype)
-                sc_node_features = sc_node_features + nb_residual * gate
+        gate = 1.0 if neighbor_x0_apply is None else neighbor_x0_apply.to(sc_node_features.dtype)
+        if neighbor_x0_coords is not None:
+            nb_mask = (
+                neighbor_x0_mask.bool()
+                if neighbor_x0_mask is not None
+                else torch.ones(seq_len, max_sc, dtype=torch.bool, device=device)
+            )
+            nb_trust = (
+                neighbor_x0_trust.to(sc_node_features.dtype)
+                if neighbor_x0_trust is not None
+                else torch.ones(seq_len, device=device, dtype=sc_node_features.dtype)
+            )
+            _nx0_coords = neighbor_x0_coords.to(sc_coords_valid.dtype)
+            _nb_valid = nb_mask & seq_mask.bool().unsqueeze(-1)
+            # TRAINING-ONLY corruption of the neighbour-x0 packing signal (weaken-the-neighbour ablation):
+            # make the neighbour context unreliable so the model learns to DISCOUNT it. Off (byte-identical,
+            # no RNG) unless a knob is >0. Values come purely from constructed hparams (env is resolved at the
+            # LAUNCH layer into these hparams -- no forward-time env read). NEVER at inference (guarded on
+            # self.training). See corrupt_neighbor_x0.
+            _c_add = self.neighbor_x0_corrupt_add_prob
+            _c_drop = self.neighbor_x0_corrupt_drop_prob
+            _c_noise_prob = self.neighbor_x0_corrupt_noise_prob
+            _c_noise_std = self.neighbor_x0_corrupt_coord_noise
+            _c_disc = self.neighbor_x0_corrupt_disconnect_prob
+            # FIX B: only run corruption when at least one sample in the batch actually applies the
+            # packing residual (gate != 0). Otherwise the residual is zeroed downstream anyway, so
+            # corrupting here would only burn RNG and drift an apply=0 sample.
+            _gate_on = (neighbor_x0_apply is None) or bool((neighbor_x0_apply != 0).any())
+            nb_feats = compute_neighbor_x0_features(
+                query_coords=sc_coords_valid,
+                query_residue_idx=sc_residue_idx_valid,
+                neighbor_coords=_nx0_coords,
+                neighbor_valid=_nb_valid,
+                neighbor_trust=nb_trust,
+                radius=self.neighbor_x0_packing_radius,
+            )  # (N_sc, NEIGHBOR_X0_FEAT_DIM)
+            nb_residual = self.neighbor_x0_proj(nb_feats.to(sc_node_features.dtype))
+            # High-noise-weighted packing (FEATURE 2): scale the packing residual by the per-sample
+            # multiplier (1.0 => unchanged => bit-exact). None on the default no-op path, so the
+            # residual is untouched. Broadcasts over (N_sc, hidden). Applied in BOTH training and
+            # sampling because both regimes reach this single denoiser path.
+            if neighbor_x0_highnoise_factor is not None:
+                nb_residual = nb_residual * neighbor_x0_highnoise_factor.to(nb_residual.dtype)
+            sc_node_features = sc_node_features + nb_residual * gate
 
-            # Two-timestep delta: (embed(t_conditioning) - embed(t_original), (t_cond - t_orig)/T).
-            # Identically zero when the two agree -> today's models are the exact special case.
-            if t_original_res is not None and t_conditioning_res is not None:
-                t_o = t_original_res.to(sc_node_features.dtype).reshape(-1)  # (L,)
-                t_c = t_conditioning_res.to(sc_node_features.dtype).reshape(-1)  # (L,)
-                delta_embed = self.time_embed(t_c) - self.time_embed(t_o)  # (L, hidden)
-                # num_timesteps is wired from the model's `timesteps` (T) at construction.
-                delta_scalar = ((t_c - t_o) / max(self.num_timesteps, 1)).unsqueeze(-1)  # (L, 1)
-                t_delta_res = self.t_cond_delta_proj(torch.cat([delta_embed, delta_scalar], dim=-1))  # (L, hidden)
-                sc_node_features = sc_node_features + t_delta_res[sc_residue_idx_valid] * gate
+        # Two-timestep delta: (embed(t_conditioning) - embed(t_original), (t_cond - t_orig)/T).
+        # Identically zero when the two agree -> today's models are the exact special case.
+        if t_original_res is not None and t_conditioning_res is not None:
+            t_o = t_original_res.to(sc_node_features.dtype).reshape(-1)  # (L,)
+            t_c = t_conditioning_res.to(sc_node_features.dtype).reshape(-1)  # (L,)
+            delta_embed = self.time_embed(t_c) - self.time_embed(t_o)  # (L, hidden)
+            # num_timesteps is wired from the model's `timesteps` (T) at construction.
+            delta_scalar = ((t_c - t_o) / max(self.num_timesteps, 1)).unsqueeze(-1)  # (L, 1)
+            t_delta_res = self.t_cond_delta_proj(torch.cat([delta_embed, delta_scalar], dim=-1))  # (L, hidden)
+            sc_node_features = sc_node_features + t_delta_res[sc_residue_idx_valid] * gate
 
-            # Recycle index: which refinement pass is this? Input is
-            # (embed(j) - embed(1), 1 - 1/j) through a BIAS-FREE linear, so pass 1 contributes
-            # EXACTLY zero for any weights -- the unconditioned first pass stays bit-exact.
+        # Recycle index: which refinement pass is this? Input is
+        # (embed(j) - embed(1), 1 - 1/j) through a BIAS-FREE linear, so pass 1 contributes
+        # EXACTLY zero for any weights -- the unconditioned first pass stays bit-exact.
 
-            # ABSOLUTE j, never j/N. Pass 2-of-2 and pass 2-of-5 consume literally the same
-            # conditioning (one prior refinement each) and future passes cannot reach backwards
-            # into the current input, so conditioning quality depends on j alone. Encoding j/N
-            # would give identical inputs different codes (1.0 vs 0.4) -- noise by construction.
-            # It also means the recycle count no longer has to match between train and sample.
+        # ABSOLUTE j, never j/N. Pass 2-of-2 and pass 2-of-5 consume literally the same
+        # conditioning (one prior refinement each) and future passes cannot reach backwards
+        # into the current input, so conditioning quality depends on j alone. Encoding j/N
+        # would give identical inputs different codes (1.0 vs 0.4) -- noise by construction.
+        # It also means the recycle count no longer has to match between train and sample.
 
-            # SATURATING scalar 1 - 1/j (0.00 / 0.50 / 0.67 / 0.75 / 0.80 at j = 1..5): information
-            # gain from pass 1 -> 2 is large, 4 -> 5 nearly nil (AF2 recycling is largely saturated
-            # by ~3), and it stays bounded for j never seen in training. The sinusoidal timestep
-            # embedding is reused (rather than a fresh table) for the same reason -- it is defined
-            # and bounded for every integer j, so extrapolation is well-posed.
-            if recycle_index is not None:
-                j = float(max(1, int(recycle_index)))
-                j_t = torch.tensor([j], device=device, dtype=sc_node_features.dtype)  # (1,)
-                j_embed = self.time_embed(j_t) - self.time_embed(torch.ones_like(j_t))  # (1, hidden)
-                j_scalar = (1.0 - 1.0 / j_t).unsqueeze(-1)  # (1, 1)
-                rc_res = self.recycle_index_proj(torch.cat([j_embed, j_scalar], dim=-1))  # (1, hidden)
-                sc_node_features = sc_node_features + rc_res * gate
+        # SATURATING scalar 1 - 1/j (0.00 / 0.50 / 0.67 / 0.75 / 0.80 at j = 1..5): information
+        # gain from pass 1 -> 2 is large, 4 -> 5 nearly nil (AF2 recycling is largely saturated
+        # by ~3), and it stays bounded for j never seen in training. The sinusoidal timestep
+        # embedding is reused (rather than a fresh table) for the same reason -- it is defined
+        # and bounded for every integer j, so extrapolation is well-posed.
+        if recycle_index is not None:
+            j = float(max(1, int(recycle_index)))
+            j_t = torch.tensor([j], device=device, dtype=sc_node_features.dtype)  # (1,)
+            j_embed = self.time_embed(j_t) - self.time_embed(torch.ones_like(j_t))  # (1, hidden)
+            j_scalar = (1.0 - 1.0 / j_t).unsqueeze(-1)  # (1, 1)
+            rc_res = self.recycle_index_proj(torch.cat([j_embed, j_scalar], dim=-1))  # (1, hidden)
+            sc_node_features = sc_node_features + rc_res * gate
 
         # Chirality: signed volume from first 3 atoms per residue -> per-slot feature
-        if self.use_chirality:
-            # Compute signed volume per residue from slots 0,1,2
-            max_sc = sidechain_coords.shape[1]
-            if max_sc >= 3:
-                a0 = sidechain_coords[:, 0, :]  # (L, 3)
-                a1 = sidechain_coords[:, 1, :]  # (L, 3)
-                a2 = sidechain_coords[:, 2, :]  # (L, 3)
-                v01 = a1 - a0
-                v02 = a2 - a0
-                signed_vol = (v01 * torch.cross(v02, v01, dim=-1)).sum(dim=-1)  # (L,)
-                # Normalize to ~[-1, 1] range (typical volumes ~10-50 Å³)
-                signed_vol = torch.tanh(signed_vol / 20.0)
-            else:
-                signed_vol = torch.zeros(sidechain_coords.shape[0], device=device)
-            # Expand to per-slot and project
-            chirality_per_slot = signed_vol[sc_residue_idx_valid].unsqueeze(-1)  # (N_sc, 1)
-            sc_node_features = sc_node_features + self.chirality_proj(chirality_per_slot)
 
         # Plan latent modulation: add per-residue plan latent to per-slot features
-        if self.use_plan_latent and plan_latent is not None:
-            # plan_latent: (L, plan_latent_dim) -> expand to per-slot
-            plan_per_slot = self.plan_latent_to_slot(plan_latent[sc_residue_idx_valid])  # (N_sc, hidden)
-            sc_node_features = sc_node_features + plan_per_slot
 
         # run10 target deep-inject source; stays None unless the sidechain->target cross-attention below runs.
         sc_target_attn = None
@@ -4935,9 +4605,6 @@ class SidechainDenoiser(nn.Module):
                     atom_type_feat = self.target_atom_type_embed(atom_type_valid)  # (N_target, hidden//4)
                     element_type_feat = self.target_element_type_embed(element_type_valid)  # (N_target, hidden//4)
                     residue_type_feat = self.target_residue_type_embed(residue_type_valid)  # (N_target, hidden//4)
-                    if self.use_jackie:
-                        jackie_feat = self.jackie_features_graph[residue_type_valid.clamp(0, 20)]  # (N_target, 25)
-                        residue_type_feat = residue_type_feat + self.target_residue_type_proj(jackie_feat)  # additive
                     is_backbone_feat = self.target_is_backbone_embed(is_backbone_valid)  # (N_target, hidden//8)
 
                     # Concatenate and project to hidden dim
@@ -5000,52 +4667,12 @@ class SidechainDenoiser(nn.Module):
 
         # Occupancy-gated graph edges: attenuate binder-target edge features by binder node's
         # noised occupancy (non-PAD fraction). Same signal as residue-level gating above.
-        if self.preal_gate_target == "graph_edges" and noised_element_types is not None:
-            # Compute occupancy gate per slot from noised element types
-            element_types_flat = noised_element_types.view(-1)
-            occ_flat = (element_types_flat != 0).float().clamp(min=0.3)
-            occ_valid = occ_flat[sc_valid_idx]  # (N_sc,)
-
-            # Pool through cluster pooling (same mean-pool as features)
-            occ_graph = torch.zeros(n_binder_sc, device=device)
-            occ_graph.index_add_(0, sc_cluster_inverse, occ_valid)
-            pool_counts = torch.bincount(sc_cluster_inverse, minlength=n_binder_sc).float().clamp(min=1.0)
-            occ_graph = occ_graph / pool_counts  # (n_binder_sc,)
-
-            # Gate binder-target edges by the binder sidechain node's occupancy
-            bt_mask = edge_type == EDGE_TYPE_BINDER_TARGET
-            if bt_mask.any():
-                src = edge_index[0, bt_mask]
-                dst = edge_index[1, bt_mask]
-                # For each binder-target edge, one end is binder sc (< n_binder_sc)
-                src_is_sc = src < n_binder_sc
-                dst_is_sc = dst < n_binder_sc
-                binder_sc_idx = torch.where(src_is_sc, src, dst)
-                has_sc = src_is_sc | dst_is_sc
-                gate = torch.ones(bt_mask.sum(), 1, device=device)
-                if has_sc.any():
-                    gate[has_sc] = occ_graph[binder_sc_idx[has_sc].clamp(max=n_binder_sc - 1)].unsqueeze(-1)
-                edge_attr = edge_attr.clone()
-                edge_attr[bt_mask] = edge_attr[bt_mask] * gate
 
         # Per-layer clean-context interweave (the clean_inject_proj): map each clean-stream layer's
         # per-residue features onto the graph nodes (binder side-chain + backbone; target nodes get zero)
         # via the corresponding ZERO-INIT, bias-free projection, so the injection is an exact no-op at
         # init and grows as it learns. Passed to the SE(3) stack; each main layer i adds injection i.
         layer_conditioning = None
-        if self.use_global_latent_matching and latent_clean_per_layer is not None:
-            n_total = all_features.shape[0]
-            layer_conditioning = []
-            for li, clean_li in enumerate(latent_clean_per_layer):
-                proj = self.clean_inject_proj[li]
-                node_cond = torch.zeros(n_total, self.hidden_dim, device=device, dtype=all_features.dtype)
-                if n_binder_sc > 0:
-                    node_cond[:n_binder_sc] = proj(clean_li[sc_graph_residue_idx].to(all_features.dtype))
-                if n_binder_bb > 0:
-                    node_cond[n_binder_sc : n_binder_sc + n_binder_bb] = proj(
-                        clean_li[bb_residue_idx_valid].to(all_features.dtype)
-                    )
-                layer_conditioning.append(node_cond)
 
         # DRAFT deep per-layer residue-frame injection. Same residue->atom scatter + ZERO-INIT projection
         # pattern as the clean-context interweave above, but the source is the residue-frame stream's
@@ -5056,41 +4683,12 @@ class SidechainDenoiser(nn.Module):
         # SE(3)-invariant and adding it cannot break the transformer's equivariance. Target nodes get 0. When
         # both this and the clean-context interweave are active, the two per-layer residuals SUM (independent
         # zero-init grafts). Zero-init => exact no-op at init => byte-identical + resume-safe.
-        if self.use_residue_frame_deep_inject and residue_frame_hidden is not None:
-            n_total = all_features.shape[0]
-            rf_latent = residue_frame_hidden.to(all_features.dtype)  # (L, hidden), already detached
-            if layer_conditioning is None:
-                layer_conditioning = [None] * len(self.residue_frame_deep_proj)
-            for li, proj in enumerate(self.residue_frame_deep_proj):
-                node_cond = torch.zeros(n_total, self.hidden_dim, device=device, dtype=all_features.dtype)
-                if n_binder_sc > 0:
-                    node_cond[:n_binder_sc] = proj(rf_latent[sc_graph_residue_idx])
-                if n_binder_bb > 0:
-                    node_cond[n_binder_sc : n_binder_sc + n_binder_bb] = proj(rf_latent[bb_residue_idx_valid])
-                # Sum with the clean-context injection when present (both are zero-init grafts).
-                layer_conditioning[li] = (
-                    node_cond if layer_conditioning[li] is None else layer_conditioning[li] + node_cond
-                )
 
         # BACKBONE deep-inject (run10-next): SAME sc+bb residue->node scatter as the frame deep-inject above,
         # sourced from the (DETACHED) BackboneEncoder per-residue latent `backbone_features` (L, hidden) -- the
         # backbone geometry + target cross-attn + FiLM encoding that is otherwise only concatenated into the
         # layer-0 node features. Zero-init proj => +0 at init => byte-identical off; detached => the atom-flow
         # loss cannot reshape the shared backbone encoder through this per-layer path.
-        if self.use_backbone_deep_inject and backbone_features is not None:
-            n_total = all_features.shape[0]
-            bb_latent = backbone_features.detach().to(all_features.dtype)  # (L, hidden)
-            if layer_conditioning is None:
-                layer_conditioning = [None] * len(self.backbone_deep_proj)
-            for li, proj in enumerate(self.backbone_deep_proj):
-                node_cond = torch.zeros(n_total, self.hidden_dim, device=device, dtype=all_features.dtype)
-                if n_binder_sc > 0:
-                    node_cond[:n_binder_sc] = proj(bb_latent[sc_graph_residue_idx])
-                if n_binder_bb > 0:
-                    node_cond[n_binder_sc : n_binder_sc + n_binder_bb] = proj(bb_latent[bb_residue_idx_valid])
-                layer_conditioning[li] = (
-                    node_cond if layer_conditioning[li] is None else layer_conditioning[li] + node_cond
-                )
 
         # NEW: v2 residue-frame deep per-layer injection. IDENTICAL residue->atom scatter + ZERO-INIT projection
         # pattern as the v1 frame deep-inject above, but the source is the v2 stream's per-residue `rf_hidden`
@@ -5132,27 +4730,6 @@ class SidechainDenoiser(nn.Module):
         # bond_prev_x0 is None (no recycle pass ran) => inert. Zero-init => byte-identical off.
         # NOTE (review): the descriptor uses `residue_mask` (graph-valid slots); ghost slots sit at Cα and are
         # EXCLUDED via bond_prev_mask (predicted-real, P(real)>0.5) -- not merely down-weighted.
-        if self.use_bond_angle_deep_inject and bond_prev_x0 is not None:
-            n_total = all_features.shape[0]
-            _ba_coords = bond_prev_x0.reshape(seq_len, max_sc, 3).detach().to(all_features.dtype)
-            # Descriptor over REAL predicted atoms only: AND the graph-valid residue_mask with the recycle's
-            # hard predicted-existence mask (P(real)>0.5). Ghost / Cα-collapsed slots are EXCLUDED, not merely
-            # distance-down-weighted (review: leaving them in shifts the descriptor by up to ~0.7 max-abs).
-            _ba_valid = residue_mask.to(torch.bool)
-            if bond_prev_mask is not None:
-                _ba_valid = _ba_valid & bond_prev_mask.reshape(seq_len, max_sc).to(torch.bool)
-            ba_latent = self.bond_angle_inject_encoder(bond_geom_descriptor(_ba_coords, _ba_valid))  # (L, hidden)
-            if layer_conditioning is None:
-                layer_conditioning = [None] * len(self.bond_angle_deep_proj)
-            for li, proj in enumerate(self.bond_angle_deep_proj):
-                node_cond = torch.zeros(n_total, self.hidden_dim, device=device, dtype=all_features.dtype)
-                if n_binder_sc > 0:
-                    node_cond[:n_binder_sc] = proj(ba_latent[sc_graph_residue_idx])
-                if n_binder_bb > 0:
-                    node_cond[n_binder_sc : n_binder_sc + n_binder_bb] = proj(ba_latent[bb_residue_idx_valid])
-                layer_conditioning[li] = (
-                    node_cond if layer_conditioning[li] is None else layer_conditioning[li] + node_cond
-                )
 
         # volumetric deep per-layer injection. IDENTICAL residue->atom scatter + ZERO-INIT projection
         # pattern as the residue-frame deep-inject above, but the source is the volumetric head's (detached)
@@ -5237,26 +4814,9 @@ class SidechainDenoiser(nn.Module):
         sc_out_features = sc_out_features[sc_cluster_inverse]
 
         # Intra-residue slot attention: structured all-to-all within each residue
-        if self.use_slot_attention:
-            n_valid_residues = seq_mask.sum().item()
-            sc_out_features = self.slot_attention(sc_out_features, n_valid_residues)
 
         # Directional slot attention: distal scouts -> proximal sticky slots
         # Compute occupancy logits first for P(real) gating, then recompute after attention
-        if self.use_directional_slot_attention:
-            pre_attn_occupancy = self.occupancy_head(sc_out_features)  # (N_sc, 1) -- for gating only
-            n_valid_residues = seq_mask.sum().item()
-            # During training: use GT mask for stable scout assignment
-            # During sampling: gt_sidechain_mask is None, falls back to predicted P(real)
-            gt_mask_flat = None
-            if gt_sidechain_mask is not None:
-                gt_mask_flat = gt_sidechain_mask[seq_mask].reshape(n_valid_residues * self.max_sidechain_atoms)
-            sc_out_features = self.directional_slot_attention(
-                sc_out_features,
-                n_valid_residues,
-                occupancy_logits=pre_attn_occupancy,
-                gt_mask=gt_mask_flat,
-            )
 
         # Element-velocity coupling: FiLM modulation of sc_out_features by PAD/non-PAD state.
         # Intentionally placed BEFORE all heads (velocity, element, occupancy, mixture) so that
@@ -5271,96 +4831,67 @@ class SidechainDenoiser(nn.Module):
         # Count-velocity coupling: per-slot P(real) from per-residue count via sigmoid step.
         # count_velocity_conditioning is (L,) per-residue count. Convert to per-slot via
         # sigmoid(4*(count - slot_idx - 0.5)): slots below count -> ~1.0, above -> ~0.0.
-        if self.use_count_velocity_coupling and count_velocity_conditioning is not None:
-            slot_idx = torch.arange(max_sc, device=device).float()  # (max_sc,)
-            count_per_res = count_velocity_conditioning[:seq_len]  # (L,)
-            p_real_per_slot = torch.sigmoid(4.0 * (count_per_res.unsqueeze(1) - slot_idx - 0.5))  # (L, max_sc)
-            cvc_flat = p_real_per_slot.reshape(-1)  # (L*max_sc,)
-            cvc_valid = cvc_flat[sc_valid_idx].unsqueeze(-1)  # (N_sc, 1)
-            cvc_embed = self.cvc_proj(cvc_valid)  # (N_sc, hidden_dim)
-            sc_out_features = self.cvc_film(sc_out_features, cvc_embed)
 
         # Intra-residue bond attention: refine per-slot features using predicted bond graph
         bond_logits_out = None
-        if self.use_bond_attention:
-            # Reshape flat (N_sc,) features to (n_residues, max_sc, D) for intra-residue attention
-            n_valid_res_ba = int(sc_residue_idx_valid.max().item()) + 1
-            h_3d = torch.zeros(n_valid_res_ba, max_sc, sc_out_features.shape[-1], device=device)
-            coords_3d = torch.zeros(n_valid_res_ba, max_sc, 3, device=device)
-            mask_3d = torch.zeros(n_valid_res_ba, max_sc, dtype=torch.bool, device=device)
-            slot_within_res = sc_valid_idx % max_sc
-            h_3d[sc_residue_idx_valid, slot_within_res] = sc_out_features
-            coords_3d[sc_residue_idx_valid, slot_within_res] = sc_coords_valid
-            mask_3d[sc_residue_idx_valid, slot_within_res] = True
+        n_valid_res_ba = int(sc_residue_idx_valid.max().item()) + 1
+        h_3d = torch.zeros(n_valid_res_ba, max_sc, sc_out_features.shape[-1], device=device)
+        coords_3d = torch.zeros(n_valid_res_ba, max_sc, 3, device=device)
+        mask_3d = torch.zeros(n_valid_res_ba, max_sc, dtype=torch.bool, device=device)
+        slot_within_res = sc_valid_idx % max_sc
+        h_3d[sc_residue_idx_valid, slot_within_res] = sc_out_features
+        coords_3d[sc_residue_idx_valid, slot_within_res] = sc_coords_valid
+        mask_3d[sc_residue_idx_valid, slot_within_res] = True
 
-            # For co-diffusion: reshape noised bond probs to match bond attention's (n_res, S, S) shape
-            noised_bp_3d = None
-            if noised_bond_probs is not None:
-                # noised_bond_probs is (L, max_sc, max_sc) -- per-sample from _forward_single
-                noised_bp_3d = noised_bond_probs[:n_valid_res_ba]  # (n_res, max_sc, max_sc)
+        # For co-diffusion: reshape noised bond probs to match bond attention's (n_res, S, S) shape
+        noised_bp_3d = None
+        if noised_bond_probs is not None:
+            # noised_bond_probs is (L, max_sc, max_sc) -- per-sample from _forward_single
+            noised_bp_3d = noised_bond_probs[:n_valid_res_ba]  # (n_res, max_sc, max_sc)
 
-            h_3d, bond_logits_3d = self.bond_attention(h_3d, coords_3d, mask_3d, noised_bond_probs=noised_bp_3d)
-            bond_logits_out = bond_logits_3d  # (n_res, max_sc, max_sc) -- for loss
+        h_3d, bond_logits_3d = self.bond_attention(h_3d, coords_3d, mask_3d, noised_bond_probs=noised_bp_3d)
+        bond_logits_out = bond_logits_3d  # (n_res, max_sc, max_sc) -- for loss
 
-            # Write back to flat features
-            sc_out_features = h_3d[sc_residue_idx_valid, slot_within_res]
+        # Write back to flat features
+        sc_out_features = h_3d[sc_residue_idx_valid, slot_within_res]
 
         # Cross-residue packing attention: attend between atoms of paired residues
         # (sequence-consecutive by default; spatially-nearest when cross_residue_packing_spatial).
         packing_contact_logits_out = None
         packing_neighbor_idx_out = None
         packing_neighbor_valid_out = None
-        if self.use_cross_residue_packing:
-            n_valid_res_crp = int(sc_residue_idx_valid.max().item()) + 1
-            h_3d_crp = torch.zeros(n_valid_res_crp, max_sc, sc_out_features.shape[-1], device=device)
-            coords_3d_crp = torch.zeros(n_valid_res_crp, max_sc, 3, device=device)
-            mask_3d_crp = torch.zeros(n_valid_res_crp, max_sc, dtype=torch.bool, device=device)
-            slot_within_res_crp = sc_valid_idx % max_sc
-            h_3d_crp[sc_residue_idx_valid, slot_within_res_crp] = sc_out_features
-            coords_3d_crp[sc_residue_idx_valid, slot_within_res_crp] = sc_coords_valid
-            mask_3d_crp[sc_residue_idx_valid, slot_within_res_crp] = True
+        n_valid_res_crp = int(sc_residue_idx_valid.max().item()) + 1
+        h_3d_crp = torch.zeros(n_valid_res_crp, max_sc, sc_out_features.shape[-1], device=device)
+        coords_3d_crp = torch.zeros(n_valid_res_crp, max_sc, 3, device=device)
+        mask_3d_crp = torch.zeros(n_valid_res_crp, max_sc, dtype=torch.bool, device=device)
+        slot_within_res_crp = sc_valid_idx % max_sc
+        h_3d_crp[sc_residue_idx_valid, slot_within_res_crp] = sc_out_features
+        coords_3d_crp[sc_residue_idx_valid, slot_within_res_crp] = sc_coords_valid
+        mask_3d_crp[sc_residue_idx_valid, slot_within_res_crp] = True
 
-            # Spatial mode needs a per-residue anchor. Reuse the backbone-only pseudo-Cbeta
-            # (an INPUT, never GT side chains) so neighbour selection stays leak-free.
-            crp_residue_pos = None
-            if self.cross_residue_packing_spatial:
-                cb_dir = compute_pseudo_cb_direction(backbone_coords)  # (L, 3)
-                crp_residue_pos = backbone_coords[:, 1, :] + 1.53 * cb_dir  # (L, 3) virtual CB
+        # Spatial mode needs a per-residue anchor. Reuse the backbone-only pseudo-Cbeta
+        # (an INPUT, never GT side chains) so neighbour selection stays leak-free.
+        crp_residue_pos = None
 
-            (
-                h_3d_crp,
-                packing_contact_logits_out,
-                packing_neighbor_idx_out,
-                packing_neighbor_valid_out,
-            ) = self.cross_residue_packing(h_3d_crp, coords_3d_crp, mask_3d_crp, residue_pos=crp_residue_pos)
-            sc_out_features = h_3d_crp[sc_residue_idx_valid, slot_within_res_crp]
+        (
+            h_3d_crp,
+            packing_contact_logits_out,
+            packing_neighbor_idx_out,
+            packing_neighbor_valid_out,
+        ) = self.cross_residue_packing(h_3d_crp, coords_3d_crp, mask_3d_crp, residue_pos=crp_residue_pos)
+        sc_out_features = h_3d_crp[sc_residue_idx_valid, slot_within_res_crp]
 
         # Valence demand: predict per-slot valence, use as FiLM conditioning before output heads
         valence_logits_valid = None
-        if self.use_valence_demand:
-            valence_logits_valid = self.valence_head(sc_out_features)  # (N_sc, 5)
-            valence_probs = torch.softmax(valence_logits_valid, dim=-1)  # (N_sc, 5)
-            valence_embed = self.valence_embed(valence_probs)  # (N_sc, hidden_dim)
-            sc_out_features = self.valence_film(sc_out_features, valence_embed)
 
         # Global-latent FiLM feedback: the confidence-gated per-residue latent (detached) modulates
         # the generated side-chain features just before the output heads (film_layers="last"). The
         # summary is already detached, so this conditions the main stream without any gradient
         # reaching the clean stream or the pool head.
-        if (
-            self.use_global_latent_matching
-            and self.global_latent_condition_main_stream
-            and latent_clean_summary is not None
-        ):
-            latent_summary_per_slot = latent_clean_summary[sc_residue_idx_valid]  # (N_sc, 1+embed_dim)
-            sc_out_features = self.latent_film(sc_out_features, latent_summary_per_slot)
 
         # Predict occupancy and mixture from features -- optionally with info bottleneck dropout
         # to prevent the mixture/occupancy heads from reading GT count info from teacher-forced features
-        if self.training and hasattr(self, "_mixture_head_dropout") and self._mixture_head_dropout > 0:
-            mixture_features = F.dropout(sc_out_features, p=self._mixture_head_dropout, training=True)
-        else:
-            mixture_features = sc_out_features
+        mixture_features = sc_out_features
         occupancy_logits_valid = self.occupancy_head(mixture_features)  # (N_sc, 1)
 
         # Predict pocket contacts: per-slot binary "contacts target within 4Å?"
@@ -5402,37 +4933,27 @@ class SidechainDenoiser(nn.Module):
 
         # Target-interaction intent: predict per-slot interaction type, optionally bias velocity toward target
         interaction_intent_logits_valid = None
-        if self.use_interaction_intent:
-            interaction_intent_logits_valid = self.interaction_intent_head(sc_out_features)  # (N_sc, num_classes)
-            # Velocity bias is optional and orthogonal to the classification loss
-            if (
-                self.interaction_intent_velocity_bias
-                and target_coords_for_intent is not None
-                and target_mask_for_intent is not None
-            ):
-                # P(interacting) = 1 - P(class 0 = no interaction) for both 2-class and 4-class
-                p_interact = 1.0 - torch.softmax(interaction_intent_logits_valid, dim=-1)[:, 0]  # (N_sc,)
-                # Find nearest target atom for each sidechain atom
-                tgt_valid = target_coords_for_intent[target_mask_for_intent]  # (N_tgt, 3)
-                if tgt_valid.shape[0] > 0:
-                    dists = torch.cdist(sc_coords_valid, tgt_valid)  # (N_sc, N_tgt)
-                    nearest_tgt = tgt_valid[dists.argmin(dim=-1)]  # (N_sc, 3)
-                    intent_direction = nearest_tgt - sc_coords_valid  # (N_sc, 3)
-                    intent_dist = intent_direction.norm(dim=-1, keepdim=True).clamp(min=0.1)
-                    intent_bias = (
-                        intent_direction / intent_dist * p_interact.unsqueeze(-1) * self.interaction_bias_scale
-                    )
-                    noise_valid = noise_valid + intent_bias
+        interaction_intent_logits_valid = self.interaction_intent_head(sc_out_features)  # (N_sc, num_classes)
+        # Velocity bias is optional and orthogonal to the classification loss
+        if (
+            self.interaction_intent_velocity_bias
+            and target_coords_for_intent is not None
+            and target_mask_for_intent is not None
+        ):
+            # P(interacting) = 1 - P(class 0 = no interaction) for both 2-class and 4-class
+            p_interact = 1.0 - torch.softmax(interaction_intent_logits_valid, dim=-1)[:, 0]  # (N_sc,)
+            # Find nearest target atom for each sidechain atom
+            tgt_valid = target_coords_for_intent[target_mask_for_intent]  # (N_tgt, 3)
+            if tgt_valid.shape[0] > 0:
+                dists = torch.cdist(sc_coords_valid, tgt_valid)  # (N_sc, N_tgt)
+                nearest_tgt = tgt_valid[dists.argmin(dim=-1)]  # (N_sc, 3)
+                intent_direction = nearest_tgt - sc_coords_valid  # (N_sc, 3)
+                intent_dist = intent_direction.norm(dim=-1, keepdim=True).clamp(min=0.1)
+                intent_bias = intent_direction / intent_dist * p_interact.unsqueeze(-1) * self.interaction_bias_scale
+                noise_valid = noise_valid + intent_bias
 
         # Predict element types -- optionally with distance-from-CA as explicit feature
-        if self.use_ca_dist_element_feature:
-            # Compute per-atom distance from CA (normalized by typical sidechain radius ~5Å)
-            ca_for_atoms = backbone_coords[sc_residue_idx_valid, 1, :]  # (N_sc, 3) -- CA coords per atom
-            dist_from_ca = (sc_coords_valid - ca_for_atoms).norm(dim=-1, keepdim=True)  # (N_sc, 1)
-            dist_from_ca_norm = dist_from_ca / 5.0  # normalize to ~1.0 for typical sidechain atoms
-            element_input = torch.cat([sc_out_features, dist_from_ca_norm], dim=-1)
-        else:
-            element_input = sc_out_features
+        element_input = sc_out_features
         element_logits_valid = self.element_type_head(element_input)  # (N_sc, 5)
 
         # Predict per-residue mixture centroid + cloud logvar (Stage 2).
