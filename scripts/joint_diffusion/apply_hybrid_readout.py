@@ -81,13 +81,19 @@ CANON = {
 
 # ---------------------------------------------------------------------------- cloud parse + tensors
 def parse_cloud(path):
-    chains = {"B": {}, "C": {}}
-    order = {"B": [], "C": []}
-    for ln in open(path):
+    lines = Path(path).read_text().splitlines()
+    input_chain, generated_chain = "B", "C"
+    for ln in lines:
+        if ln.startswith("REMARK  ATOMWEAVER_CHAINS "):
+            _, _, input_chain, generated_chain = ln.split()
+            break
+    chains = {input_chain: {}, generated_chain: {}}
+    order = {input_chain: [], generated_chain: []}
+    for ln in lines:
         if not ln.startswith("ATOM"):
             continue
         ch = ln[21]
-        if ch not in ("B", "C"):
+        if ch not in chains:
             continue
         an = ln[12:16].strip()
         rn = ln[17:20].strip()
@@ -106,7 +112,9 @@ def parse_cloud(path):
             except ValueError:
                 slot = len(r["sc"])
             r["sc"].append((slot, an[0], xyz))
-    return [chains["C"][r] for r in order["C"]], [chains["B"][r] for r in order["B"]]
+    return [chains[generated_chain][r] for r in order[generated_chain]], [
+        chains[input_chain][r] for r in order[input_chain]
+    ]
 
 
 def build_tensors(Cres):
