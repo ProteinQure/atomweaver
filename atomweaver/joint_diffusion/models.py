@@ -6114,17 +6114,9 @@ class InverseFoldingDiffusion(nn.Module):
         super().__init__()
 
         from .diffusion import (
-            EXISTENCE_MASK,
-            NUM_EXISTENCE_CLASSES,
-            NUM_SPLIT_ELEMENT_TYPES,
-            SPLIT_ELEMENT_DATA_PRIOR,
-            SPLIT_ELEMENT_MASK,
             ClassWeightedDiscreteDiffusion,
-            ElementFlowMatching,
-            ExistenceFlowMatching,
             GaussianDiffusion,
             GhostRealFlowMatching,
-            cosine_beta_schedule,
         )
 
         if coord_process_type not in {"ddpm", "flow_matching"}:
@@ -6138,11 +6130,7 @@ class InverseFoldingDiffusion(nn.Module):
         self.existence_power = existence_power
         self.existence_threshold = existence_threshold
         self.existence_velocity_scale = existence_velocity_scale
-        if split_element_existence:
-            # Split mode: denoiser operates on {C=0,N=1,O=2,S=3,MASK=4} -- no PAD class
-            self.num_element_classes = NUM_SPLIT_ELEMENT_TYPES
-        else:
-            self.num_element_classes = NUM_ELEMENT_TYPES + (1 if donut_element_init == "mask" else 0)
+        self.num_element_classes = NUM_ELEMENT_TYPES + (1 if donut_element_init == "mask" else 0)
 
         # === Global latent matching (ported) -- default OFF = bit-exact no-op ===
         # z_gt is a LOOKUP of precomputed rotamer-invariant QuPID identity embeddings, keyed by the GT
@@ -6158,40 +6146,7 @@ class InverseFoldingDiffusion(nn.Module):
         self.global_latent_loss_type = global_latent_loss_type
         self.global_latent_embed_dim = int(global_latent_embed_dim)
         self.global_latent_names = None
-        if use_global_latent_matching:
-            # FIX 3 (pocket-only invariant): the clean stream reads backbone_features, which
-            # preal_gate_target would gate by the noised element state -> z_pred would depend on the
-            # generated atoms, breaking the pocket-only/time-free invariant. Reject the combo rather
-            # than silently degrade it (launch defaults leave preal_gate_target='none').
-            if preal_gate_target not in (None, "", "none"):
-                raise ValueError(
-                    "use_global_latent_matching=True is incompatible with preal_gate_target="
-                    f"{preal_gate_target!r}: gating backbone_features by the noised element state makes the "
-                    "clean-context latent depend on the generated atoms, breaking the pocket-only/time-free "
-                    "invariant. Use preal_gate_target='none' (the default) with global latent matching."
-                )
-            # FIX 1 (fail loud, no silent-skip): the clean stream / injection / FiLM would otherwise
-            # still train via the main loss while the load-bearing matching objective is silently off.
-            if not global_latent_qupid_lookup:
-                raise ValueError(
-                    "use_global_latent_matching=True requires --global-latent-qupid-lookup (path to the "
-                    "QuPID identity-embedding lookup .pt). Refusing to run with the matching loss silently off."
-                )
-            from pathlib import Path as _Path
-
-            if not _Path(global_latent_qupid_lookup).is_file():
-                raise FileNotFoundError(
-                    f"global_latent_qupid_lookup not found: {global_latent_qupid_lookup!r}. "
-                    "Provide the disc-index-aligned QuPID lookup .pt."
-                )
-            from .latent_matching import load_qupid_lookup
-
-            table, self.global_latent_embed_dim, self.global_latent_names = load_qupid_lookup(
-                global_latent_qupid_lookup
-            )
-            self.register_buffer("global_latent_lookup", table, persistent=False)
-        else:
-            self.global_latent_lookup = None
+        self.global_latent_lookup = None
 
         # DRAFT residue-frame stream config (stored so forward can assemble the two losses + ramp).
         self.use_residue_frame_stream = use_residue_frame_stream
@@ -6259,123 +6214,113 @@ class InverseFoldingDiffusion(nn.Module):
         # pretrain otherwise) and skips the SE(3) atom transformer / flow denoiser entirely so a much
         # bigger batch fits. Set BEFORE the denoiser construction so the build can be gated on it.
         self.volumetric_pretrain_only = bool(volumetric_pretrain_only)
-        if self.volumetric_pretrain_only and not use_volumetric_head:
-            raise ValueError(
-                "volumetric_pretrain_only=True requires use_volumetric_head=True: the pretrain-only build "
-                "trains ONLY the VolumetricOccupancyHead (the SE(3) atom transformer is not constructed), so "
-                "with the head off there is nothing to train. Enable use_volumetric_head, or set "
-                "volumetric_pretrain_only=False."
-            )
 
         # Skip the (VRAM-dominant) SE(3) atom denoiser in pretrain-only mode. forward() branches out at the
         # volumetric-head compute and never touches self.denoiser, so leaving it None is safe there.
-        if self.volumetric_pretrain_only:
-            self.denoiser = None
-        else:
-            self.denoiser = SidechainDenoiser(
-                hidden_dim=hidden_dim,
-                num_layers=num_layers,
-                max_sidechain_atoms=max_sidechain_atoms,
-                count_embed_mode=count_embed_mode,
-                use_target_conditioning=use_target_conditioning,
-                num_cross_attn_layers=num_cross_attn_layers,
-                num_cross_attn_heads=num_cross_attn_heads,
-                use_film=use_film,
-                use_bidirectional_target_conditioning=use_bidirectional_target_conditioning,
-                use_sidechain_target_residue_attention=use_sidechain_target_residue_attention,
-                target_condition_scale=target_condition_scale,
-                cluster_target_condition_scale=cluster_target_condition_scale,
-                sidechain_target_cutoff=sidechain_target_cutoff,
-                backbone_target_cutoff=backbone_target_cutoff,
-                rbf_span_to_cutoff=rbf_span_to_cutoff,
-                dropout=dropout,
-                use_jackie=use_jackie,
-                preal_gate_target=preal_gate_target,
-                use_slot_attention=use_slot_attention,
-                num_slot_attn_layers=num_slot_attn_layers,
-                num_slot_attn_heads=num_slot_attn_heads,
-                use_directional_slot_attention=use_directional_slot_attention,
-                n_scouts=n_scouts,
-                num_element_classes=self.num_element_classes,
-                use_element_velocity_coupling=use_element_velocity_coupling,
-                num_timesteps=timesteps,
-                use_ca_dist_element_feature=use_ca_dist_element_feature,
-                use_count_velocity_coupling=use_count_velocity_coupling,
-                use_bond_attention=use_bond_attention,
-                zero_init_bond_attention=zero_init_bond_attention,
-                use_valence_demand=valence_loss_weight > 0,
-                use_cross_residue_packing=use_cross_residue_packing,
-                cross_residue_packing_spatial=cross_residue_packing_spatial,
-                cross_residue_packing_k=cross_residue_packing_k,
-                cross_residue_packing_radius=cross_residue_packing_radius,
-                cross_residue_packing_min_seq_sep=cross_residue_packing_min_seq_sep,
-                use_neighbor_x0_packing=use_neighbor_x0_packing,
-                neighbor_x0_packing_radius=neighbor_x0_packing_radius,
-                neighbor_x0_highnoise_weight=neighbor_x0_highnoise_weight,
-                neighbor_x0_corrupt_add_prob=neighbor_x0_corrupt_add_prob,
-                neighbor_x0_corrupt_drop_prob=neighbor_x0_corrupt_drop_prob,
-                neighbor_x0_corrupt_noise_prob=neighbor_x0_corrupt_noise_prob,
-                neighbor_x0_corrupt_coord_noise=neighbor_x0_corrupt_coord_noise,
-                neighbor_x0_corrupt_disconnect_prob=neighbor_x0_corrupt_disconnect_prob,
-                use_shape_prior=use_shape_prior and shape_prior_n_anchors > 0,
-                shape_prior_n_anchors=shape_prior_n_anchors if shape_prior_n_anchors > 0 else 4,
-                use_bond_co_diffusion=use_bond_co_diffusion,
-                use_coord_self_conditioning=use_coord_self_conditioning,
-                use_plan_latent=use_plan_latent,
-                use_interaction_intent=use_interaction_intent,
-                interaction_intent_num_classes=interaction_intent_num_classes,
-                interaction_intent_velocity_bias=interaction_intent_velocity_bias,
-                use_chirality=use_chirality,
-                num_edge_types=num_edge_types,
-                graph_num_edge_types=graph_num_edge_types,
-                use_backbone_dihedral=use_backbone_dihedral,
-                use_burial_feature=use_burial_feature,
-                use_residue_frame_stream=use_residue_frame_stream,
-                residue_frame_layers=residue_frame_layers,
-                use_residue_frame_deep_inject=use_residue_frame_deep_inject,
-                # effective-gate the volumetric deep-inject with use_volumetric_head here (the head lives
-                # in this module, so an inject with no head would build dead projections). The denoiser stores the
-                # AND'd value directly.
-                use_volumetric_deep_inject=bool(use_volumetric_head and use_volumetric_deep_inject),
-                use_target_deep_inject=use_target_deep_inject,
-                use_backbone_deep_inject=use_backbone_deep_inject,
-                frame_v2_deep_inject_detach=frame_v2_deep_inject_detach,
-                use_bond_angle_deep_inject=use_bond_angle_deep_inject,
-                # effective-gate the existence coupling with use_volumetric_head here (the head lives in
-                # this module, so a coupling with no head would build a dead projection). The denoiser stores the
-                # AND'd value directly.
-                use_volumetric_existence_coupling=bool(use_volumetric_head and use_volumetric_existence_coupling),
-                use_residue_frame_stream_v2=use_residue_frame_stream_v2,
-                residue_frame_v2_layers=residue_frame_v2_layers,
-                frame_v2_clean_input=frame_v2_clean_input,
-                # NEW: AND with the v2 stream here (the deep-inject projections live in the denoiser, so a deep-inject
-                # with no v2 stream would build dead projections + have no source latent). The denoiser stores the AND'd value.
-                use_residue_frame_v2_deep_inject=bool(use_residue_frame_stream_v2 and use_residue_frame_v2_deep_inject),
-                # AND with the v2 stream here (the head lives inside the v2 module, so a head with no
-                # stream would build dead params). The denoiser stores the AND'd value directly.
-                use_stereochem_head=bool(use_residue_frame_stream_v2 and use_stereochem_head),
-                # AND with the v2 stream + static stereo head here (the t-resolution head needs the
-                # static P(D)_prior). The denoiser stores the AND'd value directly.
-                use_stereochem_t_resolution=bool(
-                    use_residue_frame_stream_v2 and use_stereochem_head and use_stereochem_t_resolution
-                ),
-                # AND with the t-resolution head (+ static stereo head + v2 stream). The denoiser stores
-                # the AND'd value directly.
-                use_stereochem_t_resolution_feedback=bool(
-                    use_residue_frame_stream_v2
-                    and use_stereochem_head
-                    and use_stereochem_t_resolution
-                    and use_stereochem_t_resolution_feedback
-                ),
-                activation_checkpointing=activation_checkpointing,
-                activation_checkpoint_stride=activation_checkpoint_stride,
-                use_global_latent_matching=use_global_latent_matching,
-                global_latent_embed_dim=self.global_latent_embed_dim,
-                global_latent_confidence=global_latent_confidence,
-                global_latent_condition_main_stream=global_latent_condition_main_stream,
-                global_latent_film_layers=global_latent_film_layers,
-                graft_init_std=graft_init_std,
-            )
+        self.denoiser = SidechainDenoiser(
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+            max_sidechain_atoms=max_sidechain_atoms,
+            count_embed_mode=count_embed_mode,
+            use_target_conditioning=use_target_conditioning,
+            num_cross_attn_layers=num_cross_attn_layers,
+            num_cross_attn_heads=num_cross_attn_heads,
+            use_film=use_film,
+            use_bidirectional_target_conditioning=use_bidirectional_target_conditioning,
+            use_sidechain_target_residue_attention=use_sidechain_target_residue_attention,
+            target_condition_scale=target_condition_scale,
+            cluster_target_condition_scale=cluster_target_condition_scale,
+            sidechain_target_cutoff=sidechain_target_cutoff,
+            backbone_target_cutoff=backbone_target_cutoff,
+            rbf_span_to_cutoff=rbf_span_to_cutoff,
+            dropout=dropout,
+            use_jackie=use_jackie,
+            preal_gate_target=preal_gate_target,
+            use_slot_attention=use_slot_attention,
+            num_slot_attn_layers=num_slot_attn_layers,
+            num_slot_attn_heads=num_slot_attn_heads,
+            use_directional_slot_attention=use_directional_slot_attention,
+            n_scouts=n_scouts,
+            num_element_classes=self.num_element_classes,
+            use_element_velocity_coupling=use_element_velocity_coupling,
+            num_timesteps=timesteps,
+            use_ca_dist_element_feature=use_ca_dist_element_feature,
+            use_count_velocity_coupling=use_count_velocity_coupling,
+            use_bond_attention=use_bond_attention,
+            zero_init_bond_attention=zero_init_bond_attention,
+            use_valence_demand=valence_loss_weight > 0,
+            use_cross_residue_packing=use_cross_residue_packing,
+            cross_residue_packing_spatial=cross_residue_packing_spatial,
+            cross_residue_packing_k=cross_residue_packing_k,
+            cross_residue_packing_radius=cross_residue_packing_radius,
+            cross_residue_packing_min_seq_sep=cross_residue_packing_min_seq_sep,
+            use_neighbor_x0_packing=use_neighbor_x0_packing,
+            neighbor_x0_packing_radius=neighbor_x0_packing_radius,
+            neighbor_x0_highnoise_weight=neighbor_x0_highnoise_weight,
+            neighbor_x0_corrupt_add_prob=neighbor_x0_corrupt_add_prob,
+            neighbor_x0_corrupt_drop_prob=neighbor_x0_corrupt_drop_prob,
+            neighbor_x0_corrupt_noise_prob=neighbor_x0_corrupt_noise_prob,
+            neighbor_x0_corrupt_coord_noise=neighbor_x0_corrupt_coord_noise,
+            neighbor_x0_corrupt_disconnect_prob=neighbor_x0_corrupt_disconnect_prob,
+            use_shape_prior=use_shape_prior and shape_prior_n_anchors > 0,
+            shape_prior_n_anchors=shape_prior_n_anchors if shape_prior_n_anchors > 0 else 4,
+            use_bond_co_diffusion=use_bond_co_diffusion,
+            use_coord_self_conditioning=use_coord_self_conditioning,
+            use_plan_latent=use_plan_latent,
+            use_interaction_intent=use_interaction_intent,
+            interaction_intent_num_classes=interaction_intent_num_classes,
+            interaction_intent_velocity_bias=interaction_intent_velocity_bias,
+            use_chirality=use_chirality,
+            num_edge_types=num_edge_types,
+            graph_num_edge_types=graph_num_edge_types,
+            use_backbone_dihedral=use_backbone_dihedral,
+            use_burial_feature=use_burial_feature,
+            use_residue_frame_stream=use_residue_frame_stream,
+            residue_frame_layers=residue_frame_layers,
+            use_residue_frame_deep_inject=use_residue_frame_deep_inject,
+            # effective-gate the volumetric deep-inject with use_volumetric_head here (the head lives
+            # in this module, so an inject with no head would build dead projections). The denoiser stores the
+            # AND'd value directly.
+            use_volumetric_deep_inject=bool(use_volumetric_head and use_volumetric_deep_inject),
+            use_target_deep_inject=use_target_deep_inject,
+            use_backbone_deep_inject=use_backbone_deep_inject,
+            frame_v2_deep_inject_detach=frame_v2_deep_inject_detach,
+            use_bond_angle_deep_inject=use_bond_angle_deep_inject,
+            # effective-gate the existence coupling with use_volumetric_head here (the head lives in
+            # this module, so a coupling with no head would build a dead projection). The denoiser stores the
+            # AND'd value directly.
+            use_volumetric_existence_coupling=bool(use_volumetric_head and use_volumetric_existence_coupling),
+            use_residue_frame_stream_v2=use_residue_frame_stream_v2,
+            residue_frame_v2_layers=residue_frame_v2_layers,
+            frame_v2_clean_input=frame_v2_clean_input,
+            # NEW: AND with the v2 stream here (the deep-inject projections live in the denoiser, so a deep-inject
+            # with no v2 stream would build dead projections + have no source latent). The denoiser stores the AND'd value.
+            use_residue_frame_v2_deep_inject=bool(use_residue_frame_stream_v2 and use_residue_frame_v2_deep_inject),
+            # AND with the v2 stream here (the head lives inside the v2 module, so a head with no
+            # stream would build dead params). The denoiser stores the AND'd value directly.
+            use_stereochem_head=bool(use_residue_frame_stream_v2 and use_stereochem_head),
+            # AND with the v2 stream + static stereo head here (the t-resolution head needs the
+            # static P(D)_prior). The denoiser stores the AND'd value directly.
+            use_stereochem_t_resolution=bool(
+                use_residue_frame_stream_v2 and use_stereochem_head and use_stereochem_t_resolution
+            ),
+            # AND with the t-resolution head (+ static stereo head + v2 stream). The denoiser stores
+            # the AND'd value directly.
+            use_stereochem_t_resolution_feedback=bool(
+                use_residue_frame_stream_v2
+                and use_stereochem_head
+                and use_stereochem_t_resolution
+                and use_stereochem_t_resolution_feedback
+            ),
+            activation_checkpointing=activation_checkpointing,
+            activation_checkpoint_stride=activation_checkpoint_stride,
+            use_global_latent_matching=use_global_latent_matching,
+            global_latent_embed_dim=self.global_latent_embed_dim,
+            global_latent_confidence=global_latent_confidence,
+            global_latent_condition_main_stream=global_latent_condition_main_stream,
+            global_latent_film_layers=global_latent_film_layers,
+            graft_init_std=graft_init_std,
+        )
         # === Polarity head (burial/backbone -> element composition) ===================
         # A supervised bottleneck expert: from the per-residue backbone encoding (which carries the
         # Cbeta-burial contribution when use_burial_feature is on), predict the sidechain's element
@@ -6387,70 +6332,17 @@ class InverseFoldingDiffusion(nn.Module):
         # bias is a no-op, i.e. identity when resuming a checkpoint; the supervised loss grows it in.
         self.use_polarity_head = use_polarity_head
         self.polarity_loss_weight = polarity_loss_weight
-        if use_polarity_head:
-            # The polarity PoE assumes class 0 is PAD (it holds class 0 fixed and reweights classes 1..K-1
-            # to keep P(PAD) invariant). Split-existence mode has NO PAD class (class 0 = Carbon), so this
-            # would preserve Carbon and reweight the wrong block. Reject loudly; a split-aware polarity path
-            # over all real element classes would be needed instead (not implemented -- 2-track is prod).
-            if split_element_existence:
-                raise ValueError(
-                    "use_polarity_head=True is incompatible with split_element_existence=True: the polarity "
-                    "PoE holds class 0 fixed as PAD, but in split mode class 0 is Carbon (there is no PAD "
-                    "class), so it would preserve Carbon and reweight the wrong block. Disable one of the two."
-                )
-            n_real_classes = self.num_element_classes - 1  # exclude PAD (index 0)
-            self.polarity_head = nn.Sequential(
-                nn.Linear(hidden_dim, hidden_dim // 2),
-                nn.SiLU(),
-                nn.Linear(hidden_dim // 2, n_real_classes),
-            )
-            nn.init.zeros_(self.polarity_head[-1].weight)
-            nn.init.zeros_(self.polarity_head[-1].bias)
+        n_real_classes = self.num_element_classes - 1  # exclude PAD (index 0)
+        self.polarity_head = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 2, n_real_classes),
+        )
+        nn.init.zeros_(self.polarity_head[-1].weight)
+        nn.init.zeros_(self.polarity_head[-1].bias)
         self.use_glycine_head = use_glycine_head
         self.glycine_loss_weight = glycine_loss_weight
         self.glycine_pad_cap = glycine_pad_cap
-        if use_glycine_head:
-            # Split-existence mode has NO PAD class (class 0 = Carbon), so a "raise P(PAD)" push would
-            # boost carbon instead of the existence axis. Reject loudly rather than silently corrupting
-            # the element head; glycine must instead go through the split existence head in that mode.
-            if split_element_existence:
-                raise ValueError(
-                    "use_glycine_head=True is incompatible with split_element_existence=True: in split "
-                    "mode class 0 is Carbon (there is no PAD class), so the glycine PAD push would boost "
-                    "carbon. Implement glycine via the split existence head, or disable one of the two."
-                )
-            # Input = the RAW 8-dim backbone dihedral features ONLY (phi,psi,omega,tau x [sin,cos]) via
-            # backbone_encoder._backbone_dihedral_features -> a scalar glycine logit per residue.
-            self.glycine_head = nn.Sequential(
-                nn.Linear(8, hidden_dim // 4),
-                nn.SiLU(),
-                nn.Linear(hidden_dim // 4, 1),
-            )
-            nn.init.zeros_(self.glycine_head[-1].weight)
-            # LOW classifier-bias init: sigmoid(-4)~=0.018 for EVERY residue at graft. So even if the
-            # (nonnegative) gate grows before the BCE has separated glycine from non-glycine, the push
-            # stays ~0 for all residues -> NO broad PAD bias. The BCE lifts the logit only where GT-glycine.
-            nn.init.constant_(self.glycine_head[-1].bias, -4.0)
-            # Gate parameter is passed through tanh(softplus(.)) at use -> strictly NONNEGATIVE (the push
-            # can only ADD to P(PAD), never subtract) and bounded by `glycine_pad_cap`.
-
-            # INIT 0.0 -- DO NOT set this back to -4. The push is a PRODUCT of two dampers,
-            # push = cap * tanh(softplus(gate)) * sigmoid(classifier_logit),
-            # so the gradient into `gate` is proportional to sigmoid(classifier_logit) and vice versa.
-            # With BOTH damped at -4 the gate's gradient is ~0.0013 (vs ~0.64 with both open): a ~495x
-            # attenuation that gradient-STARVES the gate. It cannot bootstrap -- it needs the classifier
-            # confident to receive gradient, and the classifier's push needs the gate open to matter, so
-            # each holds the other shut. Measured: the gate moved -4.00 -> -3.99 over ~30 epochs of v34.
-            # FIX: safety comes from ONE damper (the classifier bias, still -4), not two multiplied.
-            # * at graft (gate=0, classifier=-4): push = 4.0 * 0.600 * 0.0180 = 0.043 logits -- still
-            # negligible (~1% shift in P(PAD)), so near-identity-at-graft is preserved;
-            # * gate gradient at graft: ~0.023, i.e. ~18x larger -> the gate can actually MOVE if the
-            # loss wants it to;
-            # * add-only + capped is unchanged (tanh(softplus(.)) is still nonnegative and bounded).
-            # NOTE: this only helps a FRESH graft -- a checkpoint containing `glycine_pad_gate` reloads
-            # its stored (starved) value. Use `reset_glycine_gate` on a weights-resume to force it back
-            # to this default; see reset_glycine_pad_gate().
-            self.glycine_pad_gate = nn.Parameter(torch.full((1,), GLYCINE_PAD_GATE_INIT))
         self.use_coord_self_conditioning = use_coord_self_conditioning
         self.use_plan_latent = use_plan_latent
         self.use_interaction_intent = use_interaction_intent
@@ -6489,14 +6381,6 @@ class InverseFoldingDiffusion(nn.Module):
         # row (or it collides with carbon at index 0), so the blinding is silently WRONG rather than
         # merely inert. Fail loud at construction (the flag is new, so no historical checkpoint trips
         # this). Also enforced in validate_training_flag_coherence for a friendlier launch message.
-        if self.latent_self_dropout_prob > 0.0 and (split_element_existence or donut_element_init != "mask"):
-            raise ValueError(
-                f"latent_self_dropout_prob={self.latent_self_dropout_prob} requires split_element_existence="
-                f"False (got {split_element_existence}) AND donut_element_init=='mask' (got "
-                f"{donut_element_init!r}): ELEMENT_MASK is only a distinct identity-blind token in the "
-                f"2-track mask-init regime; any other mode blinds to the wrong element. Use 2-track + "
-                f"donut_element_init=mask, or set latent_self_dropout_prob=0."
-            )
         self.neighbor_x0_packing_prob_start = neighbor_x0_packing_prob_start
         self.neighbor_x0_packing_prob_end = neighbor_x0_packing_prob_end
         self.neighbor_x0_packing_ramp_epochs = neighbor_x0_packing_ramp_epochs
@@ -6529,8 +6413,6 @@ class InverseFoldingDiffusion(nn.Module):
         self.leak_gt_direction = leak_gt_direction
         self.pseudo_cb_direction = pseudo_cb_direction
         self.d_aa_l_source_prob = float(d_aa_l_source_prob)
-        if pseudo_cb_direction and leak_gt_direction:
-            raise ValueError("--pseudo-cb-direction and --leak-gt-direction are mutually exclusive")
         self.evc_scheduled_sampling_prob = evc_scheduled_sampling_prob
         self.evc_soft_conditioning = evc_soft_conditioning
         self.evc_velocity_blend = evc_velocity_blend
@@ -6544,13 +6426,6 @@ class InverseFoldingDiffusion(nn.Module):
             self.denoiser._mixture_head_dropout = mixture_head_dropout
             self.denoiser._dlrt_detach = dlrt_detach
             self.denoiser._dlrt_ema_decay = dlrt_ema_decay
-            if dlrt_ema_decay > 0:
-                # Create EMA shadow copy of LRT head (not a registered submodule -- shouldn't affect optimizer)
-                import copy
-
-                self.denoiser._lrt_ema_shadow = copy.deepcopy(self.denoiser.residue_lrt_head)
-                for p in self.denoiser._lrt_ema_shadow.parameters():
-                    p.requires_grad = False
 
         # Continuous diffusion for coordinates with v-prediction for stability
         self.diffusion = GaussianDiffusion(
@@ -6583,61 +6458,30 @@ class InverseFoldingDiffusion(nn.Module):
         # Build element prior -- default is empirical [0.71, 0.22, 0.028, 0.039, 0.002]
         # If element_pad_prior is set, override PAD weight and redistribute non-PAD proportionally
         custom_prior = None
-        if element_pad_prior is not None:
-            from .diffusion import DEFAULT_ELEMENT_PRIOR
-
-            base = DEFAULT_ELEMENT_PRIOR[:NUM_ELEMENT_TYPES].clone()
-            non_pad = base[1:]  # C, N, O, S
-            non_pad = non_pad / non_pad.sum()  # Normalize to relative proportions
-            custom_prior = torch.zeros(NUM_ELEMENT_TYPES)
-            custom_prior[0] = element_pad_prior
-            custom_prior[1:] = (1.0 - element_pad_prior) * non_pad
 
         # Determine bare target for time-varying prior schedule.
         # Default (PAD): at t=T all elements -> PAD (bare backbone).
         # Carbon: at t=T all elements -> Carbon (matches donut source where all atoms look real).
         # Mask: at t=T all elements -> MASK ("unknown" -- 6th class, never in GT).
-        from .diffusion import ELEMENT_C
 
         self.donut_element_init = donut_element_init
-        if donut_element_init == "carbon":
-            bare_target = ELEMENT_C
-        elif donut_element_init == "mask":
-            bare_target = ELEMENT_MASK
-        else:
-            bare_target = ELEMENT_PAD
+        bare_target = ELEMENT_MASK
 
         # Extend prior to 6 classes if using MASK mode
         self.absorbing_mask = absorbing_mask and (donut_element_init == "mask")
         elem_prior = custom_prior
         elem_prior_schedule = pad_sampling_init  # "bare" or None
 
-        if donut_element_init == "mask" and not split_element_existence:
-            from .diffusion import DEFAULT_ELEMENT_PRIOR
+        from .diffusion import DEFAULT_ELEMENT_PRIOR
 
-            data_prior_5 = (
-                custom_prior if custom_prior is not None else DEFAULT_ELEMENT_PRIOR[:NUM_ELEMENT_TYPES].clone()
-            )
+        data_prior_5 = custom_prior if custom_prior is not None else DEFAULT_ELEMENT_PRIOR[:NUM_ELEMENT_TYPES].clone()
 
-            if self.absorbing_mask:
-                # Absorbing MASK: fixed all-MASK prior. The existing q_sample/q_posterior
-                # math automatically gives absorbing behavior: elements either stay at x_0
-                # or go to MASK (the only prior sample), and can never leave MASK.
-                elem_prior = torch.zeros(self.num_element_classes)
-                elem_prior[ELEMENT_MASK] = 1.0
-                elem_prior_schedule = None  # Fixed prior, no time-varying schedule
-            else:
-                # Non-absorbing MASK: time-varying schedule drives toward MASK at t=T
-                # but allows re-masking/un-masking at intermediate timesteps.
-                elem_prior = torch.cat([data_prior_5, torch.zeros(1)])  # MASK=0 in data prior
+        elem_prior = torch.zeros(self.num_element_classes)
+        elem_prior[ELEMENT_MASK] = 1.0
+        elem_prior_schedule = None  # Fixed prior, no time-varying schedule
 
         # In split mode, the standard element_diffusion is a simple 5-class placeholder;
         # actual element diffusion uses self.split_element_diffusion (created below).
-        if split_element_existence:
-            # Minimal 5-class diffusion (not used in forward/sample, but must exist for module structure)
-            elem_prior = None
-            elem_prior_schedule = None
-            bare_target = ELEMENT_PAD
 
         self.element_diffusion = ClassWeightedDiscreteDiffusion(
             timesteps=timesteps,
@@ -6655,42 +6499,35 @@ class InverseFoldingDiffusion(nn.Module):
         # For absorbing MASK: override class weights with data-distribution weights.
         # The all-MASK prior gives equal weights to all non-MASK classes (all clamped at 20),
         # losing the rebalancing between PAD(71%), C(22%), etc.
-        if self.absorbing_mask and not split_element_existence:
-            data_prior_6 = torch.cat([data_prior_5, torch.ones(1)])  # MASK gets weight 1 (never in GT)
-            data_weights = (1.0 / data_prior_6.clamp(min=0.01)).clamp(max=20.0)
-            # Normalizer: ANCHOR to the canonical vocab5 reference {PAD,C,N,O,S,MASK} (default) so that
-            # extending the element vocab (vocab12) does NOT rescale the canonical weights via the normalizer.
-            # The old unanchored mean-over-ALL-classes normalizer is exactly what diluted PAD ~0.13->0.09 at
-            # vocab12 (the 7 rare classes pin at the clamp ceiling of 20 and inflate the mean), mushing the
-            # P(PAD) signal that gates coordinate routing. With anchoring, PAD is vocab-invariant (same prior
-            # 0.71 -> 0.126 exactly); CNOS are near-invariant (any residual is the small vocab5-vs-vocab12
-            # default-prior delta, e.g. C 0.220 vs 0.218, NOT normalizer dilution). For vocab5 anchored ==
-            # unanchored (the reference IS the full set).
-            _anchor = True
-            if _anchor:
-                from .diffusion import DEFAULT_ELEMENT_PRIOR
+        data_prior_6 = torch.cat([data_prior_5, torch.ones(1)])  # MASK gets weight 1 (never in GT)
+        data_weights = (1.0 / data_prior_6.clamp(min=0.01)).clamp(max=20.0)
+        # Normalizer: ANCHOR to the canonical vocab5 reference {PAD,C,N,O,S,MASK} (default) so that
+        # extending the element vocab (vocab12) does NOT rescale the canonical weights via the normalizer.
+        # The old unanchored mean-over-ALL-classes normalizer is exactly what diluted PAD ~0.13->0.09 at
+        # vocab12 (the 7 rare classes pin at the clamp ceiling of 20 and inflate the mean), mushing the
+        # P(PAD) signal that gates coordinate routing. With anchoring, PAD is vocab-invariant (same prior
+        # 0.71 -> 0.126 exactly); CNOS are near-invariant (any residual is the small vocab5-vs-vocab12
+        # default-prior delta, e.g. C 0.220 vs 0.218, NOT normalizer dilution). For vocab5 anchored ==
+        # unanchored (the reference IS the full set).
+        _anchor = True
+        if _anchor:
+            from .diffusion import DEFAULT_ELEMENT_PRIOR
 
-                _canon = torch.cat([DEFAULT_ELEMENT_PRIOR[:5].clone(), torch.ones(1)])  # PAD,C,N,O,S,MASK
-                _norm = (1.0 / _canon.clamp(min=0.01)).clamp(max=20.0).mean()
-            else:
-                _norm = data_weights.mean()
-            data_weights = data_weights / _norm
-            # Element-loss class weights; overall element-loss scale is governed by element_loss_weight.
-            _pad_scale = 1.0
-            os.environ.get("ATOMWEAVER_VERBOSE") and print(
-                f"[element-loss] vocab={data_prior_6.numel() - 1} anchor={_anchor} pad_scale={_pad_scale} "
-                f"-> PAD class weight {float(data_weights[ELEMENT_PAD]):.4f}"
-            )
-            self.element_diffusion.class_weights.copy_(data_weights)
+            _canon = torch.cat([DEFAULT_ELEMENT_PRIOR[:5].clone(), torch.ones(1)])  # PAD,C,N,O,S,MASK
+            _norm = (1.0 / _canon.clamp(min=0.01)).clamp(max=20.0).mean()
+        else:
+            _norm = data_weights.mean()
+        data_weights = data_weights / _norm
+        # Element-loss class weights; overall element-loss scale is governed by element_loss_weight.
+        _pad_scale = 1.0
+        os.environ.get("ATOMWEAVER_VERBOSE") and print(
+            f"[element-loss] vocab={data_prior_6.numel() - 1} anchor={_anchor} pad_scale={_pad_scale} "
+            f"-> PAD class weight {float(data_weights[ELEMENT_PAD]):.4f}"
+        )
+        self.element_diffusion.class_weights.copy_(data_weights)
 
         # Element flow matching: continuous flow on probability simplex as alternative to absorbing diffusion
         self.element_flow_matching = element_flow_matching
-        if element_flow_matching:
-            self.element_flow = ElementFlowMatching(
-                timesteps=timesteps,
-                num_classes=self.num_element_classes,
-                prior=self.element_diffusion.prior.clone(),
-            )
 
         # Late element resolution: standard PAD-aware element diffusion throughout, but
         # non-PAD slots are stochastically collapsed to Carbon based on a cosine schedule
@@ -6768,27 +6605,9 @@ class InverseFoldingDiffusion(nn.Module):
         self.use_volumetric_density_inject = bool(
             use_volumetric_head and use_volumetric_deep_inject and use_volumetric_density_inject
         )
-        if self.use_volumetric_density_inject:
-            self.volumetric_density_inject_proj = nn.Linear(volumetric_n_query, hidden_dim, bias=False)
-            nn.init.zeros_(self.volumetric_density_inject_proj.weight)
+        self.volumetric_density_inject_proj = nn.Linear(volumetric_n_query, hidden_dim, bias=False)
+        nn.init.zeros_(self.volumetric_density_inject_proj.weight)
         # run10 graft coherence -- fail-loud rather than silently inert (the "flag set but no-op" launch trap):
-        if use_volumetric_density_inject and not (use_volumetric_head and use_volumetric_deep_inject):
-            raise ValueError(
-                "use_volumetric_density_inject=True requires use_volumetric_head AND use_volumetric_deep_inject: "
-                "the density projection is the deep-inject source, AND-gated off (never built) otherwise."
-            )
-        if use_target_deep_inject and not (use_sidechain_target_residue_attention and use_target_conditioning):
-            raise ValueError(
-                "use_target_deep_inject=True requires BOTH use_sidechain_target_residue_attention=True AND "
-                "use_target_conditioning=True: sc_target_attn is only computed under both flags (and with target "
-                "inputs present); otherwise target_deep_proj is built but receives zero gradient and trains nothing."
-            )
-        if use_target_deep_inject and use_cluster_particle_diffusion:
-            raise ValueError(
-                "use_target_deep_inject is not supported with use_cluster_particle_diffusion: sc_target_attn is "
-                "per-slot (N_sc) while cluster-particle pooling collapses to n_binder_sc < N_sc nodes, so the "
-                "per-layer node_cond[:n_binder_sc] = target_deep_proj(sc_target_attn) shape-mismatches."
-            )
         # volumetric -> existence coupling is effective only WITH the head (AND). Stored so forward AND
         # both sample paths know to compute `vol_hidden` early (before the denoiser) and thread it in, so the
         # element head's PAD-logit bias is live at training AND inference (the coupling itself lives in the
@@ -6798,37 +6617,15 @@ class InverseFoldingDiffusion(nn.Module):
         # so the bias would silently corrupt the Carbon logit. Reject loudly -- mirrors the polarity/glycine
         # heads above, which raise for the same "class 0 is not PAD in split mode" reason. A split-aware coupling
         # would have to bias the split existence head instead (not implemented -- 2-track is prod).
-        if use_volumetric_existence_coupling and split_element_existence:
-            raise ValueError(
-                "use_volumetric_existence_coupling=True is incompatible with split_element_existence=True: the "
-                "coupling subtracts its bias from element_logits[..., ELEMENT_PAD] (class 0), but in split mode "
-                "class 0 is Carbon (there is no PAD class in element_logits -- existence is a separate track), so "
-                "it would corrupt the Carbon logit. Implement the coupling via the split existence head, or "
-                "disable one of the two."
-            )
         self.use_volumetric_existence_coupling = bool(use_volumetric_head and use_volumetric_existence_coupling)
         # SANDCLOCK available-volume input. AND-gated with the head: the descriptor is only projected+added
         # inside the head, so with the head off there is nothing to feed it into. Refuse the incoherent combo
         # (flag set but inert) at EVERY construction path -- mirrors the deep-inject / existence-coupling guards.
-        if use_available_volume and not use_volumetric_head:
-            raise ValueError(
-                "use_available_volume=True requires use_volumetric_head=True: the available-volume descriptor "
-                "is a GT-free INPUT projected into the volumetric head's vol_hidden latent, so with the head off "
-                "there is nothing to feed it into and the flag does NOTHING (the model AND-gates the two, building "
-                "no projection). Enable use_volumetric_head, or set use_available_volume=False."
-            )
         self.use_available_volume = bool(use_volumetric_head and use_available_volume)
         # SINGLE-SITE POCKET CONTEXT. AND-gated with the head: the neighbour-occupancy field + its zero-init
         # conditioning projection live inside the volumetric head, so with the head off there is nothing to
         # condition and the flag does NOTHING. Refuse the incoherent combo (flag set but inert) at EVERY
         # construction path -- mirrors the available-volume / deep-inject / existence-coupling guards.
-        if use_single_site_context and not use_volumetric_head:
-            raise ValueError(
-                "use_single_site_context=True requires use_volumetric_head=True: single-site pocket context "
-                "conditions the volumetric head on a neighbour-occupancy field (built + projected inside the "
-                "head), so with the head off there is nothing to condition and the flag does NOTHING (the model "
-                "AND-gates the two). Enable use_volumetric_head, or set use_single_site_context=False."
-            )
         self.use_single_site_context = bool(use_volumetric_head and use_single_site_context)
         # SINGLE-SITE SCHEDULED-SAMPLING knobs. p_max in [0, 1]; ramp start >= 0. A positive p_max is only
         # meaningful when the single-site context is actually built (use_single_site_context, which is itself
@@ -6842,55 +6639,22 @@ class InverseFoldingDiffusion(nn.Module):
                 f"volumetric_ss_context_p_max={self.volumetric_ss_context_p_max} must be in [0, 1] (it is a "
                 "per-site Bernoulli probability of using the predicted x0 instead of the GT clean x0)."
             )
-        if self.volumetric_ss_context_start_epoch < 0:
+        if not self.use_neighbor_x0_packing or self._neighbor_x0_effective_recycles() <= 1:
             raise ValueError(
-                f"volumetric_ss_context_start_epoch={self.volumetric_ss_context_start_epoch} must be >= 0."
+                f"volumetric_ss_context_p_max={self.volumetric_ss_context_p_max} (>0) requires "
+                f"use_neighbor_x0_packing=True (currently {self.use_neighbor_x0_packing}) AND effective "
+                f"recycles>1 (currently {self._neighbor_x0_effective_recycles()}): the predicted-x0 pocket "
+                "context is stashed ONLY inside the neighbour-x0 recycle loop (2-pass), so without it "
+                "ss_pred_coords is never populated, the option-(ii) recompute never fires, and the "
+                "scheduled-sampling ramp silently no-ops to pure GT teacher forcing for the ENTIRE run "
+                "(vol_hidden keeps the GT context). Enable use_neighbor_x0_packing with "
+                "neighbor_x0_packing_recycles>=2, or set volumetric_ss_context_p_max=0."
             )
-        if self.volumetric_ss_context_p_max > 0.0:
-            if not self.use_single_site_context:
-                raise ValueError(
-                    f"volumetric_ss_context_p_max={self.volumetric_ss_context_p_max} (>0) requires "
-                    "use_single_site_context=True: the scheduled-sampling mix swaps the SINGLE-SITE pocket "
-                    "context source between GT and predicted x0, so with single-site context off there is no "
-                    "context to mix and the ramp does NOTHING. Enable use_single_site_context (and "
-                    "use_volumetric_head), or set volumetric_ss_context_p_max=0."
-                )
-            if self.volumetric_pretrain_only:
-                raise ValueError(
-                    f"volumetric_ss_context_p_max={self.volumetric_ss_context_p_max} (>0) is incompatible with "
-                    "volumetric_pretrain_only=True: the pretrain-only forward computes the head on GT neighbour "
-                    "side chains and returns BEFORE any flow denoiser runs, so there is no predicted x0 to mix "
-                    "in -- the ramp would silently do nothing (and the 247/249 pretrains depend on the byte-"
-                    "identical GT context). Drop volumetric_pretrain_only for the FT run, or set "
-                    "volumetric_ss_context_p_max=0."
-                )
-            if not self.use_neighbor_x0_packing or self._neighbor_x0_effective_recycles() <= 1:
-                raise ValueError(
-                    f"volumetric_ss_context_p_max={self.volumetric_ss_context_p_max} (>0) requires "
-                    f"use_neighbor_x0_packing=True (currently {self.use_neighbor_x0_packing}) AND effective "
-                    f"recycles>1 (currently {self._neighbor_x0_effective_recycles()}): the predicted-x0 pocket "
-                    "context is stashed ONLY inside the neighbour-x0 recycle loop (2-pass), so without it "
-                    "ss_pred_coords is never populated, the option-(ii) recompute never fires, and the "
-                    "scheduled-sampling ramp silently no-ops to pure GT teacher forcing for the ENTIRE run "
-                    "(vol_hidden keeps the GT context). Enable use_neighbor_x0_packing with "
-                    "neighbor_x0_packing_recycles>=2, or set volumetric_ss_context_p_max=0."
-                )
         # PHASE 2 coherence: loading / freezing a pretrained volumetric head is meaningless without the head
         # (there is nothing to load into / nothing to freeze). Refuse loudly rather than silently ignore --
         # mirrors the deep-inject / existence-coupling "flag set but inert" guards in
         # validate_training_flag_coherence. Kept here so EVERY construction path (Ray/eval rebuild, tests,
         # direct instantiation) is protected, not just the CLI.
-        if volumetric_head_pretrained and not use_volumetric_head:
-            raise ValueError(
-                "volumetric_head_pretrained is set but use_volumetric_head=False: there is no volumetric head "
-                "to load the pretrained weights into, so the path does NOTHING. Enable use_volumetric_head, or "
-                "clear volumetric_head_pretrained."
-            )
-        if freeze_volumetric_head and not use_volumetric_head:
-            raise ValueError(
-                "freeze_volumetric_head=True but use_volumetric_head=False: there is no volumetric head to "
-                "freeze, so the flag does NOTHING. Enable use_volumetric_head, or set freeze_volumetric_head=False."
-            )
         self.freeze_volumetric_head = bool(freeze_volumetric_head)
         # a self-occupancy-PRETRAINED head that is LEFT THAWED (not frozen) and trained with a
         # positive integrated volumetric_loss_weight against the SELF-SIDECHAIN-ONLY target (the head's simplified
@@ -6900,39 +6664,11 @@ class InverseFoldingDiffusion(nn.Module):
         # Only meaningful with the head on (all four inputs are head-gated downstream). Mirrored in
         # validate_training_flag_coherence for a friendlier launch message; kept here so EVERY rebuild path
         # (Ray/eval, tests, direct instantiation) is protected.
-        if (
-            volumetric_head_pretrained
-            and use_volumetric_head
-            and not freeze_volumetric_head
-            and volumetric_loss_weight > 0.0
-            and not volumetric_loss_supervision_target
-        ):
-            raise ValueError(
-                "volumetric_head_pretrained is set with the head THAWED (freeze_volumetric_head=False) and "
-                f"volumetric_loss_weight={volumetric_loss_weight} (>0), but volumetric_loss_supervision_target=False: "
-                "the integrated volumetric loss would supervise the head with the SELF-SIDECHAIN-ONLY objective "
-                "(the head's simplified anti-leak MSE) instead of the region-bucketed self-occupancy objective it was "
-                "pretrained on. Set volumetric_loss_supervision_target=True (supervise against the same field + "
-                "bucketed loss the pretrain used), OR "
-                "freeze_volumetric_head=True (fixed teacher), OR volumetric_loss_weight=0 (no head gradient)."
-            )
         # VOLUMETRIC DECOY CE (coherence): the CE scores the head's predicted density field against reference
         # densities, so it structurally requires the volumetric head. A positive weight without the head would be
         # silently inert (the training_step CE path is head-gated). Refuse it. The disc-DB / stratified-decoy
         # prerequisites (which the model does not know about) are checked in validate_training_flag_coherence.
         # Kept here so EVERY rebuild path (Ray/eval, tests, direct instantiation) is protected.
-        if self.volumetric_decoy_ce_weight > 0.0 and not use_volumetric_head:
-            raise ValueError(
-                f"volumetric_decoy_ce_weight={volumetric_decoy_ce_weight} (>0) requires use_volumetric_head=True: "
-                "the volumetric decoy cross-entropy scores the volumetric head's predicted own-sidechain density "
-                "field against per-type reference densities, so with the head off it would do NOTHING. Enable "
-                "--use-volumetric-head, or set volumetric_decoy_ce_weight=0."
-            )
-        if self.volumetric_decoy_ce_weight > 0.0 and self.volumetric_decoy_ce_temperature <= 0.0:
-            raise ValueError(
-                f"volumetric_decoy_ce_temperature={volumetric_decoy_ce_temperature} must be > 0 when "
-                "volumetric_decoy_ce_weight>0 (it is the softmax temperature on the density-similarity logits)."
-            )
         # PRETRAIN-ONLY decoy CE (2026-08-07): the decoy CE now ALSO runs in the pretrain-only path. The head-only
         # build has no atom-disc decoys to reuse, so the LightningModule gives the CE its OWN decoy source straight
         # from the residue DB (a StratifiedDecoySampler + per-type reference densities built during training) and
@@ -6943,70 +6679,55 @@ class InverseFoldingDiffusion(nn.Module):
         # pretrain-only builds the head as the ONLY trainable module (denoiser=None), so
         # freezing it means NOTHING trains at all. Refuse the contradictory combo. Mirrored in
         # validate_training_flag_coherence.
-        if volumetric_pretrain_only and freeze_volumetric_head:
-            raise ValueError(
-                "volumetric_pretrain_only=True with freeze_volumetric_head=True is incoherent: pretrain-only "
-                "builds ONLY the VolumetricOccupancyHead (the SE(3) atom transformer / flow is not constructed), "
-                "so freezing the head leaves NO trainable parameters and the run does nothing. Set "
-                "freeze_volumetric_head=False to pretrain the head, or drop volumetric_pretrain_only."
-            )
-        if self.use_volumetric_head:
-            self.volumetric_head = VolumetricOccupancyHead(
-                hidden_dim=hidden_dim,
-                num_element_types=NUM_ELEMENT_TYPES,
-                context_radius=volumetric_context_radius,
-                n_query=volumetric_n_query,
-                sigma=volumetric_sigma,
-                empty_weight=volumetric_empty_weight,
-                use_available_volume=self.use_available_volume,
-                per_element_sigma=bool(volumetric_per_element_sigma),
-                sigma_element_scale=volumetric_sigma_element_scale,
-                use_single_site_context=self.use_single_site_context,
-                fourier_frequencies=int(volumetric_fourier_frequencies),
-                fourier_scale=float(volumetric_fourier_scale),
-                dropout=float(volumetric_dropout),
-                use_softplus=bool(volumetric_use_softplus),
-                use_per_query_context=bool(volumetric_per_query_context),
-                context_k=int(volumetric_context_k),
-                context_heads=int(volumetric_context_heads),
-                context_chunk=int(volumetric_context_chunk),
-                atom_anchored_queries=bool(volumetric_atom_anchored_queries),
-            )
-            # PHASE 2: optionally warm-start the head from a separately-pretrained checkpoint, then optionally
-            # freeze it into a fixed teacher. Order matters -- load BEFORE freeze so the loaded weights are the
-            # ones frozen. Both are no-ops (byte-identical) when the new params are at their None/False defaults.
-            # Default (no pretrained load -> fresh grafts): EVERY optional key is fresh zero-init, so all stay
-            # trainable under freeze (historical behavior). A pretrained load NARROWS this to only the optional
-            # keys actually ABSENT from the checkpoint; optional keys that WERE loaded are trained teacher
-            # tensors and must freeze with the rest.
-            missing_optional_keys = {
-                name for name, _ in self.volumetric_head.named_parameters() if _is_optional_volumetric_head_key(name)
-            }
-            if volumetric_head_pretrained:
-                missing_optional_keys = self._load_pretrained_volumetric_head(volumetric_head_pretrained)
-            if self.freeze_volumetric_head:
-                n_frozen = 0
-                n_exempt = 0
-                for name, p in self.volumetric_head.named_parameters():
-                    # EXEMPT a fresh (zero-init) optional graft absent from the checkpoint -- e.g. the SANDCLOCK
-                    # available_volume_proj.* or the single-site field_proj.*: freezing the pretrained head into a
-                    # fixed teacher must NOT lock a fresh graft at zero; it has to stay trainable so it can LEARN
-                    # to modulate the frozen head. A LOADED optional graft (present in the checkpoint) is a trained
-                    # teacher tensor and freezes like every other head param.
-                    if _is_optional_volumetric_head_key(name) and name in missing_optional_keys:
-                        n_exempt += 1
-                        continue
-                    p.requires_grad = False
-                    n_frozen += 1
-                os.environ.get("ATOMWEAVER_VERBOSE") and print(
-                    f"[volumetric-head] FROZE {n_frozen} volumetric_head tensors "
-                    f"(requires_grad=False); they are excluded from all optimizer param groups."
-                    + (
-                        f" EXEMPTED {n_exempt} trainable fresh-graft tensors absent from the checkpoint."
-                        if n_exempt
-                        else ""
-                    )
-                )
+        self.volumetric_head = VolumetricOccupancyHead(
+            hidden_dim=hidden_dim,
+            num_element_types=NUM_ELEMENT_TYPES,
+            context_radius=volumetric_context_radius,
+            n_query=volumetric_n_query,
+            sigma=volumetric_sigma,
+            empty_weight=volumetric_empty_weight,
+            use_available_volume=self.use_available_volume,
+            per_element_sigma=bool(volumetric_per_element_sigma),
+            sigma_element_scale=volumetric_sigma_element_scale,
+            use_single_site_context=self.use_single_site_context,
+            fourier_frequencies=int(volumetric_fourier_frequencies),
+            fourier_scale=float(volumetric_fourier_scale),
+            dropout=float(volumetric_dropout),
+            use_softplus=bool(volumetric_use_softplus),
+            use_per_query_context=bool(volumetric_per_query_context),
+            context_k=int(volumetric_context_k),
+            context_heads=int(volumetric_context_heads),
+            context_chunk=int(volumetric_context_chunk),
+            atom_anchored_queries=bool(volumetric_atom_anchored_queries),
+        )
+        # PHASE 2: optionally warm-start the head from a separately-pretrained checkpoint, then optionally
+        # freeze it into a fixed teacher. Order matters -- load BEFORE freeze so the loaded weights are the
+        # ones frozen. Both are no-ops (byte-identical) when the new params are at their None/False defaults.
+        # Default (no pretrained load -> fresh grafts): EVERY optional key is fresh zero-init, so all stay
+        # trainable under freeze (historical behavior). A pretrained load NARROWS this to only the optional
+        # keys actually ABSENT from the checkpoint; optional keys that WERE loaded are trained teacher
+        # tensors and must freeze with the rest.
+        missing_optional_keys = {
+            name for name, _ in self.volumetric_head.named_parameters() if _is_optional_volumetric_head_key(name)
+        }
+        n_frozen = 0
+        n_exempt = 0
+        for name, p in self.volumetric_head.named_parameters():
+            # EXEMPT a fresh (zero-init) optional graft absent from the checkpoint -- e.g. the SANDCLOCK
+            # available_volume_proj.* or the single-site field_proj.*: freezing the pretrained head into a
+            # fixed teacher must NOT lock a fresh graft at zero; it has to stay trainable so it can LEARN
+            # to modulate the frozen head. A LOADED optional graft (present in the checkpoint) is a trained
+            # teacher tensor and freezes like every other head param.
+            if _is_optional_volumetric_head_key(name) and name in missing_optional_keys:
+                n_exempt += 1
+                continue
+            p.requires_grad = False
+            n_frozen += 1
+        os.environ.get("ATOMWEAVER_VERBOSE") and print(
+            f"[volumetric-head] FROZE {n_frozen} volumetric_head tensors "
+            f"(requires_grad=False); they are excluded from all optimizer param groups."
+            + (f" EXEMPTED {n_exempt} trainable fresh-graft tensors absent from the checkpoint." if n_exempt else "")
+        )
         # self-consistency (flow-x0 density <-> head density). Effective only WITH the head, so
         # the AND makes the flag inert (byte-identical) when the head is off. Ramp knobs are epoch fracs.
         self.use_volumetric_self_consistency = bool(use_volumetric_head and use_volumetric_self_consistency)
@@ -7014,20 +6735,6 @@ class InverseFoldingDiffusion(nn.Module):
         self.self_consistency_ramp_start = float(self_consistency_ramp_start)
         self.self_consistency_ramp_end = float(self_consistency_ramp_end)
         # Positive-value guards: bad launch values would divide-by-zero in the tau gate / density kernel.
-        if not self.fcc_tau > 0:
-            raise ValueError(f"fcc_tau must be > 0 (got {self.fcc_tau})")
-        if not self.occupancy_match_tau > 0:
-            raise ValueError(f"occupancy_match_tau must be > 0 (got {self.occupancy_match_tau})")
-        if not self.occupancy_match_sigma > 0:
-            raise ValueError(f"occupancy_match_sigma must be > 0 (got {self.occupancy_match_sigma})")
-        if late_element_resolution or non_pad_element_sampling:
-            # Pre-compute chemistry retention schedule: alpha_bar for chemistry collapse.
-            # Uses the same cosine schedule shape as the element diffusion, compressed
-            # into [0, cutoff] of the global timeline.
-            chem_betas = cosine_beta_schedule(timesteps)
-            chem_alphas = 1.0 - chem_betas
-            chem_alphas_cumprod = torch.cumprod(chem_alphas, dim=0)
-            self.register_buffer("chem_retention", chem_alphas_cumprod)
 
         # Existence flow: continuous flow-matched existence variable (0=ghost, 1=real)
         self.mixture_lr_threshold = mixture_lr_threshold
@@ -7035,125 +6742,20 @@ class InverseFoldingDiffusion(nn.Module):
         self.use_existence_flow = use_existence_flow
         self.existence_loss_weight = existence_loss_weight
         self.existence_absorbing = existence_absorbing
-        if use_existence_flow and not existence_absorbing:
-            self.existence_flow = ExistenceFlowMatching(
-                timesteps=timesteps, source_value=existence_source_value, power=existence_power
-            )
 
         # Split existence/element: separate existence flow from element diffusion.
         # Existence flow handles PAD/non-PAD (atom count), element diffusion handles {C,N,O,S,MASK}.
         self.split_absorbing_element = split_absorbing_element
-        if split_element_existence:
-            if existence_absorbing:
-                # 3-class discrete diffusion for existence: {GHOST=0, REAL=1, MASK=2}
-                # At t=T all slots converge to MASK; they resolve to GHOST or REAL during reverse.
-                # Remaining MASK at t=0 -> GHOST (conservative: uncertain = ghost).
-                self.use_existence_flow = True  # Flag reuse for downstream code paths
-                EXISTENCE_DATA_PRIOR = torch.tensor([0.71, 0.29, 0.0])  # GHOST, REAL, MASK
-                if split_absorbing_element:
-                    # Absorbing: fixed all-MASK prior. Slots can only leave MASK, never return.
-                    exist_prior = torch.zeros(NUM_EXISTENCE_CLASSES)
-                    exist_prior[EXISTENCE_MASK] = 1.0
-                    exist_prior_schedule = None
-                else:
-                    # Non-absorbing: time-varying prior drives toward MASK at t=T,
-                    # but allows re-MASKing at intermediate timesteps (mirroring element pattern).
-                    exist_prior = EXISTENCE_DATA_PRIOR.clone()  # MASK=0 in data
-                    exist_prior_schedule = "bare"
-                self.existence_diffusion = ClassWeightedDiscreteDiffusion(
-                    timesteps=timesteps,
-                    schedule=schedule,
-                    num_classes=NUM_EXISTENCE_CLASSES,
-                    prior=exist_prior,
-                    prior_schedule=exist_prior_schedule,
-                    bare_target=EXISTENCE_MASK,
-                )
-                # Weight classes by data distribution: ~71% ghost, ~29% real
-                exist_data_weights = torch.cat([EXISTENCE_DATA_PRIOR[:2], torch.ones(1)])  # MASK=1
-                exist_weights = (1.0 / exist_data_weights.clamp(min=0.01)).clamp(max=20.0)
-                exist_weights = exist_weights / exist_weights.mean()
-                self.existence_diffusion.class_weights.copy_(exist_weights)
-            elif not use_existence_flow:
-                # Auto-enable continuous existence flow for split mode
-                self.use_existence_flow = True
-                self.existence_flow = ExistenceFlowMatching(
-                    timesteps=timesteps, source_value=existence_source_value, power=existence_power
-                )
-            # 5-class diffusion: {C=0, N=1, O=2, S=3, MASK=4}
-            if split_absorbing_element:
-                # Absorbing: fixed all-MASK prior. Elements can only leave MASK, never return.
-                split_prior = torch.zeros(NUM_SPLIT_ELEMENT_TYPES)
-                split_prior[SPLIT_ELEMENT_MASK] = 1.0
-                split_prior_schedule = None
-            else:
-                # Non-absorbing: time-varying prior drives toward MASK at t=T,
-                # but allows re-masking at intermediate timesteps.
-                split_prior = torch.cat([SPLIT_ELEMENT_DATA_PRIOR, torch.zeros(1)])  # MASK=0 in data
-                split_prior_schedule = "bare"
-            self.split_element_diffusion = ClassWeightedDiscreteDiffusion(
-                timesteps=timesteps,
-                schedule=schedule,
-                num_classes=NUM_SPLIT_ELEMENT_TYPES,
-                prior=split_prior,
-                prior_schedule=split_prior_schedule,
-                bare_target=SPLIT_ELEMENT_MASK,
-            )
-            # Override class weights with non-PAD data distribution
-            data_prior_5 = torch.cat([SPLIT_ELEMENT_DATA_PRIOR, torch.ones(1)])  # MASK gets weight 1
-            data_weights = (1.0 / data_prior_5.clamp(min=0.01)).clamp(max=20.0)
-            data_weights = data_weights / data_weights.mean()
-            self.split_element_diffusion.class_weights.copy_(data_weights)
-
-            # Joint class weights over the 2-track encoding {PAD,C,N,O,S,...} for the chain-rule-coupled
-            # existence+element loss (see the element-loss block in forward). Same recipe as 2-track
-            # (1/prior, clamp 20) but the mean-normalizer is ANCHORED to the canonical vocab5 reference
-            # {PAD,C,N,O,S,MASK} -- so for vocab5 this reproduces the baseline's element class weights exactly, AND
-            # extending the element vocab can NEVER rescale/shrink the PAD & CNOS weights (that
-            # rescaling is the 2-track vocab12 PAD-washout this whole vocab extension exists to avoid). Indexed per slot
-            # by the joint target (PAD for ghost, element for real).
-            from .diffusion import DEFAULT_ELEMENT_PRIOR
-
-            _joint_prior = torch.cat([DEFAULT_ELEMENT_PRIOR[:NUM_ELEMENT_TYPES].clone(), torch.ones(1)])
-            _joint_w = (1.0 / _joint_prior.clamp(min=0.01)).clamp(max=20.0)
-            _canon_prior = torch.cat([DEFAULT_ELEMENT_PRIOR[:5].clone(), torch.ones(1)])  # PAD,C,N,O,S,MASK
-            _ref_mean = (1.0 / _canon_prior.clamp(min=0.01)).clamp(max=20.0).mean()  # fixed vocab5 normalizer
-            _joint_w = _joint_w / _ref_mean
-            self.register_buffer("coupled_joint_class_weights", _joint_w[:NUM_ELEMENT_TYPES].clone())
 
         # Split element flow matching: continuous flow on {C,N,O,S,MASK} simplex
         # Replaces discrete diffusion for element types in split mode.
         self.split_element_flow = split_element_flow
         self.split_element_flow_temp = split_element_flow_temp
         self.split_element_uniform_power = split_element_uniform_power
-        if split_element_flow and split_element_existence:
-            # Prior: MASK-heavy for absorbing-like behavior, or data prior for non-absorbing
-            if split_absorbing_element:
-                # Absorbing-like: prior is all-MASK (flow drives to MASK at t=T)
-                flow_prior = torch.zeros(NUM_SPLIT_ELEMENT_TYPES)
-                flow_prior[SPLIT_ELEMENT_MASK] = 1.0
-            else:
-                # Non-absorbing: data prior with small MASK weight (allows re-masking)
-                flow_prior = torch.cat([SPLIT_ELEMENT_DATA_PRIOR, torch.tensor([0.1])])
-            self.split_element_flow_proc = ElementFlowMatching(
-                timesteps=timesteps,
-                num_classes=NUM_SPLIT_ELEMENT_TYPES,
-                prior=flow_prior,
-            )
 
         # Prior cloud: backbone-conditioned centroid/logvar heads.
         # Predicts from backbone_features (stable, available before sidechain denoising)
         # to provide a meaningful mixture signal at high noise when sidechain atoms are garbage.
-        if use_prior_cloud:
-            self.prior_centroid_head = nn.Sequential(
-                nn.Linear(hidden_dim, hidden_dim // 2),
-                nn.SiLU(),
-                nn.Linear(hidden_dim // 2, 3),
-            )
-            self.prior_cloud_logvar_head = nn.Sequential(
-                nn.Linear(hidden_dim, hidden_dim // 2),
-                nn.SiLU(),
-                nn.Linear(hidden_dim // 2, 1),
-            )
 
         self.prediction_type = prediction_type
         self.coord_process_type = coord_process_type
@@ -7231,34 +6833,14 @@ class InverseFoldingDiffusion(nn.Module):
         # flow-matching velocity target from the implied corrupted source (recompute_target_for_corrupted_xt).
         # That recompute is specific to the linear-interpolant velocity target; under DDPM/v/epsilon there is
         # no such re-derivation, so the corruption would silently train the model on a stale target. Fail loud.
-        if rotation_corruption_prob > 0.0 and coord_process_type != "flow_matching":
-            raise ValueError(
-                f"rotation_corruption_prob={rotation_corruption_prob} requires "
-                f'coord_process_type="flow_matching" (got "{coord_process_type}"): the velocity-target '
-                "recompute after corrupting x_t is flow-matching-specific. Disable rotation-corruption or "
-                "switch to flow_matching."
-            )
         # FM-ONLY guard: the mirror/in-plane corruptions edit x_t identically and share the SAME
         # velocity-target recompute, so they carry the SAME flow-matching-only requirement. Fail loud.
-        if (mirror_corruption_prob > 0.0 or inplane_corruption_prob > 0.0) and coord_process_type != "flow_matching":
-            raise ValueError(
-                f"mirror_corruption_prob={mirror_corruption_prob} / inplane_corruption_prob="
-                f'{inplane_corruption_prob} require coord_process_type="flow_matching" (got '
-                f'"{coord_process_type}"): the velocity-target recompute after corrupting x_t is '
-                "flow-matching-specific. Disable the stereo corruptions or switch to flow_matching."
-            )
 
         # Range-validate the graft ramp / gate knobs, but ONLY when the owning (effective, AND-computed)
         # feature flag is ON, so a default/unused knob never blocks an eval/resume/launch. Bad ranges here
         # silently misbehave (a start>=end gives an always-0 or always-full ramp; an out-of-[0,1] epoch
         # fraction never fires the crossover), so fail loud at construction instead. Mirrors the fcc_tau /
         # occupancy_match_tau > 0 guards above.
-        if self.use_stereochem_gated_init and not (0.0 <= self.gated_init_ramp_start < self.gated_init_ramp_end <= 1.0):
-            raise ValueError(
-                "gated_init_ramp_start/gated_init_ramp_end must satisfy "
-                "0 <= start < end <= 1 (epoch fractions) when use_stereochem_gated_init is on, got "
-                f"start={self.gated_init_ramp_start}, end={self.gated_init_ramp_end}."
-            )
         if self.use_volumetric_self_consistency and not (
             0.0 <= self.self_consistency_ramp_start < self.self_consistency_ramp_end <= 1.0
         ):
@@ -7278,29 +6860,12 @@ class InverseFoldingDiffusion(nn.Module):
         # rotation_corruption_min_tau is the shared t≈0 floor for BOTH the rotation corruption and the
         # stereo (mirror / in-plane) corruptions; it is a tau=t/(T-1) fraction, so 0 < min_tau <= 1
         # (0 would re-admit the 1/s singularity it exists to gate). Enforce when ANY of those corruptions is on.
-        if (
-            self.rotation_corruption_prob > 0.0
-            or self.mirror_corruption_prob > 0.0
-            or self.inplane_corruption_prob > 0.0
-        ) and not (0.0 < self.rotation_corruption_min_tau <= 1.0):
-            raise ValueError(
-                "rotation_corruption_min_tau must satisfy 0 < min_tau <= 1 (a tau=t/(T-1) floor) when "
-                "rotation / mirror / in-plane corruption is on, got "
-                f"{self.rotation_corruption_min_tau}."
-            )
 
         self.main_path_underfill_prob = main_path_underfill_prob
         self.main_path_underfill_bias = main_path_underfill_bias
         self.autoregressive_training = autoregressive_training
         self.ar_isolated_residues = ar_isolated_residues
-        if ar_isolated_residues and not autoregressive_training:
-            raise ValueError("ar_isolated_residues requires autoregressive_training=True")
 
-        if occupancy_gate_elements and occupancy_loss_weight <= 0:
-            raise ValueError(
-                "occupancy_gate_elements requires occupancy_loss_weight > 0, "
-                "otherwise the occupancy head is untrained and gates with random noise"
-            )
         sampling_mode_count = sum(
             int(flag) for flag in (all_carbon_sampling, late_element_resolution, non_pad_element_sampling)
         )
@@ -7308,59 +6873,10 @@ class InverseFoldingDiffusion(nn.Module):
             raise ValueError(
                 "all_carbon_sampling, late_element_resolution, and non_pad_element_sampling are mutually exclusive"
             )
-        if mixture_override_pad and sampling_mode_count > 0:
-            raise ValueError(
-                "mixture_override_pad is incompatible with all_carbon_sampling, late_element_resolution, "
-                "and non_pad_element_sampling"
-            )
-        if (late_element_resolution or non_pad_element_sampling) and not (0.0 < late_element_cutoff <= 1.0):
-            raise ValueError(
-                "late_element_cutoff must be in (0, 1] when late_element_resolution or non_pad_element_sampling is enabled"
-            )
-        if split_element_existence and (element_flow_matching or mixture_override_pad or sampling_mode_count > 0):
-            raise ValueError(
-                "split_element_existence is incompatible with element_flow_matching, mixture_override_pad, "
-                "all_carbon_sampling, late_element_resolution, and non_pad_element_sampling"
-            )
 
         # Donut source validation: reject incompatible legacy settings.
         # Donut mode uses normal PAD element diffusion + direct mask BCE for ghost/real.
         # Mixture-based occupancy paths are not compatible.
-        if use_donut_source:
-            if non_pad_element_sampling:
-                raise ValueError(
-                    "use_donut_source is incompatible with non_pad_element_sampling. "
-                    "Donut mode uses normal PAD element diffusion for ghost/real, not mixture posterior at t=0."
-                )
-            if all_carbon_sampling:
-                raise ValueError(
-                    "use_donut_source is incompatible with all_carbon_sampling. "
-                    "Use --donut-element-init carbon instead."
-                )
-            if late_element_resolution:
-                raise ValueError(
-                    "use_donut_source is incompatible with late_element_resolution. "
-                    "Use --donut-element-init carbon or mask instead."
-                )
-            if atom_mask_loss_weight <= 0:
-                raise ValueError(
-                    "use_donut_source requires atom_mask_loss_weight > 0 for direct ghost/real supervision."
-                )
-            if mixture_loss_weight > 0:
-                raise ValueError(
-                    "use_donut_source is incompatible with mixture_loss_weight > 0. "
-                    "Donut mode does not use mixture modeling for occupancy."
-                )
-            if mixture_gate_weight > 0:
-                raise ValueError(
-                    "use_donut_source is incompatible with mixture_gate_weight > 0. "
-                    "Donut mode does not use mixture gating for element logits."
-                )
-            if occupancy_gate_elements:
-                raise ValueError(
-                    "use_donut_source is incompatible with occupancy_gate_elements. "
-                    "Donut mode uses direct mask BCE, not occupancy head gating."
-                )
 
         # Per-slot fill rate buffer (set externally from dataset before training).
         # Used by atom_mask_loss for stable class balancing.
@@ -7440,8 +6956,6 @@ class InverseFoldingDiffusion(nn.Module):
         ignores it when its own flag is off. Computed from the binder BACKBONE + TARGET atoms ONLY (no
         side chains), so it is valid at inference. See :func:`available_volume_cones`.
         """
-        if not self.use_available_volume:
-            return None
         R, ca = build_local_frames(backbone_coords, backbone_mask)  # (B,L,3,3), (B,L,3)
         return available_volume_cones(backbone_coords, backbone_mask, target_coords, target_mask, R, ca)
 
@@ -7792,8 +7306,6 @@ class InverseFoldingDiffusion(nn.Module):
         # Real: x_t ~ N((1-s)·μ_res, real_var I) -- shared centroid per residue
         one_minus_s = 1.0 - s  # (B, 1, 1)
         real_var = one_minus_s.unsqueeze(-1) ** 2 * var_slot.unsqueeze(-1) + s.unsqueeze(-1) ** 2 * sigma_sq
-        if self.mixture_real_var_floor > 0:
-            real_var = real_var + s.unsqueeze(-1) ** 2 * self.mixture_real_var_floor
         real_var = real_var.squeeze(-1).clamp(min=1e-4)  # (B, L, max_sc)
         real_mean = one_minus_s.unsqueeze(-1) * mu_slot  # (B, L, max_sc, 3)
         diff = x_rel - real_mean  # (B, L, max_sc, 3)
@@ -7808,23 +7320,6 @@ class InverseFoldingDiffusion(nn.Module):
         # Per-residue LRT: global threshold + backbone-predicted delta per residue
         # Positive delta -> stricter (fewer atoms), negative -> permissive (more atoms)
         threshold = self.mixture_lr_threshold
-        if residue_lrt_delta is not None and self.dynamic_lrt:
-            delta = residue_lrt_delta
-            if self.dynamic_lrt_clamp > 0:
-                delta = delta.clamp(-self.dynamic_lrt_clamp, self.dynamic_lrt_clamp)
-            # Scale delta at sampling time to dampen late-training overshoot
-            if not self.training and self.dlrt_sample_scale != 1.0:
-                delta = delta * self.dlrt_sample_scale
-            # delta is (B, L), broadcast to (B, L, max_sc)
-            threshold = threshold + delta.unsqueeze(-1)
-        elif self.dlrt_analytical_scale > 0 and residue_count_pred is not None:
-            # Analytical threshold: use count head prediction directly.
-            # Higher predicted count -> lower threshold (more permissive).
-            # delta = -scale * (count_pred - mean_count) / std_count
-            # mean ~4.0, std ~2.3 from dataset statistics
-            delta = -self.dlrt_analytical_scale * (residue_count_pred - 4.0) / 2.3
-            delta = delta.clamp(-0.5, 0.5)  # Same clamp range as learned dlrt
-            threshold = threshold + delta.unsqueeze(-1)
         logit = log_likelihood_ratio + log_prior_ratio - threshold
         if temperature != 1.0:
             logit = logit / temperature
@@ -7896,33 +7391,17 @@ class InverseFoldingDiffusion(nn.Module):
         mode at ``__init__`` (class 0 = Carbon there, not PAD).
         """
         aux = {}
-        if self.use_polarity_head:
-            polarity_logits = self.polarity_head(backbone_features)  # (B, L, K-1) over real classes
-            log_pol = F.log_softmax(polarity_logits, dim=-1)
-            pad_logit = element_logits[..., :1]  # untouched -> P(PAD) invariant
-            real = element_logits[..., 1:]
-            lse_before = torch.logsumexp(real, dim=-1, keepdim=True)
-            real_biased = real + log_pol.unsqueeze(2)  # per-residue bias broadcast over slots
-            lse_after = torch.logsumexp(real_biased, dim=-1, keepdim=True)
-            real_renorm = real_biased - (lse_after - lse_before)  # restore real block lse -> P(PAD) exact
-            element_logits = torch.cat([pad_logit, real_renorm], dim=-1)
-            aux["polarity_logits"] = polarity_logits
-            aux["log_pol"] = log_pol
-        if self.use_glycine_head:
-            dih = self.denoiser.backbone_encoder._backbone_dihedral_features(backbone_coords, backbone_mask)  # (B,L,8)
-            glycine_logit = self.glycine_head(dih)  # (B, L, 1)
-            gate = torch.tanh(F.softplus(self.glycine_pad_gate))  # nonnegative (softplus) & bounded (tanh) in [0,1)
-            if self.training:
-                # PROBE (train-only, detached, one logsumexp): P(PAD) the element head assigns BEFORE the
-                # glycine push. Paired with the GT-glycine mask in forward() this is the "is there any
-                # incentive left for the gate to open?" number -- if it is already ~1.0 at GT-glycine
-                # positions the expert is redundant and a shut gate is CORRECT, not starved.
-                with torch.no_grad():
-                    aux["pad_prob_pre_glycine"] = torch.softmax(element_logits.detach(), dim=-1)[..., 0]  # (B,L,K)
-            pad_push = self.glycine_pad_cap * gate * torch.sigmoid(glycine_logit)  # (B,L,1) in [0, cap], ADD-only
-            pad_logit_g = element_logits[..., :1] + pad_push.unsqueeze(2)  # broadcast over slots
-            element_logits = torch.cat([pad_logit_g, element_logits[..., 1:]], dim=-1)  # no in-place
-            aux["glycine_logit"] = glycine_logit
+        polarity_logits = self.polarity_head(backbone_features)  # (B, L, K-1) over real classes
+        log_pol = F.log_softmax(polarity_logits, dim=-1)
+        pad_logit = element_logits[..., :1]  # untouched -> P(PAD) invariant
+        real = element_logits[..., 1:]
+        lse_before = torch.logsumexp(real, dim=-1, keepdim=True)
+        real_biased = real + log_pol.unsqueeze(2)  # per-residue bias broadcast over slots
+        lse_after = torch.logsumexp(real_biased, dim=-1, keepdim=True)
+        real_renorm = real_biased - (lse_after - lse_before)  # restore real block lse -> P(PAD) exact
+        element_logits = torch.cat([pad_logit, real_renorm], dim=-1)
+        aux["polarity_logits"] = polarity_logits
+        aux["log_pol"] = log_pol
         return element_logits, aux
 
     # ------------------------------------------------------------------ neighbour-x0 packing
@@ -7962,14 +7441,7 @@ class InverseFoldingDiffusion(nn.Module):
         x_flat = x_t.reshape(b, -1, 3)
         v_flat = model_output.reshape(b, -1, 3)
         mp = mask_probs.reshape(b, -1, 1).float() if mask_probs is not None else None
-        if self.coord_process_type == "flow_matching":
-            x0 = self.coord_flow.predict_x0_from_velocity(x_flat, t, v_flat, ca_coords=ca_coords, mask_probs=mp)
-        elif self.prediction_type == "v":
-            x0 = self.diffusion.predict_x0_from_v(x_flat, t, v_flat, ca_coords=ca_coords)
-        elif self.prediction_type == "epsilon":
-            x0 = self.diffusion.predict_x0_from_noise(x_flat, t, v_flat, ca_coords=ca_coords)
-        else:
-            x0 = v_flat
+        x0 = self.coord_flow.predict_x0_from_velocity(x_flat, t, v_flat, ca_coords=ca_coords, mask_probs=mp)
         return x0.reshape_as(x_t)
 
     def _distal_read_threshold(self, shell_radii: torch.Tensor, epoch: int | None = None) -> torch.Tensor:
@@ -8014,8 +7486,6 @@ class InverseFoldingDiffusion(nn.Module):
         supplies neighbour-x0 context -- the precondition for self-dropout to have anything to fall back
         on.
         """
-        if self.neighbor_x0_packing_random_recycles:
-            return max(int(self.neighbor_x0_packing_max_recycles), int(self.neighbor_x0_packing_recycles))
         return int(self.neighbor_x0_packing_recycles)
 
     def _predicted_existence_probs(self, denoiser_out: dict[str, torch.Tensor]) -> torch.Tensor:
@@ -8045,9 +7515,6 @@ class InverseFoldingDiffusion(nn.Module):
         torch.Tensor
             Detached P(real) of shape (B, L, max_sc), clamped to ``[0, 1]``.
         """
-        if self.split_element_existence:
-            # 3-track: existence lives on its own head.
-            return torch.sigmoid(denoiser_out["occupancy_logits"]).detach().clamp(0.0, 1.0)
         probs = torch.softmax(denoiser_out["element_logits"], dim=-1)
         p_real = 1.0 - probs[..., ELEMENT_PAD]
         if self.num_element_classes > NUM_ELEMENT_TYPES:
@@ -8139,14 +7606,6 @@ class InverseFoldingDiffusion(nn.Module):
 
         if design_mask is None or inpaint_gt_coords is None:
             return x, element_types, noised_mask, evc_sampling
-        if self.split_element_existence:
-            # Mirror forward()'s guard: sample() must also fail loud for 3-track. The per-step existence
-            # state is NOT pinned here, so context residues would get free-evolving (MASK/noisy) existence
-            # contradicting their pinned chemistry -- silent train/sample divergence. Use 2-track.
-            raise NotImplementedError(
-                "K-mask (design_mask) sampling under split_element_existence (3-track) is not supported: "
-                "the per-step existence state is not pinned. Use 2-track, or implement existence-state pinning."
-            )
         batch_size, seq_len = design_mask.shape[0], design_mask.shape[1]
         keep = (~design_mask.bool()).view(batch_size, seq_len, 1)  # (B,L,1) True = pinned to GT
         if inpaint_mode == "clean":
@@ -8197,26 +7656,24 @@ class InverseFoldingDiffusion(nn.Module):
         coupling to the coord flow (that feedback is a later chunk). The v2 stream is cheap + residue-level, so
         this recompute is the deliberate "denoiser may recompute frame-v2 as it does today" simplification.
         """
-        if not self.use_stereochem_gated_init:
-            return None
+        return None
         with torch.no_grad():
             vol_hidden = None
-            if self.use_volumetric_head:
-                vol_out = self.volumetric_head(
-                    backbone_coords=backbone_coords,
-                    backbone_mask=backbone_mask,
-                    seq_mask=seq_mask,
-                    target_coords=target_coords,
-                    target_mask=target_mask,
-                    target_element=target_atom_element_type,
-                    target_is_backbone=target_atom_is_backbone,
-                    gt_sidechain_coords=gt_sidechain_coords,
-                    gt_sidechain_mask=gt_sidechain_mask,
-                    available_volume=self._compute_available_volume(
-                        backbone_coords, backbone_mask, target_coords, target_mask
-                    ),
-                )
-                vol_hidden = vol_out["vol_hidden"]
+            vol_out = self.volumetric_head(
+                backbone_coords=backbone_coords,
+                backbone_mask=backbone_mask,
+                seq_mask=seq_mask,
+                target_coords=target_coords,
+                target_mask=target_mask,
+                target_element=target_atom_element_type,
+                target_is_backbone=target_atom_is_backbone,
+                gt_sidechain_coords=gt_sidechain_coords,
+                gt_sidechain_mask=gt_sidechain_mask,
+                available_volume=self._compute_available_volume(
+                    backbone_coords, backbone_mask, target_coords, target_mask
+                ),
+            )
+            vol_hidden = vol_out["vol_hidden"]
             rfs = self.denoiser.residue_frame_stream_v2
             b, length = backbone_coords.shape[:2]
             # backbone_features is IGNORED by the v2 stream under frame_v2_clean_input=True (the coherence guard
@@ -8406,9 +7863,6 @@ class InverseFoldingDiffusion(nn.Module):
             _sample_recycles = max(1, int(os.environ.get("ATOMWEAVER_SAMPLE_RECYCLES", "1")))
         _sample_absorbing = self.absorbing_mask
 
-        if self.coord_process_type == "flow_matching" and self.use_cluster_particle_diffusion:
-            raise NotImplementedError("flow_matching coordinates are not yet supported with cluster particle diffusion")
-
         # Start from CA-relative noise
         # At full noise (t=T), each sidechain forms an isotropic Gaussian cloud
         # around its CA position, rather than being scattered globally
@@ -8419,9 +7873,6 @@ class InverseFoldingDiffusion(nn.Module):
         leak_per_atom_mask = None
         leak_direction = None
         leak_mask_for_elements = None
-        if self.leak_gt_count and gt_sidechain_mask is not None:
-            leak_per_atom_mask = gt_sidechain_mask.reshape(batch_size, -1, 1).float()
-            leak_mask_for_elements = gt_sidechain_mask  # Also used for element init
         # Count-search (research eval): force an ARBITRARY per-residue atom count K by building the
         # SAME real/ghost per-atom mask leak_gt_count uses, but derived from K instead of GT. Slots
         # 0..K-1 = REAL (donut shell), slots K.. = GHOST (collapsed to CA) -- the reserved-slot0 prefix
@@ -8440,64 +7891,20 @@ class InverseFoldingDiffusion(nn.Module):
                 forced_mask = forced_mask * seq_mask.to(device).view(batch_size, seq_len, 1).float()
             leak_per_atom_mask = forced_mask.reshape(batch_size, -1, 1)  # donut source: real->shell, ghost->CA
             leak_mask_for_elements = forced_mask  # element init + per-step ghost->PAD oracle pin
-        if self.pseudo_cb_direction:
-            # Chirality-aware cone (+1 L / -1 D): for single-site NCAA design the target
-            # residue identity is known, so D-amino acids get the correct hemisphere.
-            # Unknown/de-novo (chirality=None) defaults to +1 (L), the common case.
-            # SAMPLING respects the caller-provided chirality: de-novo passes chirality=None -> +1/L (the
-            # "surprise-D" flip mode); a known-D hint passes -1 -> D-init (conditioned mode). The training-only
-            # d_aa_l_source_prob prior does NOT force anything here -- the init cone is the caller's mode switch.
-            _src_chir = chirality
-            leak_direction = compute_pseudo_cb_direction(backbone_coords, chirality=_src_chir)
-            # -1: sigmoid-gated cone init (SAMPLING side -- mirrors the training q_sample prior above so
-            # train/inference match). Steer the cone's e3 sign by the stereochem head's P(D). No-op /
-            # byte-identical when the flag is off. gt_sidechain_* are None for de-novo sampling; the volumetric
-            # head handles that (its GT branch is optional).
-            if self.use_stereochem_gated_init:
-                pd = self._stereochem_gated_pd(
-                    backbone_coords,
-                    backbone_mask,
-                    seq_mask=seq_mask,
-                    target_backbone_coords=target_backbone_coords,
-                    target_backbone_mask=target_backbone_mask,
-                    target_residue_types=target_residue_types,
-                    target_seq_mask=target_seq_mask,
-                    target_coords=target_coords,
-                    target_mask=target_mask,
-                    target_atom_element_type=target_atom_element_type,
-                    target_atom_is_backbone=target_atom_is_backbone,
-                    gt_sidechain_coords=gt_sidechain_coords,
-                    gt_sidechain_mask=gt_sidechain_mask,
-                )
-                if pd is not None:
-                    # Inference = FULL gating (ramp_s=1.0, the _gated_init_ramp None->1.0 convention). The
-                    # L-prior stereo-head bias keeps an untrained head (fresh graft) on the L cone here.
-                    leak_direction = self._stereochem_gate_cone_direction(
-                        leak_direction, backbone_coords, backbone_mask, pd, ramp_s=1.0
-                    )
-        elif self.leak_gt_direction and gt_sidechain_coords is not None and gt_sidechain_mask is not None:
-            real_mask_f = gt_sidechain_mask.float()  # (B, L, max_sc)
-            weighted = gt_sidechain_coords * real_mask_f.unsqueeze(-1)  # (B, L, max_sc, 3)
-            n_real = real_mask_f.sum(dim=2, keepdim=True).clamp(min=1)  # (B, L, 1)
-            centroid = weighted.sum(dim=2) / n_real  # (B, L, 3)
-            gt_dir = torch.nn.functional.normalize(centroid - ca_coords, dim=-1)  # (B, L, 3)
-            no_real = real_mask_f.sum(dim=2) == 0  # (B, L)
-            rand_dir = torch.nn.functional.normalize(torch.randn_like(gt_dir), dim=-1)
-            leak_direction = torch.where(no_real.unsqueeze(-1), rand_dir, gt_dir)
+        _src_chir = chirality
+        leak_direction = compute_pseudo_cb_direction(backbone_coords, chirality=_src_chir)
+        # -1: sigmoid-gated cone init (SAMPLING side -- mirrors the training q_sample prior above so
+        # train/inference match). Steer the cone's e3 sign by the stereochem head's P(D). No-op /
+        # byte-identical when the flag is off. gt_sidechain_* are None for de-novo sampling; the volumetric
+        # head handles that (its GT branch is optional).
 
-        if self.coord_process_type == "flow_matching":
-            x, _ = self.coord_flow.sample_prior(
-                (batch_size, seq_len * max_sc, 3),
-                ca_coords=ca_coords,
-                per_atom_mask=leak_per_atom_mask,
-                direction_override=leak_direction,
-            )
-            x = x.view(batch_size, seq_len, max_sc, 3)
-        else:
-            # Use the same noise_scale as training (default 4.0Å)
-            # CRITICAL: This must match the diffusion's noise_scale or sampling will fail!
-            local_noise = torch.randn(batch_size, seq_len, max_sc, 3, device=device) * self.diffusion.noise_scale
-            x = ca_expanded + local_noise
+        x, _ = self.coord_flow.sample_prior(
+            (batch_size, seq_len * max_sc, 3),
+            ca_coords=ca_coords,
+            per_atom_mask=leak_per_atom_mask,
+            direction_override=leak_direction,
+        )
+        x = x.view(batch_size, seq_len, max_sc, 3)
 
         # Reverse diffusion - start from t=T-1 (full noise)
         timesteps = torch.linspace(self.timesteps - 1, 0, num_steps, device=device).long()
@@ -8510,42 +7917,13 @@ class InverseFoldingDiffusion(nn.Module):
         # Slots with existence >= self.existence_threshold are classified as "real".
         # The element track starts all-MASK independently. During sampling, existence flows
         # toward 0 (ghost) or 1 (real) while elements resolve from MASK to {C,N,O,S}.
-        if self.split_element_existence:
-            from .diffusion import EXISTENCE_GHOST, EXISTENCE_MASK, EXISTENCE_REAL, SPLIT_ELEMENT_MASK
-
-            if self.existence_absorbing:
-                # Absorbing existence: start all slots as MASK (will resolve to GHOST or REAL)
-                existence = torch.full((batch_size, seq_len, max_sc), EXISTENCE_MASK, device=device, dtype=torch.long)
-                noised_mask = torch.zeros(batch_size, seq_len, max_sc, device=device)  # All MASK -> ghost initially
-            else:
-                existence = torch.full((batch_size, seq_len, max_sc), self.existence_flow.source_value, device=device)
-                noised_mask = (existence >= self.existence_threshold).float()  # Classify from source value
-            if self.split_element_flow:
-                # Flow matching: initialize soft probs from prior at t=T
-                _split_soft_probs = (
-                    self.split_element_flow_proc.prior.view(1, 1, 1, -1)
-                    .expand(batch_size, seq_len, max_sc, -1)
-                    .clone()
-                    .to(device)
-                )
-                element_types = _split_soft_probs.argmax(dim=-1)
-                if self.split_element_flow_temp > 0:
-                    log_probs = (_split_soft_probs + 1e-8).log()
-                    soft_element_probs = torch.softmax(log_probs / self.split_element_flow_temp, dim=-1)
-            else:
-                _split_soft_probs = None
-                element_types = torch.full(
-                    (batch_size, seq_len, max_sc), SPLIT_ELEMENT_MASK, device=device, dtype=torch.long
-                )
 
         # leak_gt_count also initializes elements from GT mask (oracle-style)
         # AND overrides oracle_sidechain_mask so ghost->PAD is enforced at every sampling step
         if not self.split_element_existence and leak_mask_for_elements is not None and oracle_sidechain_mask is None:
             oracle_sidechain_mask = leak_mask_for_elements
         effective_oracle_mask = oracle_sidechain_mask if oracle_sidechain_mask is not None else leak_mask_for_elements
-        if self.split_element_existence:
-            pass  # Already initialized above
-        elif effective_oracle_mask is not None:
+        if effective_oracle_mask is not None:
             # Oracle ablation: initialize from GT mask -- non-PAD slots get Carbon (1), PAD slots get PAD (0)
             gt_mask_bool = effective_oracle_mask.bool()
             element_types = torch.where(
@@ -8553,69 +7931,31 @@ class InverseFoldingDiffusion(nn.Module):
                 torch.ones(batch_size, seq_len, max_sc, device=device, dtype=torch.long),  # C=1
                 torch.zeros(batch_size, seq_len, max_sc, device=device, dtype=torch.long),  # PAD=0
             )
-        elif self.all_carbon_sampling or self.late_element_resolution or self.non_pad_element_sampling:
-            # All-Carbon init: denoiser sees all atoms as real Carbon.
-            # Ghost/real determined purely from coordinates via mixture posterior.
-            # Breaks the PAD->zero-velocity death spiral.
-            # Late element resolution also needs all-Carbon init: PAD/non-PAD (ghost/real)
-            # comes from mixture posterior at t=0, not from element diffusion.
-            element_types = torch.ones(batch_size, seq_len, max_sc, device=device, dtype=torch.long)  # C=1
-        elif self.disable_element_types:
-            element_types = torch.full((batch_size, seq_len, max_sc), ELEMENT_PAD, device=device, dtype=torch.long)
-        elif self.pad_sampling_init == "bare" and self.donut_element_init == "carbon":
-            # All-Carbon init -- matches donut source where all atoms start at shell positions (look real).
-            # Forward process drives toward all-Carbon at t=T. Ghost/real emerges via mask BCE head.
-            element_types = torch.ones(batch_size, seq_len, max_sc, device=device, dtype=torch.long)  # C=1
-        elif self.pad_sampling_init == "bare" and self.donut_element_init == "mask":
-            # All-MASK init -- "unknown" occupancy at t=T. Forward drives toward MASK.
-            # Model must resolve MASK->{PAD,C,N,O,S} during reverse. Ghost/real via mask BCE head.
-            from .diffusion import ELEMENT_MASK
 
-            element_types = torch.full((batch_size, seq_len, max_sc), ELEMENT_MASK, device=device, dtype=torch.long)
-        elif self.pad_sampling_init == "bare":
-            # All-PAD init (bare backbone) -- matches time-varying prior at t=T
-            element_types = torch.full((batch_size, seq_len, max_sc), ELEMENT_PAD, device=device, dtype=torch.long)
-        else:
-            # Sample from data prior distribution (PAD~71%, C~22%, N~2.8%, O~3.9%, S~0.2%)
-            prior = self.element_diffusion.prior
-            element_types = torch.multinomial(
-                prior.expand(batch_size * seq_len * max_sc, -1),
-                num_samples=1,
-            ).view(batch_size, seq_len, max_sc)
+        element_types = torch.full((batch_size, seq_len, max_sc), ELEMENT_MASK, device=device, dtype=torch.long)
 
         # Element flow matching: initialize soft probs from prior at t=T
         soft_element_probs = None
-        if self.element_flow_matching:
-            soft_element_probs = (
-                self.element_flow.prior.view(1, 1, 1, -1).expand(batch_size, seq_len, max_sc, -1).clone()
-            )
-            element_types = soft_element_probs.argmax(dim=-1)
 
-        if not self.split_element_existence:
-            # Mask derived from element types (PAD=0 -> absent, others -> present)
-            noised_mask = (element_types != ELEMENT_PAD).float()
+        noised_mask = (element_types != ELEMENT_PAD).float()
 
-            # For MASK init: resolve MASK tokens using CA distance for initial mask/count features.
-            if self.donut_element_init == "mask" and hasattr(self.coord_flow, "_shell_radii"):
-                from .diffusion import ELEMENT_MASK
+        # For MASK init: resolve MASK tokens using CA distance for initial mask/count features.
+        if self.donut_element_init == "mask" and hasattr(self.coord_flow, "_shell_radii"):
+            from .diffusion import ELEMENT_MASK
 
-                is_mask = element_types == ELEMENT_MASK
-                if is_mask.any():
-                    ca_exp = ca_coords.unsqueeze(2).expand(-1, -1, max_sc, -1)
-                    dist_to_ca = (x - ca_exp).norm(dim=-1)  # (B, L, max_sc)
-                    shell_radii = self.coord_flow._shell_radii
-                    # Sample site: epoch not available -> fully-ramped cap (see _distal_read_threshold).
-                    threshold = self._distal_read_threshold(shell_radii, epoch=None).view(1, 1, max_sc)
-                    noised_mask = torch.where(is_mask, (dist_to_ca >= threshold).float(), noised_mask)
+            is_mask = element_types == ELEMENT_MASK
+            if is_mask.any():
+                ca_exp = ca_coords.unsqueeze(2).expand(-1, -1, max_sc, -1)
+                dist_to_ca = (x - ca_exp).norm(dim=-1)  # (B, L, max_sc)
+                shell_radii = self.coord_flow._shell_radii
+                # Sample site: epoch not available -> fully-ramped cap (see _distal_read_threshold).
+                threshold = self._distal_read_threshold(shell_radii, epoch=None).view(1, 1, max_sc)
+                noised_mask = torch.where(is_mask, (dist_to_ca >= threshold).float(), noised_mask)
 
         # Existence flow: continuous scalar for ghost/real determination
         # Starts at source_value=0.5 (max entropy), flows toward 0 (ghost) or 1 (real)
         # In split mode, existence was already initialized above -- don't overwrite.
-        if not self.split_element_existence:
-            existence = None
-        if self.use_existence_flow and not self.split_element_existence:
-            # Non-split existence flow (legacy mode). Split mode initializes existence above.
-            existence = torch.full((batch_size, seq_len, max_sc), self.existence_flow.source_value, device=device)
+        existence = None
 
         # Self-conditioning: track previous predictions for use in next step
         prev_element_pred = None
@@ -8694,39 +8034,20 @@ class InverseFoldingDiffusion(nn.Module):
         # MASK/PAD tokens default to 0.0 (ghost), but evc_mask_init_value overrides
         # to allow neutral (0.5) or real-biased (1.0) initialization.
         evc_sampling = None
-        if self.use_element_velocity_coupling:
-            from .diffusion import ELEMENT_MASK, ELEMENT_PAD
+        from .diffusion import ELEMENT_MASK, ELEMENT_PAD
 
-            if self.split_element_existence and self.existence_absorbing:
-                # Absorbing existence at SAMPLING: derive P(real) from the discrete state
-                # REAL->1.0, GHOST->0.0, MASK->0.5 (uncertain). Sampling uses the existence state because
-                # there is no GT mask here; TRAINING now feeds the GT binary mask to EVC instead (the
-                # MASK->0.5 path silenced FiLM at noise -- see the training-side note ~L5535).
-                evc_sampling = torch.where(
-                    existence == EXISTENCE_REAL,
-                    torch.ones(batch_size, seq_len, max_sc, device=device),
-                    torch.where(
-                        existence == EXISTENCE_GHOST,
-                        torch.zeros(batch_size, seq_len, max_sc, device=device),
-                        torch.full((batch_size, seq_len, max_sc), 0.5, device=device),
-                    ),
-                )
-            elif self.split_element_existence:
-                # Split mode at SAMPLING: use the continuous existence value directly (no GT mask at
-                # sampling). TRAINING no longer uses this -- it feeds the GT binary mask to EVC.
-                evc_sampling = existence.clone()  # (B, L, max_sc) ∈ [0, 1]
-            elif getattr(self, "evc_ss_noised_element_prob", 0.0) > 0:
-                # Noised-element EVC (trained with evc_ss_noised_element_prob>0): honest 3-way read of the
-                # absorbing element state -- REAL->1.0, MASK->0.5, PAD->0.0 -- so at t=T (all MASK) EVC reads
-                # 0.5 (uncertain) instead of 0.0 (confirmed ghost), avoiding the all-PAD collapse spiral.
-                evc_sampling = evc_from_element_state(element_types)
+        if getattr(self, "evc_ss_noised_element_prob", 0.0) > 0:
+            # Noised-element EVC (trained with evc_ss_noised_element_prob>0): honest 3-way read of the
+            # absorbing element state -- REAL->1.0, MASK->0.5, PAD->0.0 -- so at t=T (all MASK) EVC reads
+            # 0.5 (uncertain) instead of 0.0 (confirmed ghost), avoiding the all-PAD collapse spiral.
+            evc_sampling = evc_from_element_state(element_types)
+        else:
+            is_resolved_real = ((element_types != ELEMENT_PAD) & (element_types != ELEMENT_MASK)).float()
+            if evc_mask_init_value > 0.0:
+                is_unresolved = ((element_types == ELEMENT_PAD) | (element_types == ELEMENT_MASK)).float()
+                evc_sampling = is_resolved_real + evc_mask_init_value * is_unresolved
             else:
-                is_resolved_real = ((element_types != ELEMENT_PAD) & (element_types != ELEMENT_MASK)).float()
-                if evc_mask_init_value > 0.0:
-                    is_unresolved = ((element_types == ELEMENT_PAD) | (element_types == ELEMENT_MASK)).float()
-                    evc_sampling = is_resolved_real + evc_mask_init_value * is_unresolved
-                else:
-                    evc_sampling = is_resolved_real
+                evc_sampling = is_resolved_real
 
         # Count-velocity coupling: initialized from cached_count_pred after first step.
         # None until first denoiser call produces count_pred.
@@ -8817,36 +8138,12 @@ class InverseFoldingDiffusion(nn.Module):
         # recycle block) from the prev-step x0 (step-1: bootstrap x0), so leave it None here for that path.
         vol_hidden_sample = None
         vol_density_inject_sample = None  # sample-path parity (H1): mirror the training forward's density-inject
-        if _vol_consumer_active and not self.use_single_site_context:
-            _vh_out = self.volumetric_head(
-                backbone_coords=backbone_coords,
-                backbone_mask=backbone_mask,
-                seq_mask=seq_mask,
-                target_coords=target_coords,
-                target_mask=target_mask,
-                target_element=target_atom_element_type,
-                target_is_backbone=target_atom_is_backbone,
-                available_volume=_avail_vol,
-            )
-            vol_hidden_sample = _vh_out["vol_hidden"]
-            vol_density_inject_sample = (
-                self.volumetric_density_inject_proj(_vh_out["vol_density_pred"].detach())
-                if self.use_volumetric_density_inject
-                else None
-            )
 
         for step_i, t_idx in enumerate(timesteps):
             t = torch.full((batch_size,), t_idx.item(), device=device, dtype=torch.long)
 
             # Mixture temperature sharpening: anneal from 1.0 (soft) to temp_min (sharp)
-            if self.sharpen_temperature_min < 1.0:
-                tau_frac = t_idx.float() / max(self.timesteps - 1, 1)
-                mix_temperature = (
-                    self.sharpen_temperature_min
-                    + (1.0 - self.sharpen_temperature_min) * tau_frac**self.sharpen_temperature_power
-                )
-            else:
-                mix_temperature = 1.0
+            mix_temperature = 1.0
 
             # Compute noised count (non-PAD atoms per residue)
             noised_count = noised_mask.sum(dim=-1)  # (B, L)
@@ -8902,54 +8199,51 @@ class InverseFoldingDiffusion(nn.Module):
             # below prefers it over the previous step's `x0_prev_coords`. Unused when the lever is off.
             _geom_src_x0 = None
             _geom_src_mask = None  # bond-inject: hard predicted-existence mask (P(real)>0.5) of _geom_src_x0
-            if self.use_neighbor_x0_packing:
-                _n_rc = self.neighbor_x0_packing_recycles if _sample_recycles is None else _sample_recycles
-                _n_rc = max(1, int(_n_rc))
-                _keep_s = (~design_mask.to(device=device, dtype=torch.bool)) if design_mask is not None else None
-                t_orig_s = t.float().view(-1, 1).expand(batch_size, seq_len).clone()
-                if _keep_s is not None:
-                    t_orig_s = torch.where(_keep_s, torch.zeros_like(t_orig_s), t_orig_s)
-                t_cond_s = t_orig_s.clone()
-                # Pass 1 unless the recycle loop below runs, in which case the graded pass is j=N.
-                nx0_recycle_index = 1
-                if _n_rc > 1:
-                    nx0_apply = torch.ones(batch_size, device=device, dtype=t_orig_s.dtype)
-                    t_cond_s = torch.zeros_like(t_orig_s)
-                    nx0_recycle_index = _n_rc
-                    for _rc_i in range(_n_rc - 1):
-                        _rc_out = self.denoiser(
-                            x,
-                            seq_mask
-                            if seq_mask is not None
-                            else torch.ones(batch_size, seq_len, dtype=torch.bool, device=device),
-                            backbone_coords,
-                            backbone_mask,
-                            t,
-                            neighbor_x0_coords=nx0_coords,
-                            neighbor_x0_mask=nx0_mask,
-                            neighbor_x0_trust=nx0_trust,
-                            neighbor_x0_apply=nx0_apply,
-                            t_original_res=t_orig_s,
-                            t_conditioning_res=t_cond_s if nx0_coords is not None else t_orig_s,
-                            recycle_index=_rc_i + 1,
-                            **_denoise_kwargs,
-                        )
-                        # Model-owned on BOTH channels, exactly as in training (see
-                        # _predicted_existence_probs).
-                        _rc_pexist = self._predicted_existence_probs(_rc_out)
-                        _rc_x0 = self._x0_from_model_output(
-                            _rc_out["noise_pred"], x, t, ca_coords, mask_probs=_rc_pexist
-                        )
-                        _geom_src_x0 = _rc_x0  # geom-reconcile: freshest same-step x0 (last recycle iter wins)
-                        _geom_src_mask = _rc_pexist.detach() > 0.5  # bond-inject: real-atom mask of this x0
-                        nx0_coords, nx0_mask, nx0_trust = self._build_neighbor_x0_inputs(
-                            _rc_x0,
-                            _rc_pexist,
-                            t_orig_s,
-                            keep_mask=_keep_s,
-                            clean_context_coords=inpaint_gt_coords,
-                            clean_context_mask=inpaint_gt_mask,
-                        )
+            _n_rc = self.neighbor_x0_packing_recycles if _sample_recycles is None else _sample_recycles
+            _n_rc = max(1, int(_n_rc))
+            _keep_s = (~design_mask.to(device=device, dtype=torch.bool)) if design_mask is not None else None
+            t_orig_s = t.float().view(-1, 1).expand(batch_size, seq_len).clone()
+            if _keep_s is not None:
+                t_orig_s = torch.where(_keep_s, torch.zeros_like(t_orig_s), t_orig_s)
+            t_cond_s = t_orig_s.clone()
+            # Pass 1 unless the recycle loop below runs, in which case the graded pass is j=N.
+            nx0_recycle_index = 1
+            if _n_rc > 1:
+                nx0_apply = torch.ones(batch_size, device=device, dtype=t_orig_s.dtype)
+                t_cond_s = torch.zeros_like(t_orig_s)
+                nx0_recycle_index = _n_rc
+                for _rc_i in range(_n_rc - 1):
+                    _rc_out = self.denoiser(
+                        x,
+                        seq_mask
+                        if seq_mask is not None
+                        else torch.ones(batch_size, seq_len, dtype=torch.bool, device=device),
+                        backbone_coords,
+                        backbone_mask,
+                        t,
+                        neighbor_x0_coords=nx0_coords,
+                        neighbor_x0_mask=nx0_mask,
+                        neighbor_x0_trust=nx0_trust,
+                        neighbor_x0_apply=nx0_apply,
+                        t_original_res=t_orig_s,
+                        t_conditioning_res=t_cond_s if nx0_coords is not None else t_orig_s,
+                        recycle_index=_rc_i + 1,
+                        **_denoise_kwargs,
+                    )
+                    # Model-owned on BOTH channels, exactly as in training (see
+                    # _predicted_existence_probs).
+                    _rc_pexist = self._predicted_existence_probs(_rc_out)
+                    _rc_x0 = self._x0_from_model_output(_rc_out["noise_pred"], x, t, ca_coords, mask_probs=_rc_pexist)
+                    _geom_src_x0 = _rc_x0  # geom-reconcile: freshest same-step x0 (last recycle iter wins)
+                    _geom_src_mask = _rc_pexist.detach() > 0.5  # bond-inject: real-atom mask of this x0
+                    nx0_coords, nx0_mask, nx0_trust = self._build_neighbor_x0_inputs(
+                        _rc_x0,
+                        _rc_pexist,
+                        t_orig_s,
+                        keep_mask=_keep_s,
+                        clean_context_coords=inpaint_gt_coords,
+                        clean_context_mask=inpaint_gt_mask,
+                    )
 
             # === SINGLE-SITE INFERENCE CONTEXT (DEFAULT for single-site-context volumetric models) ===
             # The volumetric head's option-(ii) pocket context is fed here from the flow's PREDICTED x0 (never
@@ -9072,37 +8366,20 @@ class InverseFoldingDiffusion(nn.Module):
             element_logits = denoiser_outputs["element_logits"]
             # Train/eval parity: apply the SAME supervised expert modulations (polarity PoE + glycine PAD
             # push) the model was trained with -- without this the heads never touch de-novo sampling.
-            if self.use_polarity_head or self.use_glycine_head:
-                element_logits, _ = self._apply_expert_logit_biases(
-                    element_logits, denoiser_outputs["backbone_features"], backbone_coords, backbone_mask
-                )
+            element_logits, _ = self._apply_expert_logit_biases(
+                element_logits, denoiser_outputs["backbone_features"], backbone_coords, backbone_mask
+            )
             cluster_logits = denoiser_outputs["cluster_logits"]
             cluster_occupancy_probs = (
                 self._compute_cluster_occupancy_probs(cluster_logits) if self.use_cluster_particle_diffusion else None
             )
 
             # Prior cloud blending: replace denoiser's residue centroid/logvar with blended version
-            if self.use_prior_cloud:
-                bb_feats = denoiser_outputs["backbone_features"]
-                pc = self.prior_centroid_head(bb_feats)  # (B, L, 3)
-                plv = self.prior_cloud_logvar_head(bb_feats).squeeze(-1)  # (B, L)
-                tau = t.float() / max(self.timesteps - 1, 1)
-                w = ((1.0 - tau) ** self.prior_blend_power).view(batch_size, 1)
-                rc = denoiser_outputs.get("residue_centroid")
-                rlv = denoiser_outputs.get("residue_cloud_logvar")
-                if rc is not None:
-                    denoiser_outputs["residue_centroid"] = (1.0 - w.unsqueeze(-1)) * pc + w.unsqueeze(-1) * rc
-                if rlv is not None:
-                    denoiser_outputs["residue_cloud_logvar"] = (1.0 - w) * plv + w * rlv
 
             # Cache LRT delta and count prediction from first step -- backbone-only, constant across steps
-            if cached_lrt_delta is None and self.dynamic_lrt:
-                cached_lrt_delta = denoiser_outputs.get("residue_lrt_delta")
             if cached_count_pred is None and (self.dlrt_analytical_scale > 0 or count_ghost_velocity > 0):
                 cached_count_pred = denoiser_outputs.get("residue_count_pred")
             # CVC: set from count_pred on first step (stable, backbone-only signal)
-            if cvc_sampling is None and self.use_count_velocity_coupling:
-                cvc_sampling = denoiser_outputs.get("residue_count_pred")
 
             # Per-residue trajectory: pre-update soft count from consistent state (x, t, denoiser_outputs)
             if return_intermediates:
@@ -9141,67 +8418,10 @@ class InverseFoldingDiffusion(nn.Module):
             existence_velocity = denoiser_outputs["occupancy_logits"] if self.use_existence_flow else None
 
             # Occupancy-gated element logits (mirrors training gating)
-            if self.occupancy_gate_elements or self.mixture_gate_weight > 0:
-                occupancy_logits = denoiser_outputs["occupancy_logits"]
-                occ_gate = torch.sigmoid(occupancy_logits)  # No detach needed at sampling time
-
-                # Blend with mixture posterior if active
-                if self.mixture_gate_weight > 0:
-                    learned_centroid = denoiser_outputs["residue_centroid"] if self.mixture_loss_weight > 0 else None
-                    learned_cloud_logvar = (
-                        denoiser_outputs["residue_cloud_logvar"] if self.mixture_loss_weight > 0 else None
-                    )
-                    mixture_posterior = self.compute_mixture_posterior(
-                        noised_coords=x,
-                        ca_coords=ca_coords,
-                        t=t,
-                        learned_centroid=learned_centroid,
-                        learned_cloud_logvar=learned_cloud_logvar,
-                        residue_lrt_delta=cached_lrt_delta,
-                        temperature=mix_temperature,
-                    )
-                    # Disable mixture posterior above max noise fraction
-                    if self.mixture_gate_max_noise < 1.0:
-                        t_frac = t.float() / self.timesteps
-                        high_noise_mask = t_frac > self.mixture_gate_max_noise
-                        if high_noise_mask.any():
-                            mixture_posterior = mixture_posterior.clone()
-                            mixture_posterior[high_noise_mask] = 0.0
-                    # Store final-step outputs for diagnostics
-                    final_residue_centroid = learned_centroid
-                    final_residue_cloud_logvar = learned_cloud_logvar
-                    final_mixture_posterior = mixture_posterior
-
-                    w = self.mixture_gate_weight
-                    gate_signal = (1.0 - w) * occ_gate + w * mixture_posterior
-                else:
-                    gate_signal = occ_gate
-
-                s = self.occupancy_gate_strength
-                element_logits = element_logits.clone()
-                element_logits[..., 0] += (1.0 - gate_signal) * s
-                element_logits[..., 1:] += gate_signal.unsqueeze(-1) * s
 
             # Count-head element bias: use per-residue count prediction to bias PAD/non-PAD
             # Slots below predicted count get non-PAD boost, slots above get PAD boost.
             # Uses smooth sigmoid step function centered at predicted count boundary.
-            if count_head_element_bias > 0 and self.residue_count_loss_weight > 0:
-                rc_pred = denoiser_outputs["residue_count_pred"].detach()  # (B, L)
-                rc_pred = rc_pred.clamp(0, max_sc)
-                # Per-slot signal: sigmoid(strength * (count - slot_idx - 0.5))
-                # High for slots below count, low for slots above
-                slot_idx = torch.arange(max_sc, device=device).float().view(1, 1, -1)  # (1, 1, max_sc)
-                count_gate = torch.sigmoid(4.0 * (rc_pred.unsqueeze(-1) - slot_idx - 0.5))  # (B, L, max_sc)
-                if seq_mask is not None:
-                    count_gate = count_gate * seq_mask.unsqueeze(-1).float()
-                s_count = count_head_element_bias
-                element_logits = (
-                    element_logits.clone()
-                    if not (self.occupancy_gate_elements or self.mixture_gate_weight > 0)
-                    else element_logits
-                )
-                element_logits[..., 0] += (1.0 - count_gate) * s_count  # PAD boost above count
-                element_logits[..., 1:] += count_gate.unsqueeze(-1) * s_count  # non-PAD boost below count
 
             # Non-PAD logit bias: boost non-PAD logits during sampling.
             # Counteracts the PAD-heavy prior (71%) that suppresses atom creation.
@@ -9278,267 +8498,7 @@ class InverseFoldingDiffusion(nn.Module):
             if element_early_stop_frac < 1.0 and step_i >= int(element_early_stop_frac * num_steps):
                 do_element_step = False
             # === Split existence/element reverse step ===
-            if self.split_element_existence:
-                from .diffusion import SPLIT_ELEMENT_MASK
-
-                # Compute per-slot power schedules for reverse steps
-                # Existence: inverted (distal resolves first -- collapse outer shells)
-                # Elements: same as coords (proximal resolves first)
-                exist_samp_slot_powers = None
-                elem_samp_slot_powers = None
-                exist_samp_sched_kwargs = {}
-                if self.position_based_element_powers:
-                    exist_power_1d = self._existence_slot_powers(max_sc, device)
-                    exist_samp_slot_powers = exist_power_1d.view(1, 1, max_sc).expand(batch_size, seq_len, max_sc)
-                    if not self.split_element_uniform_power:
-                        mask_for_powers = torch.ones(batch_size, seq_len, max_sc, dtype=torch.bool, device=device)
-                        elem_samp_slot_powers = self._element_slot_powers(mask_for_powers)
-
-                if self.existence_absorbing:
-                    # 1. Absorbing existence: construct 3-class logits from scalar occupancy_logits
-                    occ_logits = denoiser_outputs["occupancy_logits"]  # (B, L, max_sc)
-
-                    # Existence anchor: snapshot early real-vs-ghost ranking, bias toward it
-                    if logit_anchor_step >= 0 and step_i == logit_anchor_step:
-                        logit_anchor_scores = occ_logits.detach().clone()  # positive = real
-                    if logit_anchor_scores is not None and step_i > logit_anchor_step:
-                        occ_logits = occ_logits + logit_anchor_alpha * logit_anchor_scores
-
-                    exist_x0_logits = torch.stack(
-                        [
-                            torch.zeros_like(occ_logits),  # GHOST logit (reference)
-                            occ_logits,  # REAL logit (anchored)
-                            torch.full_like(occ_logits, -1e9),  # MASK logit (never predict MASK)
-                        ],
-                        dim=-1,
-                    )  # (B, L, max_sc, 3)
-
-                    if exist_samp_slot_powers is not None:
-                        sab, sabp, sb = self.existence_diffusion.compute_slot_schedule(t, exist_samp_slot_powers)
-                        exist_samp_sched_kwargs = {
-                            "slot_alpha_bar": sab,
-                            "slot_alpha_bar_prev": sabp,
-                            "slot_beta": sb,
-                        }
-                    existence = self.existence_diffusion.p_sample(
-                        existence,
-                        t,
-                        exist_x0_logits,
-                        absorbing_mask=self.split_absorbing_element,
-                        **exist_samp_sched_kwargs,
-                    )
-                    # Resolve: REAL->real, GHOST/MASK->ghost (conservative: unresolved MASK = ghost)
-                    is_real = existence == EXISTENCE_REAL
-                else:
-                    existence_velocity = denoiser_outputs["occupancy_logits"]
-                    if self.existence_velocity_scale != 1.0:
-                        existence_velocity = existence_velocity * self.existence_velocity_scale
-
-                    # 1. Existence flow Euler step
-                    if t_idx > 0:
-                        t_prev_idx_e = timesteps[step_i + 1]
-                        t_prev_e = torch.full((batch_size,), t_prev_idx_e.item(), device=device, dtype=torch.long)
-                        existence = self.existence_flow.flow_step(
-                            existence.unsqueeze(-1), t, t_prev_e, existence_velocity.unsqueeze(-1)
-                        ).squeeze(-1)
-                    else:
-                        # Final step: predict e0 directly
-                        existence = self.existence_flow.predict_e0_from_velocity(
-                            existence.unsqueeze(-1), t, existence_velocity.unsqueeze(-1)
-                        ).squeeze(-1)
-                    is_real = existence >= self.existence_threshold
-
-                # 2. Element reverse step on real slots only
-                if do_element_step:
-                    if self.split_element_flow and _split_soft_probs is not None:
-                        # Flow matching: OT-path jump on {C,N,O,S,MASK} simplex
-                        if step_i + 1 < len(timesteps):
-                            t_elem_prev = torch.full(
-                                (batch_size,), timesteps[step_i + 1].item(), device=device, dtype=torch.long
-                            )
-                        else:
-                            t_elem_prev = torch.zeros(batch_size, device=device, dtype=torch.long)
-                        _split_soft_probs = self.split_element_flow_proc.reverse_step(
-                            _split_soft_probs,
-                            t,
-                            t_elem_prev,
-                            element_logits,
-                            slot_powers=elem_samp_slot_powers,
-                        )
-                        # Ghost slots -> all-MASK probability
-                        ghost_probs = torch.zeros_like(_split_soft_probs)
-                        ghost_probs[..., SPLIT_ELEMENT_MASK] = 1.0
-                        _split_soft_probs = torch.where(
-                            (~is_real).unsqueeze(-1).expand_as(_split_soft_probs),
-                            ghost_probs,
-                            _split_soft_probs,
-                        )
-                        element_types = _split_soft_probs.argmax(dim=-1)
-                        if self.split_element_flow_temp > 0:
-                            log_probs = (_split_soft_probs + 1e-8).log()
-                            soft_element_probs = torch.softmax(log_probs / self.split_element_flow_temp, dim=-1)
-                    else:
-                        # Discrete diffusion: p_sample reverse step
-                        element_types_new = self.split_element_diffusion.p_sample(
-                            element_types,
-                            t,
-                            element_logits,
-                            absorbing_mask=self.split_absorbing_element,
-                        )
-                        # Ghost slots forced to MASK (their element is undefined)
-                        element_types = torch.where(
-                            is_real,
-                            element_types_new,
-                            torch.full_like(element_types, SPLIT_ELEMENT_MASK),
-                        )
-
-                # 3. Update mask from existence
-                noised_mask = is_real.float()
-
-                # 4. At final step: collapse lingering MASK, convert split -> original encoding
-                if t_idx == 0:
-                    # For absorbing existence: any remaining MASK -> GHOST (conservative)
-                    if self.existence_absorbing:
-                        is_real = existence == EXISTENCE_REAL
-
-                    # Collapse any remaining MASK on real slots to Carbon (most common element)
-                    from .diffusion import SPLIT_ELEMENT_C
-
-                    element_types = torch.where(
-                        is_real & (element_types == SPLIT_ELEMENT_MASK),
-                        torch.full_like(element_types, SPLIT_ELEMENT_C),
-                        element_types,
-                    )
-                    # Real slots: split+1 (C=0->1, N=1->2, O=2->3, S=3->4)
-                    # Ghost slots: PAD=0
-                    element_types = torch.where(
-                        is_real,
-                        element_types + 1,  # shift to original {C=1, N=2, O=3, S=4}
-                        torch.zeros_like(element_types),  # PAD=0
-                    )
-                    # Enforce prefix constraint
-                    element_types = apply_prefix_constraint(element_types, exempt_slot0=reserved_slot0_prefix_exempt)
-
-                # Update EVC from existence (if active)
-                if evc_sampling is not None:
-                    if self.existence_absorbing:
-                        # Derive P(real) from discrete state: REAL->1.0, GHOST->0.0, MASK->0.5
-                        evc_sampling = torch.where(
-                            existence == EXISTENCE_REAL,
-                            torch.ones_like(noised_mask),
-                            torch.where(
-                                existence == EXISTENCE_GHOST,
-                                torch.zeros_like(noised_mask),
-                                torch.full_like(noised_mask, 0.5),
-                            ),
-                        )
-                    else:
-                        evc_sampling = is_real.float()
-
-            # Late element resolution: block PAD transitions during element reverse.
-            # Ghost/real comes from mixture posterior at t=0, not from element diffusion.
-            # Without this, p_sample's 71% PAD prior drags slots back to PAD mid-trajectory.
-            elif self.late_element_resolution:
-                element_logits = element_logits.clone()
-                element_logits[..., ELEMENT_PAD] = -1e9
-            if self.all_carbon_sampling:
-                # All-carbon mode: skip element diffusion entirely during sampling.
-                # Denoiser sees all-Carbon -> predicts real-atom velocities for all slots.
-                # Ghost/real determined purely from coordinates via mixture posterior.
-                learned_centroid = denoiser_outputs["residue_centroid"] if self.mixture_loss_weight > 0 else None
-                learned_cloud_logvar = (
-                    denoiser_outputs["residue_cloud_logvar"] if self.mixture_loss_weight > 0 else None
-                )
-                mix_post = self.compute_mixture_posterior(
-                    noised_coords=x,
-                    ca_coords=ca_coords,
-                    t=t,
-                    learned_centroid=learned_centroid,
-                    learned_cloud_logvar=learned_cloud_logvar,
-                    residue_lrt_delta=cached_lrt_delta,
-                    residue_count_pred=cached_count_pred,
-                    temperature=mix_temperature,
-                )
-                final_residue_centroid = learned_centroid
-                final_residue_cloud_logvar = learned_cloud_logvar
-                final_mixture_posterior = mix_post
-
-                # At final step, apply mixture to determine ghost/real
-                if t_idx == 0:
-                    is_real = mix_post > 0.5
-                    element_types = torch.where(
-                        is_real,
-                        element_types,  # Keep resolved element type for real slots
-                        torch.zeros_like(element_types),  # PAD=0 for ghost
-                    )
-                # element_types stays all-Carbon during high-noise steps
-            elif self.non_pad_element_sampling and do_element_step:
-                # Non-PAD element sampling: run element reverse among {C,N,O,S} only.
-                # PAD logit is blocked so all 14 slots stay non-PAD throughout.
-                # Ghost/real determined from mixture posterior at t=0.
-                chem_logits = element_logits.clone()
-                chem_logits[..., ELEMENT_PAD] = -1e9
-                element_types = self.element_diffusion.p_sample(
-                    element_types,
-                    t,
-                    chem_logits,
-                )
-
-                # Chemistry collapse: same cosine schedule as training, compressed into [0, cutoff].
-                # Above cutoff -> guaranteed all-Carbon. Below cutoff -> progressively resolve.
-                t_frac = t_idx.float() / max(self.timesteps - 1, 1)
-                t_chem_int = (t_frac / self.late_element_cutoff).clamp(0, 1) * (self.timesteps - 1)
-                t_chem_int = t_chem_int.round().long().clamp(0, self.timesteps - 1)
-                p_keep_chem = self.chem_retention[t_chem_int].item()
-                if p_keep_chem < 1.0:
-                    collapse_rand = torch.rand(element_types.shape, device=device)
-                    should_collapse = collapse_rand >= p_keep_chem
-                    element_types = torch.where(
-                        should_collapse,
-                        torch.ones_like(element_types),  # C=1
-                        element_types,
-                    )
-
-                # Track mixture posterior at every step (for diagnostics)
-                learned_centroid = denoiser_outputs.get("residue_centroid") if self.mixture_loss_weight > 0 else None
-                learned_cloud_logvar = (
-                    denoiser_outputs.get("residue_cloud_logvar") if self.mixture_loss_weight > 0 else None
-                )
-                mix_post = self.compute_mixture_posterior(
-                    noised_coords=x,
-                    ca_coords=ca_coords,
-                    t=t,
-                    learned_centroid=learned_centroid,
-                    learned_cloud_logvar=learned_cloud_logvar,
-                    residue_lrt_delta=cached_lrt_delta,
-                    residue_count_pred=cached_count_pred,
-                    temperature=mix_temperature,
-                )
-                final_residue_centroid = learned_centroid
-                final_residue_cloud_logvar = learned_cloud_logvar
-                final_mixture_posterior = mix_post
-
-                # At final step: mixture posterior determines ghost/real
-                if t_idx == 0:
-                    is_real = mix_post > 0.5
-                    element_types = torch.where(
-                        is_real,
-                        element_types,  # Keep resolved chemistry for real slots
-                        torch.zeros_like(element_types),  # PAD=0 for ghost
-                    )
-            elif self.element_flow_matching and do_element_step:
-                # Element flow matching: OT-path step on probability simplex
-                if step_i + 1 < len(timesteps):
-                    t_elem_prev = torch.full(
-                        (batch_size,), timesteps[step_i + 1].item(), device=device, dtype=torch.long
-                    )
-                else:
-                    t_elem_prev = torch.zeros(batch_size, device=device, dtype=torch.long)
-                soft_element_probs = self.element_flow.reverse_step(soft_element_probs, t, t_elem_prev, element_logits)
-                element_types = soft_element_probs.argmax(dim=-1)
-                # Enforce prefix constraint
-                element_types = apply_prefix_constraint(element_types, exempt_slot0=reserved_slot0_prefix_exempt)
-            elif not self.disable_element_types and do_element_step and not self.split_element_existence:
+            if not self.disable_element_types and do_element_step and not self.split_element_existence:
                 # Temperature schedule: hot at high t to escape all-PAD, cool to 1.0 at t=0
                 if element_sampling_temp_max != 1.0:
                     frac = t_idx.float() / max(self.timesteps - 1, 1)
@@ -9546,303 +8506,171 @@ class InverseFoldingDiffusion(nn.Module):
                 else:
                     elem_temp = 1.0
 
-                if self.mixture_override_pad:
-                    # === Mixture-derived occupancy reverse ===
-                    # PAD/non-PAD from mixture posterior on current coords.
-                    # Chemistry uses proper p_sample with PAD zeroed, then occupancy override.
-                    learned_centroid = denoiser_outputs["residue_centroid"] if self.mixture_loss_weight > 0 else None
-                    learned_cloud_logvar = (
-                        denoiser_outputs["residue_cloud_logvar"] if self.mixture_loss_weight > 0 else None
-                    )
-                    mix_post = self.compute_mixture_posterior(
-                        noised_coords=x,
-                        ca_coords=ca_coords,
-                        t=t,
-                        learned_centroid=learned_centroid,
-                        learned_cloud_logvar=learned_cloud_logvar,
-                        residue_lrt_delta=cached_lrt_delta,
-                        temperature=mix_temperature,
-                    )
-                    # Store for diagnostics
-                    final_residue_centroid = learned_centroid
-                    final_residue_cloud_logvar = learned_cloud_logvar
-                    final_mixture_posterior = mix_post
+                if oracle_sidechain_mask is not None:
+                    gt_mask_bool = oracle_sidechain_mask.bool()
+                    element_logits = element_logits.clone()
+                    # Ghost slots: set PAD logit high, all others low
+                    ghost_mask = ~gt_mask_bool  # (B, L, max_sc)
+                    ghost_logit_vals = torch.full((self.num_element_classes,), -1e9, device=device)
+                    ghost_logit_vals[ELEMENT_PAD] = 0.0
+                    element_logits[ghost_mask] = ghost_logit_vals
 
-                    # Oracle override: use GT mask instead of mixture posterior
-                    if oracle_sidechain_mask is not None:
-                        is_real = oracle_sidechain_mask.bool()
+                # For element_stride > 1, compute the target timestep for this element step.
+                # The posterior needs alpha_bar_prev from the target (not just t-1).
+                if element_stride > 1:
+                    next_elem_step_i = min(step_i + element_stride, len(timesteps) - 1)
+                    t_elem_prev_idx = timesteps[next_elem_step_i]
+                    t_elem_prev = torch.full((batch_size,), t_elem_prev_idx.item(), device=device, dtype=torch.long)
+                    # Override alphas_cumprod_prev for this larger step
+                    elem_alpha_bar_prev = self.element_diffusion.alphas_cumprod[t_elem_prev]
+                    for _ in range(element_types.dim() - 1):
+                        elem_alpha_bar_prev = elem_alpha_bar_prev.unsqueeze(-1)
+                    # Compute effective beta for this larger step:
+                    # beta_eff = 1 - alpha_bar_t / alpha_bar_{t_target}
+                    # (probability of being absorbed between t_target and t)
+                    elem_alpha_bar = self.element_diffusion.alphas_cumprod[t]
+                    for _ in range(element_types.dim() - 1):
+                        elem_alpha_bar = elem_alpha_bar.unsqueeze(-1)
+                    elem_beta = 1.0 - elem_alpha_bar / (elem_alpha_bar_prev + 1e-8)
+                    elem_beta = elem_beta.clamp(min=0, max=0.999)
+
+                # Compute per-slot element schedule for reverse step if groupwise enabled
+                elem_sched_kwargs = {}
+                mask_for_powers = torch.ones(batch_size, seq_len, max_sc, dtype=torch.bool, device=device)
+                elem_slot_powers = self._element_slot_powers(mask_for_powers)
+                sab, sabp, sb = self.element_diffusion.compute_slot_schedule(t, elem_slot_powers)
+                elem_sched_kwargs = {
+                    "slot_alpha_bar": sab,
+                    "slot_alpha_bar_prev": sabp,
+                    "slot_beta": sb,
+                }
+
+                # Sequential slot sampling with prefix constraint:
+                # Sample slot 0 first. If PAD -> all remaining are PAD. Otherwise continue.
+                use_reflow = element_sampling_mode in ("reflow", "reflow_cond")
+                # Threshold hybrid: use reflow only above reflow_start_frac of timesteps
+                if use_reflow and reflow_start_frac < 1.0:
+                    t_frac = t_idx.float() / max(self.timesteps - 1, 1)
+                    use_reflow = t_frac >= (1.0 - reflow_start_frac)
+
+                if element_sampling_mode == "greedy":
+                    # Greedy: use model's argmax x_0 prediction directly as x_{t-1}
+                    # No posterior, no re-corruption -- bypasses PAD bias completely.
+                    # Model sees clean element types at each step (slight train/sample mismatch
+                    # at intermediate noise, but elements carry less info than coordinates).
+                    element_types_new = torch.softmax(element_logits, dim=-1).argmax(dim=-1)
+                elif use_reflow:
+                    # Reflow: predict x_0, re-corrupt to t-1 (bypasses PAD-biased posterior)
+                    reflow_kwargs = {}
+                    if "slot_alpha_bar_prev" in elem_sched_kwargs:
+                        reflow_kwargs["slot_alpha_bar_prev"] = elem_sched_kwargs["slot_alpha_bar_prev"]
+                    conditional = element_sampling_mode == "reflow_cond"
+                    element_types_new = self.element_diffusion.p_sample_reflow(
+                        element_types,
+                        t,
+                        element_logits,
+                        temperature=elem_temp,
+                        conditional=conditional,
+                        **reflow_kwargs,
+                    )
+                else:
+                    # For element_stride > 1 (non-groupwise), override schedule for larger step
+                    # Time-dependent squash schedules
+                    if squash_schedule != "constant" and posterior_pad_squash != 1.0:
+                        t_norm = t_idx.item() / max(self.timesteps - 1, 1)
+                        if squash_schedule == "linear":
+                            # Linear: squash_base at t=T, 1.0 at t=0
+                            effective_squash = 1.0 - (1.0 - posterior_pad_squash) * t_norm
+                        elif squash_schedule.startswith("cosine"):
+                            # Cosine: stays near squash_base longer, only relaxes near t=0
+                            import math
+
+                            effective_squash = posterior_pad_squash + (1.0 - posterior_pad_squash) * (
+                                1.0 - math.cos(math.pi / 2 * (1.0 - t_norm))
+                            )
+                        elif squash_schedule == "step":
+                            # Step: full squash for t > T/2, no squash below
+                            effective_squash = posterior_pad_squash if t_norm > 0.5 else 1.0
+                        else:
+                            effective_squash = posterior_pad_squash
                     else:
-                        is_real = mix_post > 0.5  # (B, L, max_sc)
-
-                    # Chemistry reverse: use p_sample with PAD logit zeroed so the
-                    # posterior and x_t participate (matching the uniform {C,N,O,S}
-                    # forward corruption schedule).
-                    chem_logits = element_logits.clone()
-                    chem_logits[..., ELEMENT_PAD] = -1e9
+                        effective_squash = posterior_pad_squash
                     element_types_new = self.element_diffusion.p_sample(
                         element_types,
                         t,
-                        chem_logits,
+                        element_logits,
                         temperature=elem_temp,
+                        posterior_pad_squash=effective_squash,
+                        absorbing_mask=_sample_absorbing,
+                        **elem_sched_kwargs,
                     )
 
-                    # Apply mixture occupancy: real -> chemistry from p_sample, ghost -> PAD
-                    element_types = torch.where(is_real, element_types_new, torch.zeros_like(element_types_new))
-
-                    # Enforce prefix constraint
-                    element_types = apply_prefix_constraint(element_types, exempt_slot0=reserved_slot0_prefix_exempt)
+                if oracle_sidechain_mask is not None:
+                    # Oracle ablation: enforce GT PAD/non-PAD mask
+                    gt_mask_bool = oracle_sidechain_mask.bool()
+                    # Non-PAD slots that became PAD: restore to C (most common non-PAD element)
+                    element_types_new = torch.where(
+                        gt_mask_bool & (element_types_new == ELEMENT_PAD),
+                        torch.ones_like(element_types_new),  # C=1
+                        element_types_new,
+                    )
+                    # PAD slots must stay PAD
+                    element_types_new = torch.where(
+                        gt_mask_bool, element_types_new, torch.zeros_like(element_types_new)
+                    )
                 else:
-                    # Oracle mode: force ghost slot logits to PAD-dominant before p_sample
-                    # to avoid degenerate multinomial distributions
-                    if oracle_sidechain_mask is not None:
-                        gt_mask_bool = oracle_sidechain_mask.bool()
-                        element_logits = element_logits.clone()
-                        # Ghost slots: set PAD logit high, all others low
-                        ghost_mask = ~gt_mask_bool  # (B, L, max_sc)
-                        ghost_logit_vals = torch.full((self.num_element_classes,), -1e9, device=device)
-                        ghost_logit_vals[ELEMENT_PAD] = 0.0
-                        element_logits[ghost_mask] = ghost_logit_vals
+                    # Enforce prefix constraint: if slot i is PAD, all j>i must be PAD
+                    # Vectorized: cummin on (element != PAD) gives 1,1,...,1,0,0,...,0
+                    element_types_new = apply_prefix_constraint(
+                        element_types_new, exempt_slot0=reserved_slot0_prefix_exempt
+                    )
 
-                    # For element_stride > 1, compute the target timestep for this element step.
-                    # The posterior needs alpha_bar_prev from the target (not just t-1).
-                    if element_stride > 1:
-                        next_elem_step_i = min(step_i + element_stride, len(timesteps) - 1)
-                        t_elem_prev_idx = timesteps[next_elem_step_i]
-                        t_elem_prev = torch.full((batch_size,), t_elem_prev_idx.item(), device=device, dtype=torch.long)
-                        # Override alphas_cumprod_prev for this larger step
-                        elem_alpha_bar_prev = self.element_diffusion.alphas_cumprod[t_elem_prev]
-                        for _ in range(element_types.dim() - 1):
-                            elem_alpha_bar_prev = elem_alpha_bar_prev.unsqueeze(-1)
-                        # Compute effective beta for this larger step:
-                        # beta_eff = 1 - alpha_bar_t / alpha_bar_{t_target}
-                        # (probability of being absorbed between t_target and t)
-                        elem_alpha_bar = self.element_diffusion.alphas_cumprod[t]
-                        for _ in range(element_types.dim() - 1):
-                            elem_alpha_bar = elem_alpha_bar.unsqueeze(-1)
-                        elem_beta = 1.0 - elem_alpha_bar / (elem_alpha_bar_prev + 1e-8)
-                        elem_beta = elem_beta.clamp(min=0, max=0.999)
-
-                    # Compute per-slot element schedule for reverse step if groupwise enabled
-                    elem_sched_kwargs = {}
-                    if self.groupwise_element_schedule:
-                        if self.position_based_element_powers:
-                            # Use all-real mask so every slot gets proximal->distal schedule
-                            # regardless of current PAD state.
-                            mask_for_powers = torch.ones(batch_size, seq_len, max_sc, dtype=torch.bool, device=device)
-                        else:
-                            # Default: use current element state to determine powers (PAD slots get ghost power)
-                            mask_for_powers = element_types != 0  # non-PAD = real
-                        elem_slot_powers = self._element_slot_powers(mask_for_powers)
-                        sab, sabp, sb = self.element_diffusion.compute_slot_schedule(t, elem_slot_powers)
-                        elem_sched_kwargs = {
-                            "slot_alpha_bar": sab,
-                            "slot_alpha_bar_prev": sabp,
-                            "slot_beta": sb,
-                        }
-
-                    # Sequential slot sampling with prefix constraint:
-                    # Sample slot 0 first. If PAD -> all remaining are PAD. Otherwise continue.
-                    use_reflow = element_sampling_mode in ("reflow", "reflow_cond")
-                    # Threshold hybrid: use reflow only above reflow_start_frac of timesteps
-                    if use_reflow and reflow_start_frac < 1.0:
-                        t_frac = t_idx.float() / max(self.timesteps - 1, 1)
-                        use_reflow = t_frac >= (1.0 - reflow_start_frac)
-
-                    if element_sampling_mode == "greedy":
-                        # Greedy: use model's argmax x_0 prediction directly as x_{t-1}
-                        # No posterior, no re-corruption -- bypasses PAD bias completely.
-                        # Model sees clean element types at each step (slight train/sample mismatch
-                        # at intermediate noise, but elements carry less info than coordinates).
-                        element_types_new = torch.softmax(element_logits, dim=-1).argmax(dim=-1)
-                    elif use_reflow:
-                        # Reflow: predict x_0, re-corrupt to t-1 (bypasses PAD-biased posterior)
-                        reflow_kwargs = {}
-                        if "slot_alpha_bar_prev" in elem_sched_kwargs:
-                            reflow_kwargs["slot_alpha_bar_prev"] = elem_sched_kwargs["slot_alpha_bar_prev"]
-                        conditional = element_sampling_mode == "reflow_cond"
-                        element_types_new = self.element_diffusion.p_sample_reflow(
-                            element_types,
-                            t,
-                            element_logits,
-                            temperature=elem_temp,
-                            conditional=conditional,
-                            **reflow_kwargs,
+                    # Enforce ±max_count_delta atom count change per step (mirrors forward process)
+                    # max_count_delta=1 is standard, 0=no clamp (unlimited count changes)
+                    old_count = noised_count.long()  # (B, L) -- count before this step
+                    new_count = (element_types_new != ELEMENT_PAD).sum(dim=-1)  # (B, L)
+                    if max_count_delta > 0:
+                        clamped_count = new_count.clamp(
+                            min=(old_count - max_count_delta).clamp(min=0), max=old_count + max_count_delta
                         )
                     else:
-                        # For element_stride > 1 (non-groupwise), override schedule for larger step
-                        if element_stride > 1 and not self.groupwise_element_schedule:
-                            elem_sched_kwargs = {
-                                "slot_alpha_bar": elem_alpha_bar.expand_as(element_types),
-                                "slot_alpha_bar_prev": elem_alpha_bar_prev.expand_as(element_types),
-                                "slot_beta": elem_beta.expand_as(element_types),
-                            }
-                        # Time-dependent squash schedules
-                        if squash_schedule != "constant" and posterior_pad_squash != 1.0:
-                            t_norm = t_idx.item() / max(self.timesteps - 1, 1)
-                            if squash_schedule == "linear":
-                                # Linear: squash_base at t=T, 1.0 at t=0
-                                effective_squash = 1.0 - (1.0 - posterior_pad_squash) * t_norm
-                            elif squash_schedule.startswith("cosine"):
-                                # Cosine: stays near squash_base longer, only relaxes near t=0
-                                import math
-
-                                effective_squash = posterior_pad_squash + (1.0 - posterior_pad_squash) * (
-                                    1.0 - math.cos(math.pi / 2 * (1.0 - t_norm))
-                                )
-                            elif squash_schedule == "step":
-                                # Step: full squash for t > T/2, no squash below
-                                effective_squash = posterior_pad_squash if t_norm > 0.5 else 1.0
-                            else:
-                                effective_squash = posterior_pad_squash
-                        else:
-                            effective_squash = posterior_pad_squash
-                        element_types_new = self.element_diffusion.p_sample(
-                            element_types,
-                            t,
-                            element_logits,
-                            temperature=elem_temp,
-                            posterior_pad_squash=effective_squash,
-                            absorbing_mask=_sample_absorbing,
-                            **elem_sched_kwargs,
-                        )
-
-                    if oracle_sidechain_mask is not None:
-                        # Oracle ablation: enforce GT PAD/non-PAD mask
-                        gt_mask_bool = oracle_sidechain_mask.bool()
-                        # Non-PAD slots that became PAD: restore to C (most common non-PAD element)
+                        clamped_count = new_count  # no clamping
+                    # If count needs to decrease, zero out the last occupied slot
+                    needs_decrease = new_count > clamped_count  # (B, L)
+                    if needs_decrease.any():
+                        last_occ = (clamped_count).clamp(min=0).long()  # index of first slot to zero
+                        # Zero all slots from clamped_count onward
+                        slot_indices = torch.arange(max_sc, device=device).view(1, 1, max_sc)
+                        decrease_mask = slot_indices < last_occ.unsqueeze(-1)
                         element_types_new = torch.where(
-                            gt_mask_bool & (element_types_new == ELEMENT_PAD),
-                            torch.ones_like(element_types_new),  # C=1
+                            needs_decrease.unsqueeze(-1),
+                            element_types_new * decrease_mask.long(),
                             element_types_new,
                         )
-                        # PAD slots must stay PAD
+                    # If count needs to increase, restore slots from old element_types
+                    needs_increase = new_count < clamped_count  # (B, L)
+                    if needs_increase.any():
+                        target_count = clamped_count  # how many slots should be non-PAD
+                        slot_indices = torch.arange(max_sc, device=device).view(1, 1, max_sc)
+                        restore_mask = (slot_indices < target_count.unsqueeze(-1)) & (element_types_new == ELEMENT_PAD)
+                        # Use old element types for restored slots; if old was also PAD, use C (most common)
+                        restore_values = torch.where(
+                            element_types != ELEMENT_PAD, element_types, torch.ones_like(element_types)
+                        )
                         element_types_new = torch.where(
-                            gt_mask_bool, element_types_new, torch.zeros_like(element_types_new)
-                        )
-                    else:
-                        # Enforce prefix constraint: if slot i is PAD, all j>i must be PAD
-                        # Vectorized: cummin on (element != PAD) gives 1,1,...,1,0,0,...,0
-                        element_types_new = apply_prefix_constraint(
-                            element_types_new, exempt_slot0=reserved_slot0_prefix_exempt
+                            needs_increase.unsqueeze(-1) & restore_mask,
+                            restore_values,
+                            element_types_new,
                         )
 
-                        # Enforce ±max_count_delta atom count change per step (mirrors forward process)
-                        # max_count_delta=1 is standard, 0=no clamp (unlimited count changes)
-                        old_count = noised_count.long()  # (B, L) -- count before this step
-                        new_count = (element_types_new != ELEMENT_PAD).sum(dim=-1)  # (B, L)
-                        if max_count_delta > 0:
-                            clamped_count = new_count.clamp(
-                                min=(old_count - max_count_delta).clamp(min=0), max=old_count + max_count_delta
-                            )
-                        else:
-                            clamped_count = new_count  # no clamping
-                        # If count needs to decrease, zero out the last occupied slot
-                        needs_decrease = new_count > clamped_count  # (B, L)
-                        if needs_decrease.any():
-                            last_occ = (clamped_count).clamp(min=0).long()  # index of first slot to zero
-                            # Zero all slots from clamped_count onward
-                            slot_indices = torch.arange(max_sc, device=device).view(1, 1, max_sc)
-                            decrease_mask = slot_indices < last_occ.unsqueeze(-1)
-                            element_types_new = torch.where(
-                                needs_decrease.unsqueeze(-1),
-                                element_types_new * decrease_mask.long(),
-                                element_types_new,
-                            )
-                        # If count needs to increase, restore slots from old element_types
-                        needs_increase = new_count < clamped_count  # (B, L)
-                        if needs_increase.any():
-                            target_count = clamped_count  # how many slots should be non-PAD
-                            slot_indices = torch.arange(max_sc, device=device).view(1, 1, max_sc)
-                            restore_mask = (slot_indices < target_count.unsqueeze(-1)) & (
-                                element_types_new == ELEMENT_PAD
-                            )
-                            # Use old element types for restored slots; if old was also PAD, use C (most common)
-                            restore_values = torch.where(
-                                element_types != ELEMENT_PAD, element_types, torch.ones_like(element_types)
-                            )
-                            element_types_new = torch.where(
-                                needs_increase.unsqueeze(-1) & restore_mask,
-                                restore_values,
-                                element_types_new,
-                            )
-
-                    element_types = element_types_new
+                element_types = element_types_new
 
             # Existence flow: Euler step on continuous existence variable, then override mask
             # Skip in split mode: existence is handled in the split block above.
-            if (
-                self.use_existence_flow
-                and not self.split_element_existence
-                and existence is not None
-                and existence_velocity is not None
-            ):
-                if t_idx > 0:
-                    t_prev_idx_e = timesteps[step_i + 1]
-                    t_prev_e = torch.full((batch_size,), t_prev_idx_e.item(), device=device, dtype=torch.long)
-                    existence = self.existence_flow.flow_step(
-                        existence.unsqueeze(-1), t, t_prev_e, existence_velocity.unsqueeze(-1)
-                    ).squeeze(-1)
-                else:
-                    # Final step: predict e0 directly from current state and velocity
-                    existence = self.existence_flow.predict_e0_from_velocity(
-                        existence.unsqueeze(-1), t, existence_velocity.unsqueeze(-1)
-                    ).squeeze(-1)
-                # Override element types based on existence threshold
-                is_real = existence >= self.existence_threshold
-                # Real slots that element diffusion set to PAD: restore to C (most common non-PAD)
-                element_types = torch.where(
-                    is_real & (element_types == ELEMENT_PAD),
-                    torch.ones_like(element_types),  # C=1
-                    element_types,
-                )
-                # Ghost slots: force to PAD regardless of element diffusion
-                element_types = torch.where(is_real, element_types, torch.zeros_like(element_types))
-                # Re-enforce prefix constraint after existence override
-                element_types = apply_prefix_constraint(element_types, exempt_slot0=reserved_slot0_prefix_exempt)
 
             # Late element resolution: smooth Carbon collapse + mixture posterior at t=0.
             # Standard element reverse already ran above; now stochastically collapse
             # non-PAD chemistry to Carbon using the same cosine schedule as training.
-            if self.late_element_resolution:
-                t_frac = t_idx.float() / max(self.timesteps - 1, 1)
-                t_chem_int = (t_frac / self.late_element_cutoff).clamp(0, 1) * (self.timesteps - 1)
-                t_chem_int = t_chem_int.round().long().clamp(0, self.timesteps - 1)
-                p_keep_chem = self.chem_retention[t_chem_int].item()
-                if p_keep_chem < 1.0:
-                    collapse_rand = torch.rand(element_types.shape, device=device)
-                    should_collapse = collapse_rand >= p_keep_chem
-                    is_non_pad = element_types > 0
-                    element_types = torch.where(
-                        should_collapse & is_non_pad,
-                        torch.ones_like(element_types),  # C=1
-                        element_types,
-                    )
-                # At final step: mixture posterior determines ghost/real
-                if t_idx == 0:
-                    learned_centroid = (
-                        denoiser_outputs.get("residue_centroid") if self.mixture_loss_weight > 0 else None
-                    )
-                    learned_cloud_logvar = (
-                        denoiser_outputs.get("residue_cloud_logvar") if self.mixture_loss_weight > 0 else None
-                    )
-                    mix_post = self.compute_mixture_posterior(
-                        noised_coords=x,
-                        ca_coords=ca_coords,
-                        t=t,
-                        learned_centroid=learned_centroid,
-                        learned_cloud_logvar=learned_cloud_logvar,
-                        residue_lrt_delta=cached_lrt_delta,
-                        temperature=mix_temperature,
-                    )
-                    final_mixture_posterior = mix_post
-                    final_residue_centroid = learned_centroid
-                    final_residue_cloud_logvar = learned_cloud_logvar
-                    is_real = mix_post > 0.5
-                    element_types = torch.where(
-                        is_real,
-                        element_types,  # Keep resolved chemistry for real slots
-                        torch.zeros_like(element_types),  # PAD=0 for ghost
-                    )
 
             # Freeze-count: at the specified step, snapshot the model's predicted count
             # and enforce as oracle mask for all remaining steps. Uses the model's LOGITS
@@ -9850,30 +8678,18 @@ class InverseFoldingDiffusion(nn.Module):
             # p_sample lags behind the logit predictions -- logits know which slots should
             # be non-PAD well before the actual types transition.
             if freeze_count_step >= 0 and step_i == freeze_count_step and oracle_sidechain_mask is None:
-                if self.split_element_existence and self.existence_absorbing:
-                    # Absorbing existence: REAL=1 is real, GHOST/MASK are ghost
-                    frozen_mask = (existence == EXISTENCE_REAL).long()
-                elif self.split_element_existence:
-                    # Split mode: use existence variable directly (>= threshold = real)
-                    frozen_mask = (existence >= self.existence_threshold).long()
-                else:
-                    # Use logit argmax: the model's best prediction of what each slot should be
-                    pred_types = element_logits.argmax(dim=-1)  # (B, L, max_sc)
-                    frozen_mask = ((pred_types != ELEMENT_PAD) & (pred_types != ELEMENT_MASK)).long()
+                pred_types = element_logits.argmax(dim=-1)  # (B, L, max_sc)
+                frozen_mask = ((pred_types != ELEMENT_PAD) & (pred_types != ELEMENT_MASK)).long()
                 # Enforce prefix constraint on frozen mask
                 prefix_mask, _ = frozen_mask.cummin(dim=-1)
                 oracle_sidechain_mask = prefix_mask
 
             # Update mask from element types (skip in split mode -- already updated from existence)
-            if not self.split_element_existence:
-                noised_mask = (element_types != ELEMENT_PAD).float()
+            noised_mask = (element_types != ELEMENT_PAD).float()
 
             # Update EVC conditioning from current element state (feedback loop).
             # Exclude MASK tokens -- only resolved non-PAD elements are "real".
-            if evc_sampling is not None and self.split_element_existence and not self.existence_absorbing:
-                # Split mode (continuous flow): use existence value directly (updated by flow step above)
-                evc_sampling = existence.clone()
-            elif evc_sampling is not None:
+            if evc_sampling is not None:
                 # Distance-from-CA override: for early steps, use geometric signal
                 # instead of (noisy) element predictions to avoid death spiral.
                 step_frac = 1.0 - step_i / max(num_steps - 1, 1)  # 1.0 at first step -> 0.0 at last
@@ -9882,14 +8698,7 @@ class InverseFoldingDiffusion(nn.Module):
                     dist_from_ca = (x - ca_expanded).norm(dim=-1)  # (B, L, max_sc)
                     # Threshold at 2.0Å with sharpness 2.0: atoms >2Å from CA are likely real
                     evc_sampling = torch.sigmoid((dist_from_ca - 2.0) * 2.0)
-                elif self.evc_soft_conditioning:
-                    # Soft: use P(non-PAD) from element logits for smoother gradients
-                    elem_probs = torch.softmax(element_logits, dim=-1)
-                    evc_sampling = 1.0 - elem_probs[..., ELEMENT_PAD]
-                    if self.num_element_classes > NUM_ELEMENT_TYPES:
-                        evc_sampling = evc_sampling - elem_probs[..., ELEMENT_MASK]
-                    evc_sampling = evc_sampling.clamp(0.0, 1.0)
-                elif getattr(self, "evc_ss_noised_element_prob", 0.0) > 0:
+                if getattr(self, "evc_ss_noised_element_prob", 0.0) > 0:
                     # Honest 3-way read: REAL->1.0, MASK->0.5 (unknown/absorbing), PAD->0.0 (ghost). Matches
                     # the noised-element EVC training signal; MASK is NOT conflated with confirmed ghost.
                     evc_sampling = evc_from_element_state(element_types)
@@ -9922,188 +8731,53 @@ class InverseFoldingDiffusion(nn.Module):
                 x0_prev_element = element_types.detach()
 
             # Denoise step using either DDIM or DDPM
-            if self.coord_process_type == "flow_matching":
-                x_flat = x.view(batch_size, -1, 3)
-                model_output_flat = model_output.view(batch_size, -1, 3)
+            x_flat = x.view(batch_size, -1, 3)
+            model_output_flat = model_output.view(batch_size, -1, 3)
 
-                # Count-based ghost velocity override: blend learned velocity with analytical
-                # ghost velocity (-> CA) based on predicted atom count per residue.
-                # k controls sharpness: k=4 soft sigmoid, k=999 hard threshold.
-                if count_ghost_velocity > 0 and cached_count_pred is not None:
-                    v_ghost = self.coord_flow.analytical_ghost_velocity(x_flat, t, ca_coords)
-                    count_pred = cached_count_pred.detach()  # (B, L)
-                    slot_idx = torch.arange(max_sc, device=device).float().view(1, 1, -1)  # (1, 1, max_sc)
-                    # P(real) per slot via sigmoid: smooth for small k, hard for large k
-                    p_real_slot = torch.sigmoid(count_ghost_velocity * (count_pred.unsqueeze(-1) - slot_idx - 0.5))
-                    # Reshape to flat atom dim: (B, L, max_sc) -> (B, L*max_sc, 1)
-                    p_real_flat = p_real_slot.reshape(batch_size, -1, 1)
-                    model_output_flat = p_real_flat * model_output_flat + (1.0 - p_real_flat) * v_ghost
+            # Count-based ghost velocity override: blend learned velocity with analytical
+            # ghost velocity (-> CA) based on predicted atom count per residue.
+            # k controls sharpness: k=4 soft sigmoid, k=999 hard threshold.
+            if count_ghost_velocity > 0 and cached_count_pred is not None:
+                v_ghost = self.coord_flow.analytical_ghost_velocity(x_flat, t, ca_coords)
+                count_pred = cached_count_pred.detach()  # (B, L)
+                slot_idx = torch.arange(max_sc, device=device).float().view(1, 1, -1)  # (1, 1, max_sc)
+                # P(real) per slot via sigmoid: smooth for small k, hard for large k
+                p_real_slot = torch.sigmoid(count_ghost_velocity * (count_pred.unsqueeze(-1) - slot_idx - 0.5))
+                # Reshape to flat atom dim: (B, L, max_sc) -> (B, L*max_sc, 1)
+                p_real_flat = p_real_slot.reshape(batch_size, -1, 1)
+                model_output_flat = p_real_flat * model_output_flat + (1.0 - p_real_flat) * v_ghost
 
-                # EVC-gated velocity: blend learned velocity with ghost velocity using EVC state
-                if evc_sampling is not None and getattr(self, "evc_velocity_blend", False):
-                    v_ghost = self.coord_flow.analytical_ghost_velocity(x_flat, t, ca_coords)
-                    p_real_flat = evc_sampling.reshape(batch_size, -1, 1)  # (B, L*max_sc, 1)
-                    model_output_flat = p_real_flat * model_output_flat + (1.0 - p_real_flat) * v_ghost
+            # EVC-gated velocity: blend learned velocity with ghost velocity using EVC state
+            if evc_sampling is not None and getattr(self, "evc_velocity_blend", False):
+                v_ghost = self.coord_flow.analytical_ghost_velocity(x_flat, t, ca_coords)
+                p_real_flat = evc_sampling.reshape(batch_size, -1, 1)  # (B, L*max_sc, 1)
+                model_output_flat = p_real_flat * model_output_flat + (1.0 - p_real_flat) * v_ghost
 
-                # Split velocity: blend learned v_real with analytical v_ghost
-                if self.use_split_velocity or self.split_velocity_sampling_only:
-                    v_ghost = self.coord_flow.analytical_ghost_velocity(x_flat, t, ca_coords)  # (B, num_atoms, 3)
-                    # Get P(real) from mixture posterior (compute if not already available)
-                    if final_mixture_posterior is not None:
-                        sv_p_real = final_mixture_posterior
-                    else:
-                        sv_lc = denoiser_outputs.get("residue_centroid") if self.mixture_loss_weight > 0 else None
-                        sv_lv = denoiser_outputs.get("residue_cloud_logvar") if self.mixture_loss_weight > 0 else None
-                        sv_p_real = self.compute_mixture_posterior(
-                            noised_coords=x,
-                            ca_coords=ca_coords,
-                            t=t,
-                            learned_centroid=sv_lc,
-                            learned_cloud_logvar=sv_lv,
-                            residue_lrt_delta=cached_lrt_delta,
-                            residue_count_pred=cached_count_pred,
-                            temperature=mix_temperature,
-                        )
-                    # Expand P(real) to match flat atom dim: (B, L, max_sc) -> (B, L*max_sc, 1)
-                    sv_p_real_flat = sv_p_real.reshape(batch_size, -1, 1)
-                    # Keep unblended v_real for final-step x0 inversion
-                    sv_v_real_flat = model_output_flat
-                    blended_v = sv_p_real_flat * model_output_flat + (1.0 - sv_p_real_flat) * v_ghost
-                    model_output_flat = blended_v
+            # Split velocity: blend learned v_real with analytical v_ghost
 
-                if t_idx > 0:
-                    t_prev_idx = timesteps[step_i + 1]
-                    t_prev = torch.full((batch_size,), t_prev_idx.item(), device=device, dtype=torch.long)
-                    x = self.coord_flow.flow_step(x_flat, t, t_prev, model_output_flat).view_as(x)
-                else:
-                    if self.use_split_velocity or self.split_velocity_sampling_only:
-                        # Final step: predict x0_real from v_real, then blend with CA for ghost slots.
-                        # Cannot invert blended velocity because ghost and real components use
-                        # different power schedules.
-                        if self.use_split_velocity:
-                            # Full split velocity: model was trained with all-real powers
-                            sv_x0_mask_probs = torch.ones(batch_size, seq_len * max_sc, 1, device=device)
-                        else:
-                            # Sampling-only split: model was trained with standard per-slot powers
-                            sv_x0_mask_probs = noised_mask.view(batch_size, -1, 1)
-                        x0_real = self.coord_flow.predict_x0_from_velocity(
-                            x_flat,
-                            t,
-                            sv_v_real_flat,
-                            ca_coords=ca_coords,
-                            mask_probs=sv_x0_mask_probs,
-                        )
-                        x0_ca = ca_expanded.reshape(batch_size, seq_len * max_sc, 3)
-                        x = (sv_p_real_flat * x0_real + (1.0 - sv_p_real_flat) * x0_ca).view_as(x)
-                    else:
-                        x = self.coord_flow.predict_x0_from_velocity(
-                            x_flat,
-                            t,
-                            model_output_flat,
-                            ca_coords=ca_coords,
-                            mask_probs=noised_mask.view(batch_size, -1, 1),
-                        ).view_as(x)
-            elif use_ddim:
-                # DDIM sampling: deterministic when eta=0, avoids error accumulation
-                # ddim_step handles prediction_type internally
-                if t_idx > 0:
-                    t_prev_idx = timesteps[step_i + 1]
-                    t_prev = torch.full((batch_size,), t_prev_idx.item(), device=device, dtype=torch.long)
-                    x = self.diffusion.ddim_step(
-                        x.view(batch_size, -1, 3),
-                        t,
-                        t_prev,
-                        model_output.view(batch_size, -1, 3),
-                        eta=ddim_eta,
-                        ca_coords=ca_coords,
-                    ).view_as(x)
-                else:
-                    # Final step: just predict x_0 using appropriate method
-                    if self.prediction_type == "v":
-                        x = self.diffusion.predict_x0_from_v(
-                            x.view(batch_size, -1, 3),
-                            t,
-                            model_output.view(batch_size, -1, 3),
-                            ca_coords=ca_coords,
-                        ).view_as(x)
-                    elif self.prediction_type == "epsilon":
-                        x = self.diffusion.predict_x0_from_noise(
-                            x.view(batch_size, -1, 3),
-                            t,
-                            model_output.view(batch_size, -1, 3),
-                            ca_coords=ca_coords,
-                        ).view_as(x)
-                    else:  # x0
-                        x = model_output
+            if t_idx > 0:
+                t_prev_idx = timesteps[step_i + 1]
+                t_prev = torch.full((batch_size,), t_prev_idx.item(), device=device, dtype=torch.long)
+                x = self.coord_flow.flow_step(x_flat, t, t_prev, model_output_flat).view_as(x)
             else:
-                # DDPM sampling: stochastic posterior sampling
-                # First, get x_0 prediction using appropriate method
-                if self.prediction_type == "v":
-                    x_0_pred = self.diffusion.predict_x0_from_v(
-                        x.view(batch_size, -1, 3),
-                        t,
-                        model_output.view(batch_size, -1, 3),
-                        ca_coords=ca_coords,
-                    ).view_as(x)
-                elif self.prediction_type == "epsilon":
-                    x_0_pred = self.diffusion.predict_x0_from_noise(
-                        x.view(batch_size, -1, 3),
-                        t,
-                        model_output.view(batch_size, -1, 3),
-                        ca_coords=ca_coords,
-                    ).view_as(x)
-                else:  # x0
-                    x_0_pred = model_output
-
-                if t_idx > 0:
-                    # CRITICAL: q_posterior_mean_variance must operate in the same space
-                    # as q_sample. Coordinates are diffused CA-relatively, so computing the
-                    # posterior directly in global coordinates introduces a CA drift term at
-                    # high noise. Compute posterior in CA-relative space, then add CA back.
-                    x_0_pred_rel = (x_0_pred - ca_expanded).view(batch_size, -1, 3)
-                    x_rel = (x - ca_expanded).view(batch_size, -1, 3)
-                    posterior_mean_rel, posterior_var, _ = self.diffusion.q_posterior_mean_variance(
-                        x_0_pred_rel,
-                        x_rel,
-                        t,
-                    )
-                    posterior_mean_rel = posterior_mean_rel.view_as(x)
-                    # Posterior variance must be scaled by noise_scale² since forward process uses noise * noise_scale
-                    posterior_std = torch.sqrt(posterior_var).unsqueeze(-1) * self.diffusion.noise_scale
-
-                    noise = torch.randn_like(x)
-                    x_rel = posterior_mean_rel + posterior_std * noise
-                    x = x_rel + ca_expanded
-                else:
-                    x = x_0_pred
+                x = self.coord_flow.predict_x0_from_velocity(
+                    x_flat,
+                    t,
+                    model_output_flat,
+                    ca_coords=ca_coords,
+                    mask_probs=noised_mask.view(batch_size, -1, 1),
+                ).view_as(x)
 
             # Disc-guided count adjustment every k steps
             if disc_count_guidance is not None and (t_idx.item() % disc_count_guidance_k == 0):
                 # Get predicted x0 coords for scoring
-                if self.coord_process_type == "flow_matching":
-                    x0_for_disc = self.coord_flow.predict_x0_from_velocity(
-                        x.view(batch_size, -1, 3),
-                        t,
-                        model_output.view(batch_size, -1, 3),
-                        ca_coords=ca_coords,
-                        mask_probs=noised_mask.view(batch_size, -1, 1),
-                    ).view(batch_size, seq_len, max_sc, 3)
-                elif self.prediction_type == "v":
-                    x0_for_disc = self.diffusion.predict_x0_from_v(
-                        x.view(batch_size, -1, 3),
-                        t,
-                        model_output.view(batch_size, -1, 3),
-                        ca_coords=ca_coords,
-                    ).view(batch_size, seq_len, max_sc, 3)
-                elif self.prediction_type == "epsilon":
-                    x0_for_disc = self.diffusion.predict_x0_from_noise(
-                        x.view(batch_size, -1, 3),
-                        t,
-                        model_output.view(batch_size, -1, 3),
-                        ca_coords=ca_coords,
-                    ).view(batch_size, seq_len, max_sc, 3)
-                else:
-                    x0_for_disc = model_output.view(batch_size, seq_len, max_sc, 3)
+                x0_for_disc = self.coord_flow.predict_x0_from_velocity(
+                    x.view(batch_size, -1, 3),
+                    t,
+                    model_output.view(batch_size, -1, 3),
+                    ca_coords=ca_coords,
+                    mask_probs=noised_mask.view(batch_size, -1, 1),
+                ).view(batch_size, seq_len, max_sc, 3)
 
                 # Pass ghost_weight so PAD slots contribute softly to NDM (matching training),
                 # and element types so element-aware references can be used.
@@ -10160,29 +8834,8 @@ class InverseFoldingDiffusion(nn.Module):
 
             # Track atom counts if requested
             if return_intermediates:
-                if self.use_cluster_particle_diffusion and noised_cluster_ids is not None:
-                    valid_seq_mask = (
-                        seq_mask
-                        if seq_mask is not None
-                        else torch.ones(batch_size, seq_len, dtype=torch.bool, device=device)
-                    )
-                    cluster_expected_counts = cluster_occupancy_probs.sum(dim=-1)
-                    cluster_expected_counts = cluster_expected_counts.sum(dim=-1).tolist()
-                    unique_counts = []
-                    for b in range(batch_size):
-                        total_unique = 0
-                        for seq_idx in range(seq_len):
-                            if not valid_seq_mask[b, seq_idx]:
-                                continue
-                            total_unique += torch.unique(noised_cluster_ids[b, seq_idx]).numel()
-                        unique_counts.append(float(total_unique))
-                    intermediate_atom_counts.append(unique_counts)
-                    intermediate_cluster_expected_counts.append(cluster_expected_counts)
-                    intermediate_cluster_unique_counts.append(unique_counts)
-                else:
-                    # Count atoms per sample in current mask state: (B,)
-                    current_counts = noised_mask.float().view(batch_size, -1).sum(dim=-1).tolist()
-                    intermediate_atom_counts.append(current_counts)
+                current_counts = noised_mask.float().view(batch_size, -1).sum(dim=-1).tolist()
+                intermediate_atom_counts.append(current_counts)
 
                 # Mixture-model soft count: sum of P(real|x_t) across all slots per sample.
                 # This counts atoms by their likelihood of being in the non-ghost component,
@@ -10206,93 +8859,57 @@ class InverseFoldingDiffusion(nn.Module):
 
                 # Post-update hard count: non-PAD elements per residue -> (B, L)
                 # In split mode, use noised_mask (from existence) rather than element_types != PAD
-                if self.split_element_existence:
-                    per_res_hard = noised_mask.sum(dim=-1)  # (B, L)
-                    intermediate_per_res_hard.append(per_res_hard.detach().cpu())
-                    intermediate_slot_non_pad_post.append(noised_mask.bool().detach().cpu())
-                else:
-                    per_res_hard = (element_types != ELEMENT_PAD).float().sum(dim=-1)  # (B, L)
-                    intermediate_per_res_hard.append(per_res_hard.detach().cpu())
-                    intermediate_slot_non_pad_post.append((element_types != ELEMENT_PAD).detach().cpu())
+                per_res_hard = (element_types != ELEMENT_PAD).float().sum(dim=-1)  # (B, L)
+                intermediate_per_res_hard.append(per_res_hard.detach().cpu())
+                intermediate_slot_non_pad_post.append((element_types != ELEMENT_PAD).detach().cpu())
 
         # Collapse any remaining MASK tokens after sampling.
         # MASK should resolve to {PAD,C,N,O,S} during reverse, but if any linger:
         # use per-slot shell radii as threshold -- atoms within half the slot's shell
         # radius from CA are likely ghost (-> PAD), others are real (-> Carbon).
         # Skip in split mode: element types already converted to original encoding.
-        if self.donut_element_init == "mask" and not self.split_element_existence:
-            from .diffusion import ELEMENT_MASK
+        from .diffusion import ELEMENT_MASK
 
-            is_mask = element_types == ELEMENT_MASK
-            n_mask = is_mask.sum().item()
-            n_total = element_types.numel()
-            if is_mask.any():
-                ca_exp = ca_coords.unsqueeze(2).expand_as(x)
-                dist_to_ca = (x - ca_exp).norm(dim=-1)  # (B, L, max_sc)
-                # Per-slot threshold: half the shell radius (atoms that collapsed toward CA are ghost),
-                # with the FEATURE 4 distal cap. Sample site -> epoch=None -> fully-ramped cap; shares the
-                # helper with the forward + sample-init sites so existence classification stays consistent.
-                shell_radii = self.coord_flow._shell_radii  # (max_sc,)
-                threshold = (
-                    self._distal_read_threshold(shell_radii, epoch=None).view(1, 1, max_sc).expand_as(dist_to_ca)
-                )
-                collapse_to_pad = dist_to_ca < threshold
-                n_to_pad = (is_mask & collapse_to_pad).sum().item()
-                n_to_carbon = (is_mask & ~collapse_to_pad).sum().item()
-                print(
-                    f"  MASK collapse: {n_mask}/{n_total} ({100 * n_mask / n_total:.1f}%) remaining -> "
-                    f"{n_to_pad} PAD + {n_to_carbon} Carbon"
-                )
-                element_types = torch.where(is_mask & collapse_to_pad, torch.zeros_like(element_types), element_types)
-                element_types = torch.where(
-                    is_mask & ~collapse_to_pad, torch.ones_like(element_types), element_types
-                )  # Carbon=1
-            else:
-                print(f"  MASK collapse: 0/{n_total} remaining (all resolved)")
+        is_mask = element_types == ELEMENT_MASK
+        n_mask = is_mask.sum().item()
+        n_total = element_types.numel()
+        if is_mask.any():
+            ca_exp = ca_coords.unsqueeze(2).expand_as(x)
+            dist_to_ca = (x - ca_exp).norm(dim=-1)  # (B, L, max_sc)
+            # Per-slot threshold: half the shell radius (atoms that collapsed toward CA are ghost),
+            # with the FEATURE 4 distal cap. Sample site -> epoch=None -> fully-ramped cap; shares the
+            # helper with the forward + sample-init sites so existence classification stays consistent.
+            shell_radii = self.coord_flow._shell_radii  # (max_sc,)
+            threshold = self._distal_read_threshold(shell_radii, epoch=None).view(1, 1, max_sc).expand_as(dist_to_ca)
+            collapse_to_pad = dist_to_ca < threshold
+            n_to_pad = (is_mask & collapse_to_pad).sum().item()
+            n_to_carbon = (is_mask & ~collapse_to_pad).sum().item()
+            print(
+                f"  MASK collapse: {n_mask}/{n_total} ({100 * n_mask / n_total:.1f}%) remaining -> "
+                f"{n_to_pad} PAD + {n_to_carbon} Carbon"
+            )
+            element_types = torch.where(is_mask & collapse_to_pad, torch.zeros_like(element_types), element_types)
+            element_types = torch.where(
+                is_mask & ~collapse_to_pad, torch.ones_like(element_types), element_types
+            )  # Carbon=1
+        else:
+            print(f"  MASK collapse: 0/{n_total} remaining (all resolved)")
 
         # Predicted mask: derived from final element types (PAD=0 -> absent)
         predicted_mask = element_types != ELEMENT_PAD
-        if self.use_cluster_particle_diffusion and noised_cluster_ids is not None:
-            raw_particle_coords = x
-            if cluster_occupancy_probs is None:
-                raw_particle_mask = torch.ones_like(predicted_mask, dtype=torch.bool)
-            else:
-                active_cluster_mask = cluster_occupancy_probs > 0.5
-                raw_particle_mask = torch.gather(active_cluster_mask, 2, noised_cluster_ids)
-            merged_coords, merged_elements, merged_mask = self._merge_cluster_predictions(
-                raw_particle_coords,
-                element_types,
-                raw_particle_mask,
-                noised_cluster_ids,
-            )
-            element_types = torch.where(merged_mask, merged_elements, torch.full_like(merged_elements, -1))
-            x = merged_coords * merged_mask.unsqueeze(-1).float()
-            predicted_mask = merged_mask
-            result = {
-                "sidechain_coords": x,
-                "element_types": element_types,
-                "predicted_mask": predicted_mask,
-                "raw_particle_coords": raw_particle_coords,
-                "raw_particle_mask": raw_particle_mask,
-                "predicted_cluster_ids": noised_cluster_ids,
-            }
-        else:
-            # Capture un-zeroed final x0 BEFORE masking: ghost/PAD slots have flowed to ~Ca
-            # here, but the next line zeroes them to the origin. raw_coords preserves the true
-            # positions for the ghost/real -> Ca two-component-mixture diagnostic.
-            raw_coords = x.clone()
-            # PAD slots already have element_type=0; zero out their coords
-            x = x * predicted_mask.unsqueeze(-1).float()
-            result = {
-                "sidechain_coords": x,
-                "element_types": element_types,
-                "predicted_mask": predicted_mask,
-                "raw_coords": raw_coords,
-            }
-            if return_coord_trajectory:
-                result["coord_trajectory"] = coord_traj
-                result["elem_trajectory"] = elem_traj
-                result["mask_trajectory"] = mask_traj
+        raw_coords = x.clone()
+        # PAD slots already have element_type=0; zero out their coords
+        x = x * predicted_mask.unsqueeze(-1).float()
+        result = {
+            "sidechain_coords": x,
+            "element_types": element_types,
+            "predicted_mask": predicted_mask,
+            "raw_coords": raw_coords,
+        }
+        if return_coord_trajectory:
+            result["coord_trajectory"] = coord_traj
+            result["elem_trajectory"] = elem_traj
+            result["mask_trajectory"] = mask_traj
         if noised_cluster_ids is not None and not self.use_cluster_particle_diffusion:
             result["predicted_cluster_ids"] = noised_cluster_ids
 
