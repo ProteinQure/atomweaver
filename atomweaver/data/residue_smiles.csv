@@ -1,0 +1,1244 @@
+resname,name,type,natural_analog,smiles,smiles_stereo,n_sidechain_atoms,n_sources,status
+004,L-Phenylglycine,alpha,X,NC(C(=O)O)c1ccccc1,N[C@H](C(=O)O)c1ccccc1,6,1,ok
+00B,"(R)-5,5-dimethylthiazolidine-4-carboxylic acid",alpha,P,CC1(C)SCNC1C(=O)O,CC1(C)SCN[C@@H]1C(=O)O,5,1,ok
+00C,D-Cysteic acid,alpha,X,NC(CS(=O)(=O)O)C(=O)O,N[C@H](CS(=O)(=O)O)C(=O)O,5,1,ok
+00O,"3,3-Diphenyl-D-Alanine",alpha,F,NC(C(=O)O)C(c1ccccc1)c1ccccc1,N[C@@H](C(=O)O)C(c1ccccc1)c1ccccc1,13,1,ok
+01N,N-(carboxymethyl)-3-cyclohexyl-D-alanine,alpha,A,O=C(O)CNC(CC1CCCCC1)C(=O)O,O=C(O)CN[C@H](CC1CCCCC1)C(=O)O,11,1,ok
+02A,L-Azetidine-2-carboxylic acid,alpha,P,O=C(O)C1CCN1,O=C(O)[C@@H]1CCN1,2,1,ok
+02K,1-aminocyclohexane-1-carboxylic acid,alpha,X,NC1(C(=O)O)CCCCC1,NC1(C(=O)O)CCCCC1,5,1,ok
+02L,"N-(2,2-dimethylpropyl)-L-asparagine",alpha,N,CC(C)(C)CNC(=O)CC(N)C(=O)O,CC(C)(C)CNC(=O)C[C@H](N)C(=O)O,9,1,ok
+02O,"3-(3-tert-butyl-1,2,4-oxadiazol-5-yl)-L-alanine",alpha,F,CC(C)(C)c1noc(CC(N)C(=O)O)n1,CC(C)(C)c1noc(C[C@H](N)C(=O)O)n1,10,1,ok
+02V,"(2S)-(3,4-dihydroxyphenyl)(methylamino)ethanoic acid",alpha,X,CNC(C(=O)O)c1ccc(O)c(O)c1,CN[C@H](C(=O)O)c1ccc(O)c(O)c1,9,1,ok
+037,"(1S,3aR,6aS)-Octahydrocyclopenta[c]pyrrole-1-carboxylic acid",alpha,P,O=C(O)C1NCC2CCCC21,O=C(O)[C@H]1NC[C@@H]2CCC[C@@H]21,6,1,ok
+03E,1-aminocycloheptane-1-carboxylic acid,alpha,X,NC1(C(=O)O)CCCCCC1,NC1(C(=O)O)CCCCCC1,6,1,ok
+03Y,2-methyl-L-cysteine,alpha,C,CC(N)(CS)C(=O)O,C[C@](N)(CS)C(=O)O,3,1,ok
+04Q,N-Benzyl-Glycine,alpha,G,O=C(O)CNCc1ccccc1,O=C(O)CNCc1ccccc1,7,1,ok
+04X,"(2S)-5-(morpholin-4-ylmethyl)-1,2,3,6-tetrahydropyridine-2-carboxylic acid",alpha,P,O=C(O)C1CC=C(CN2CCOCC2)CN1,O=C(O)[C@@H]1CC=C(CN2CCOCC2)CN1,11,1,ok
+05N,"(3R,4R)-4-hydroxy-3-methyl-L-proline",alpha,P,CC1C(O)CNC1C(=O)O,C[C@@H]1[C@@H](C(=O)O)NC[C@@H]1O,5,1,ok
+05O,(2S)-2-amino-3-[4-(trifluoromethoxy)phenyl]propanal,alpha,Y,NC(Cc1ccc(OC(F)(F)F)cc1)C(=O)O,N[C@@H](Cc1ccc(OC(F)(F)F)cc1)C(=O)O,12,1,ok
+060,S-methyl-D-cysteine,alpha,C,CSCC(N)C(=O)O,CSC[C@@H](N)C(=O)O,3,1,ok
+07O,S-[(2S)-2-phenylpropanoyl]-L-cysteine,alpha,C,CC(C(=O)SCC(N)C(=O)O)c1ccccc1,C[C@H](C(=O)SC[C@H](N)C(=O)O)c1ccccc1,12,1,ok
+08M,N~5~-(pyrazin-2-ylcarbonyl)-L-ornithine,alpha,K,NC(CCCNC(=O)c1cnccn1)C(=O)O,N[C@@H](CCCNC(=O)c1cnccn1)C(=O)O,12,1,ok
+08P,N-(carboxycarbonyl)-D-cysteine,alpha,C,O=C(O)C(=O)NC(CS)C(=O)O,O=C(O)C(=O)N[C@H](CS)C(=O)O,7,1,ok
+0A0,alpha-methyl-L-aspartic acid,alpha,D,CC(N)(CC(=O)O)C(=O)O,C[C@](N)(CC(=O)O)C(=O)O,5,1,ok
+0A1,O-Methyl-L-Tyrosine,alpha,Y,COc1ccc(CC(N)C(=O)O)cc1,COc1ccc(C[C@H](N)C(=O)O)cc1,9,1,ok
+0A8,S-[(2-chloroethyl)carbamoyl]-L-cysteine,alpha,C,NC(CSC(=O)NCCCl)C(=O)O,N[C@@H](CSC(=O)NCCCl)C(=O)O,8,1,ok
+0AF,7-hydroxy-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2c(O)cccc12)C(=O)O,N[C@@H](Cc1c[nH]c2c(O)cccc12)C(=O)O,11,1,ok
+0AH,O-(bromoacetyl)-L-serine,alpha,S,NC(COC(=O)CBr)C(=O)O,N[C@@H](COC(=O)CBr)C(=O)O,6,1,ok
+0AK,(2S)-2-amino-4-(2-chloroethoxy)-4-oxobutanoic acid,alpha,D,NC(CC(=O)OCCCl)C(=O)O,N[C@@H](CC(=O)OCCCl)C(=O)O,7,1,ok
+0AR,N-[N-[(4S)-4-azanyl-5-hydroxy-5-oxo-pentyl]carbamimidoyl]ethanamide,alpha,R,[H]N=C(NCCCC(N)C(=O)O)NC(C)=O,[H]/N=C(/NCCC[C@H](N)C(=O)O)NC(C)=O,10,1,ok
+0BN,4-Carbamimidoyl-L-Phenylalanine,alpha,F,N=C(N)c1ccc(CC(N)C(=O)O)cc1,N=C(N)c1ccc(C[C@H](N)C(=O)O)cc1,10,1,ok
+0CS,3-[(S)-HYDROPEROXYSULFINYL]-L-ALANINE,alpha,X,NC(CS(=O)OO)C(=O)O,N[C@@H](C[S@@](=O)OO)C(=O)O,5,1,ok
+0E5,"(2S,3R)-2-azanyl-3-methyl-3-oxidanyl-pentanoic acid",alpha,T,CCC(C)(O)C(N)C(=O)O,CC[C@@](C)(O)[C@H](N)C(=O)O,5,1,ok
+0EA,"(betaR)-beta,3-dihydroxy-N-methyl-L-tyrosine",alpha,Y,CNC(C(=O)O)C(O)c1ccc(O)c(O)c1,CN[C@H](C(=O)O)[C@H](O)c1ccc(O)c(O)c1,11,1,ok
+0EH,(2R)-2-amino-2-methylnonanoic acid,alpha,X,CCCCCCCC(C)(N)C(=O)O,CCCCCCC[C@@](C)(N)C(=O)O,8,1,ok
+0FL,3-amino-N-formyl-L-alanine,beta,X,NCC(NC=O)C(=O)O,NC[C@H](NC=O)C(=O)O,4,1,ok
+0LF,(4R)-4-(4-phenylbutoxy)-L-proline,alpha,P,O=C(O)C1CC(OCCCCc2ccccc2)CN1,O=C(O)[C@@H]1C[C@@H](OCCCCc2ccccc2)CN1,14,1,ok
+0PR,N-({3-hydroxy-2-methyl-5-[(phosphonooxy)methyl]pyridin-4-yl}methyl)-L-tyrosine,alpha,Y,Cc1ncc(COP(=O)(O)O)c(CNC(Cc2ccc(O)cc2)C(=O)O)c1O,Cc1ncc(COP(=O)(O)O)c(CN[C@@H](Cc2ccc(O)cc2)C(=O)O)c1O,23,1,ok
+0QL,3-[(2-aminoethyl)disulfanyl]-L-alanine,alpha,C,NCCSSCC(N)C(=O)O,NCCSSC[C@H](N)C(=O)O,6,1,ok
+0QZ,D-Isoserine,beta,X,NCC(O)C(=O)O,NC[C@@H](O)C(=O)O,2,1,ok
+0RJ,3-(formylamino)-L-alanine,alpha,X,NC(CNC=O)C(=O)O,N[C@@H](CNC=O)C(=O)O,4,1,ok
+0TD,(3S)-3-(methylsulfanyl)-L-aspartic acid,alpha,C,CSC(C(=O)O)C(N)C(=O)O,CS[C@H](C(=O)O)[C@H](N)C(=O)O,6,1,ok
+0UZ,(2R)-amino(3-chloro-4-hydroxyphenyl)ethanoic acid,alpha,X,NC(C(=O)O)c1ccc(O)c(Cl)c1,N[C@@H](C(=O)O)c1ccc(O)c(Cl)c1,8,1,ok
+0W6,(4S)-4-aminopentanoic acid,gamma,A,CC(N)CCC(=O)O,C[C@H](N)CCC(=O)O,3,1,ok
+0WZ,3-(1H-pyrazol-1-yl)-L-tyrosine,alpha,Y,NC(Cc1ccc(O)c(-n2cccn2)c1)C(=O)O,N[C@@H](Cc1ccc(O)c(-n2cccn2)c1)C(=O)O,13,1,ok
+0XL,Diethyl-Glycine,alpha,L,CCC(N)(CC)C(=O)O,CCC(N)(CC)C(=O)O,4,1,ok
+0XO,2-methyl-D-lysine,alpha,K,CC(N)(CCCCN)C(=O)O,C[C@@](N)(CCCCN)C(=O)O,6,1,ok
+0XQ,"(2R)-2,8-diamino-2-methyloctanoic acid",alpha,X,CC(N)(CCCCCCN)C(=O)O,C[C@@](N)(CCCCCCN)C(=O)O,8,1,ok
+0Y8,(4R)-4-[(7-bromoisoquinolin-1-yl)oxy]-L-proline,alpha,P,O=C(O)C1CC(Oc2nccc3ccc(Br)cc23)CN1,O=C(O)[C@@H]1C[C@@H](Oc2nccc3ccc(Br)cc23)CN1,15,1,ok
+0Y9,"(1R,2S)-1-amino-2-ethenylcyclopropanecarboxylic acid",alpha,X,C=CC1CC1(N)C(=O)O,C=C[C@@H]1C[C@]1(N)C(=O)O,4,1,ok
+11W,(4R)-4-[(2E)-3-{4-[(E)-phenyldiazenyl]phenyl}prop-2-en-1-yl]-L-glutamic acid,alpha,X,NC(CC(CC=Cc1ccc(N=Nc2ccccc2)cc1)C(=O)O)C(=O)O,N[C@@H](C[C@@H](C/C=C/c1ccc(/N=N/c2ccccc2)cc1)C(=O)O)C(=O)O,22,1,ok
+13E,N-[(2S)-2-amino-3-phenylpropyl]-L-methionine,delta,F,CSCCC(NCC(N)Cc1ccccc1)C(=O)O,CSCC[C@H](NC[C@@H](N)Cc1ccccc1)C(=O)O,14,1,ok
+143,"S-2,3-DIHYDRO-5-GLYCIN-2-YL-ISOXAZOL-3-YL-CYSTEINE",alpha,C,NC(CSC1C=C(C(N)C(=O)O)ON1)C(=O)O,N[C@H](C(=O)O)C1=C[C@@H](SC[C@H](N)C(=O)O)NO1,12,1,ok
+192,1-Aminocyclobutanecarboxylic acid,alpha,X,NC1(C(=O)O)CCC1,NC1(C(=O)O)CCC1,3,1,ok
+193,(2S)-4-(BETA-ALANYLAMINO)-2-AMINOBUTANOIC ACID,alpha,X,NCCC(=O)NCCC(N)C(=O)O,NCCC(=O)NCC[C@H](N)C(=O)O,8,1,ok
+19W,(2S)-2-amino-5-aminooxypentanoic acid,alpha,X,NOCCCC(N)C(=O)O,NOCCC[C@H](N)C(=O)O,5,1,ok
+1AC,1-aminocyclopropane-1-carboxylic acid,alpha,X,NC1(C(=O)O)CC1,NC1(C(=O)O)CC1,2,1,ok
+1E3,"(2S)-2,9-diaminononanoic acid",alpha,X,NCCCCCCCC(N)C(=O)O,NCCCCCCC[C@H](N)C(=O)O,8,1,ok
+1IC,O-octanoyl-D-serine,alpha,S,CCCCCCCC(=O)OCC(N)C(=O)O,CCCCCCCC(=O)OC[C@@H](N)C(=O)O,11,1,ok
+1IP,N~2~-(PHOSPHONOACETYL)-L-ASPARAGINE,alpha,N,NC(=O)CC(NC(=O)CP(=O)(O)O)C(=O)O,NC(=O)C[C@H](NC(=O)CP(=O)(O)O)C(=O)O,11,1,ok
+1JM,4-carboxy-N-methyl-D-phenylalanine,alpha,F,CNC(Cc1ccc(C(=O)O)cc1)C(=O)O,CN[C@H](Cc1ccc(C(=O)O)cc1)C(=O)O,11,1,ok
+1MH,"3-(3-Pyridyl)-L-Alanine, 3-Pya",alpha,F,NC(Cc1cccnc1)C(=O)O,N[C@@H](Cc1cccnc1)C(=O)O,7,1,ok
+1OP,O-(5-hydroxypentyl)-L-tyrosine,alpha,Y,NC(Cc1ccc(OCCCCCO)cc1)C(=O)O,N[C@@H](Cc1ccc(OCCCCCO)cc1)C(=O)O,14,1,ok
+1PA,(2S)-2-amino-3-[4-(carboxymethyl)phenyl]propanoic acid,alpha,F,NC(Cc1ccc(CC(=O)O)cc1)C(=O)O,N[C@@H](Cc1ccc(CC(=O)O)cc1)C(=O)O,11,1,ok
+1QI,"(2R,4S,5S)-5-azanyl-6-methyl-4-oxidanyl-2-(phenylmethyl)heptanoic acid",delta,F,CC(C)C(N)C(O)CC(Cc1ccccc1)C(=O)O,CC(C)[C@H](N)[C@@H](O)C[C@@H](Cc1ccccc1)C(=O)O,14,1,ok
+1TQ,6-(FORMYLAMINO)-7-HYDROXY-L-TRYPTOPHAN,alpha,W,NC(Cc1c[nH]c2c(O)c(NC=O)ccc12)C(=O)O,N[C@@H](Cc1c[nH]c2c(O)c(NC=O)ccc12)C(=O)O,14,1,ok
+1TX,(2S)-2-amino-7-methoxy-7-oxoheptanoic acid,alpha,X,COC(=O)CCCCC(N)C(=O)O,COC(=O)CCCC[C@H](N)C(=O)O,8,1,ok
+1TY,"3-{(3E)-4-HYDROXY-6-OXO-3-[(2-PHENYLETHYL)IMINO]CYCLOHEXA-1,4-DIEN-1-YL}ALANINE",alpha,X,NC(CC1=CC(=NCCc2ccccc2)C(O)=CC1=O)C(=O)O,N[C@@H](CC1=C/C(=N\CCc2ccccc2)C(O)=CC1=O)C(=O)O,18,1,ok
+1VR,"L-Beta-Leucine, L-Beta-Homo-Valine",beta,V,CC(C)C(N)CC(=O)O,CC(C)[C@H](N)CC(=O)O,4,1,ok
+1X6,O-[(2E)-3-AMINOPROP-2-ENOYL]-L-SERINE,alpha,S,NC=CC(=O)OCC(N)C(=O)O,N/C=C/C(=O)OC[C@H](N)C(=O)O,7,1,ok
+200,4-Chloro-L-Phenylalanine,alpha,F,NC(Cc1ccc(Cl)cc1)C(=O)O,N[C@@H](Cc1ccc(Cl)cc1)C(=O)O,8,1,ok
+22G,N-[(2S)-2-amino-3-phenylpropyl]-L-tyrosine,delta,Y,NC(CNC(Cc1ccc(O)cc1)C(=O)O)Cc1ccccc1,N[C@H](CN[C@@H](Cc1ccc(O)cc1)C(=O)O)Cc1ccccc1,18,1,ok
+23F,(2Z)-2-AMINO-3-PHENYLACRYLIC ACID,alpha,F,NC(=Cc1ccccc1)C(=O)O,N/C(=C\c1ccccc1)C(=O)O,7,1,ok
+23P,3-(propanoylamino)-L-alanine,alpha,X,CCC(=O)NCC(N)C(=O)O,CCC(=O)NC[C@H](N)C(=O)O,6,1,ok
+23S,"(S)-2-AMINO-3-(6H-SELENOLO[2,3-B]-PYRROL-4-YL)-PROPIONIC ACID",alpha,F,NC(Cc1c[nH]c2[se]ccc12)C(=O)O,N[C@@H](Cc1c[nH]c2[se]ccc12)C(=O)O,9,1,ok
+28J,Allo-D-Isoleucine,alpha,I,CCC(C)C(N)C(=O)O,CC[C@H](C)[C@@H](N)C(=O)O,4,1,ok
+28X,"O-[(R)-{[(3R)-3,4-dihydroxybutyl]oxy}(hydroxy)phosphoryl]-L-threonine",alpha,T,CC(OP(=O)(O)OCCC(O)CO)C(N)C(=O)O,C[C@@H](OP(=O)(O)OCC[C@@H](O)CO)[C@H](N)C(=O)O,13,1,ok
+2AG,L-Allylglycine,alpha,V,C=CCC(N)C(=O)O,C=CC[C@H](N)C(=O)O,3,1,ok
+2CO,S-HYDROPEROXYCYSTEINE,alpha,C,NC(CSOO)C(=O)O,N[C@@H](CSOO)C(=O)O,4,1,ok
+2FM,S-(DIFLUOROMETHYL)HOMOCYSTEINE,alpha,X,NC(CCSC(F)F)C(=O)O,N[C@@H](CCSC(F)F)C(=O)O,6,1,ok
+2GX,"3,3-Diphenyl-L-Alanine",alpha,F,NC(C(=O)O)C(c1ccccc1)c1ccccc1,N[C@H](C(=O)O)C(c1ccccc1)c1ccccc1,13,1,ok
+2HF,2-fluoro-L-histidine,alpha,H,NC(Cc1c[nH]c(F)[nH+]1)C(=O)O,N[C@@H](Cc1c[nH]c(F)[nH+]1)C(=O)O,7,1,ok
+2JC,N-ethylglycine,alpha,G,CCNCC(=O)O,CCNCC(=O)O,2,1,ok
+2JH,Beta-cyclobutyl-L-alanine,alpha,A,NC(CC1CCC1)C(=O)O,N[C@@H](CC1CCC1)C(=O)O,5,1,ok
+2JJ,5-phosphono-D-norvaline,alpha,X,NC(CCCP(=O)(O)O)C(=O)O,N[C@H](CCCP(=O)(O)O)C(=O)O,7,1,ok
+2JN,2-methyl-D-norleucine,alpha,L,CCCCC(C)(N)C(=O)O,CCCC[C@@](C)(N)C(=O)O,5,1,ok
+2KK,N~6~-(4-fluorobenzoyl)-L-lysine,alpha,K,NC(CCCCNC(=O)c1ccc(F)cc1)C(=O)O,N[C@@H](CCCCNC(=O)c1ccc(F)cc1)C(=O)O,14,1,ok
+2KP,N~6~-(4-bromobenzoyl)-L-lysine,alpha,K,NC(CCCCNC(=O)c1ccc(Br)cc1)C(=O)O,N[C@@H](CCCCNC(=O)c1ccc(Br)cc1)C(=O)O,14,1,ok
+2KY,L-Cyclopentylglycine,alpha,X,NC(C(=O)O)C1CCCC1,N[C@H](C(=O)O)C1CCCC1,5,1,ok
+2KZ,2-amino maleic acid,alpha,D,NC(=CC(=O)O)C(=O)O,N/C(=C/C(=O)O)C(=O)O,4,1,ok
+2L5,2-Chloro-L-Phenylalanine,alpha,F,NC(Cc1ccccc1Cl)C(=O)O,N[C@@H](Cc1ccccc1Cl)C(=O)O,8,1,ok
+2LT,"(2S)-2-amino-3-(3,5-dichloro-4-hydroxyphenyl)propanoic acid",alpha,Y,NC(Cc1cc(Cl)c(O)c(Cl)c1)C(=O)O,N[C@@H](Cc1cc(Cl)c(O)c(Cl)c1)C(=O)O,10,1,ok
+2ML,2-Methyl-L-Leucine,alpha,L,CC(C)CC(C)(N)C(=O)O,CC(C)C[C@](C)(N)C(=O)O,5,1,ok
+2MT,"(4R)-2,2-dimethyl-1,3-thiazolidine-4-carboxylic acid",alpha,P,CC1(C)NC(C(=O)O)CS1,CC1(C)N[C@H](C(=O)O)CS1,5,1,ok
+2OR,"amino{[(2R,3R,4S)-4-amino-2,3,5-trihydroxy-5-oxopentyl]amino}methaniminium",alpha,R,NC(=[NH2+])NCC(O)C(O)C(N)C(=O)O,NC(=[NH2+])NC[C@@H](O)[C@H](O)[C@H](N)C(=O)O,9,1,ok
+2QD,(4R)-4-[3-(methylamino)-3-oxopropyl]-L-glutamic acid,alpha,E,CNC(=O)CCC(CC(N)C(=O)O)C(=O)O,CNC(=O)CC[C@H](C[C@H](N)C(=O)O)C(=O)O,11,1,ok
+2QY,(2Z)-3-(4-hydroxyphenyl)-2-(methylamino)prop-2-enoic acid,alpha,Y,CNC(=Cc1ccc(O)cc1)C(=O)O,CN/C(=C\c1ccc(O)cc1)C(=O)O,9,1,ok
+2R1,(2E)-2-amino-4-hydroxy-3-[(2R)-oxiran-2-yl]but-2-enoic acid,alpha,S,NC(C(=O)O)=C(CO)C1CO1,N/C(C(=O)O)=C(\CO)[C@@H]1CO1,6,1,ok
+2R3,(betaR)-beta-hydroxy-O-methyl-L-tyrosine,alpha,Y,COc1ccc(C(O)C(N)C(=O)O)cc1,COc1ccc([C@@H](O)[C@H](N)C(=O)O)cc1,10,1,ok
+2RA,"3-Amino-D-Alanine, (R)-2,3-Diaminopropionic acid",alpha,X,NCC(N)C(=O)O,NC[C@@H](N)C(=O)O,2,1,ok
+2RX,O-thiophosphono-L-serine,alpha,S,NC(COP(=O)(O)S)C(=O)O,N[C@@H](COP(=O)(O)S)C(=O)O,6,1,ok
+2TL,"D-Allothreonine, (2R,3R)-Allothreonine",alpha,T,CC(O)C(N)C(=O)O,C[C@@H](O)[C@@H](N)C(=O)O,3,1,ok
+2TY,2-HYDROXY-5-{[(1E)-2-PHENYLETHYLIDENE]AMINO}-L-TYROSINE,alpha,Y,NC(Cc1cc(N=CCc2ccccc2)c(O)cc1O)C(=O)O,N[C@@H](Cc1cc(/N=C/Cc2ccccc2)c(O)cc1O)C(=O)O,18,1,ok
+2XA,(2R)-2-AMINO-3-[(4-CHLOROPHENYL)-DIPHENYL-METHYL]SULFANYL-PROPANOIC ACID,alpha,X,NC(CSC(c1ccccc1)(c1ccccc1)c1ccc(Cl)cc1)C(=O)O,N[C@@H](CSC(c1ccccc1)(c1ccccc1)c1ccc(Cl)cc1)C(=O)O,22,1,ok
+2YC,"N~6~-{[(2S,3S)-3-methyl-3,4-dihydro-2H-pyrrol-2-yl]carbonyl}-L-lysine",epsilon,K,CC1CC=NC1C(=O)NCCCCC(N)C(=O)O,C[C@H]1CC=N[C@@H]1C(=O)NCCCC[C@H](N)C(=O)O,13,1,ok
+2YF,"N~6~-[(2R)-2,3,4,5-tetrahydropyridin-2-ylcarbonyl]-L-lysine",alpha,K,NC(CCCCNC(=O)C1CCCC=N1)C(=O)O,N[C@@H](CCCCNC(=O)[C@H]1CCCC=N1)C(=O)O,13,1,ok
+2YG,N~6~-L-lysyl-L-lysine,alpha,K,NCCCCC(N)C(=O)NCCCCC(N)C(=O)O,NCCCC[C@H](N)C(=O)NCCCC[C@H](N)C(=O)O,14,2,ok
+2YJ,N~5~-D-lysyl-L-ornithine,alpha,K,NCCCCC(N)C(=O)NCCCC(N)C(=O)O,NCCCC[C@@H](N)C(=O)NCCC[C@H](N)C(=O)O,13,2,ok
+2ZC,O-{[4-(2-aminoethyl)phenyl]sulfonyl}-L-serine,alpha,S,NCCc1ccc(S(=O)(=O)OCC(N)C(=O)O)cc1,NCCc1ccc(S(=O)(=O)OC[C@H](N)C(=O)O)cc1,14,1,ok
+30F,(2Z)-2-amino-3-selanylprop-2-enoic acid,alpha,C,NC(=C[SeH])C(=O)O,N/C(=C\[SeH])C(=O)O,2,1,ok
+30V,S-[(2-carbamoylphenyl)selanyl]-L-cysteine,alpha,C,NC(=O)c1ccccc1[Se]SCC(N)C(=O)O,NC(=O)c1ccccc1[Se]SC[C@H](N)C(=O)O,12,1,ok
+31Q,(4-carboxyphenyl)(L-cysteinato-kappaS~3~)mercury,alpha,C,NC(CS[Hg]c1ccc(C(=O)O)cc1)C(=O)O,N[C@@H](CS[Hg]c1ccc(C(=O)O)cc1)C(=O)O,12,1,ok
+32S,6-Seleno-tryptophan,alpha,F,NC(Cc1c[nH]c2cc[se]c12)C(=O)O,N[C@@H](Cc1c[nH]c2cc[se]c12)C(=O)O,9,1,ok
+32T,"3-(4H-thieno[3,2-b]pyrrol-6-yl)-L-Alanine",alpha,F,NC(Cc1c[nH]c2ccsc12)C(=O)O,N[C@@H](Cc1c[nH]c2ccsc12)C(=O)O,9,1,ok
+33S,3-Iodo-L-Phenylalanine,alpha,F,NC(Cc1cccc(I)c1)C(=O)O,N[C@@H](Cc1cccc(I)c1)C(=O)O,8,1,ok
+33W,3-(5-bromothiophen-2-yl)-L-alanine,alpha,F,NC(Cc1ccc(Br)s1)C(=O)O,N[C@@H](Cc1ccc(Br)s1)C(=O)O,7,1,ok
+33X,N-Methyl-D-Alanine,alpha,A,CNC(C)C(=O)O,CN[C@H](C)C(=O)O,2,1,ok
+34E,(3R)-4-[4-(2-methoxyethyl)piperazin-1-yl]-N-methyl-L-valine,alpha,X,CNC(C(=O)O)C(C)CN1CCN(CCOC)CC1,CN[C@H](C(=O)O)[C@H](C)CN1CCN(CCOC)CC1,14,1,ok
+35Y,3-[(1H-tetrazol-5-ylcarbonyl)amino]-L-alanine,alpha,X,NC(CNC(=O)c1nnn[nH]1)C(=O)O,N[C@@H](CNC(=O)c1nnn[nH]1)C(=O)O,9,1,ok
+3AH,"[HISTIDIN-1-YL-4H-[1,2,4]TRIAZOL-5-YL]-AMINE",alpha,H,Nc1n[nH]c(-n2cnc(CC(N)C(=O)O)c2)n1,Nc1n[nH]c(-n2cnc(C[C@H](N)C(=O)O)c2)n1,12,1,ok
+3AR,N-OMEGA-PROPYL-L-ARGININE,alpha,R,CCCNC(=[NH2+])NCCCC(N)C(=O)O,CCCNC(=[NH2+])NCCC[C@H](N)C(=O)O,10,1,ok
+3CF,3-Cyano-L-Phenylalanine,alpha,F,N#Cc1cccc(CC(N)C(=O)O)c1,N#Cc1cccc(C[C@H](N)C(=O)O)c1,9,1,ok
+3CT,(2S)-2-amino-3-(3-chloro-4-hydroxyphenyl)propanoic acid,alpha,Y,NC(Cc1ccc(O)c(Cl)c1)C(=O)O,N[C@@H](Cc1ccc(O)c(Cl)c1)C(=O)O,9,1,ok
+3EG,"(S)-2-amino-4,4,4-trifluoro-butyric acid",alpha,X,NC(CC(F)(F)F)C(=O)O,N[C@@H](CC(F)(F)F)C(=O)O,5,1,ok
+3FG,"(2S)-amino(3,5-dihydroxyphenyl)ethanoic acid",alpha,X,NC(C(=O)O)c1cc(O)cc(O)c1,N[C@H](C(=O)O)c1cc(O)cc(O)c1,8,1,ok
+3GL,4-Hydroxy-L-Glutamic-acid,alpha,E,NC(CC(O)C(=O)O)C(=O)O,N[C@@H](C[C@H](O)C(=O)O)C(=O)O,6,1,ok
+3MY,3-chloro-D-tyrosine,alpha,Y,NC(Cc1ccc(O)c(Cl)c1)C(=O)O,N[C@H](Cc1ccc(O)c(Cl)c1)C(=O)O,9,1,ok
+3PX,(3S)-3-(propan-2-yloxy)-L-proline,alpha,P,CC(C)OC1CCNC1C(=O)O,CC(C)O[C@H]1CCN[C@@H]1C(=O)O,7,1,ok
+3QN,(E)-N~6~-{2-hydroxy-3-methyl-6-[(phosphonooxy)methyl]benzylidene}-L-lysine,alpha,X,Cc1ccc(COP(=O)(O)O)c(C=NCCCCC(N)C(=O)O)c1O,Cc1ccc(COP(=O)(O)O)c(/C=N/CCCC[C@H](N)C(=O)O)c1O,20,1,ok
+3TY,3-(Phenylhydrazono)-L-tyrosine,alpha,X,NC(CC1=CC(=NNCc2ccccc2)C(O)=CC1=O)C(=O)O,N[C@@H](CC1=C/C(=N\NCc2ccccc2)C(O)=CC1=O)C(=O)O,18,1,ok
+3WS,methyl alpha-aminoisobutyric acid (2-aminoalanine),alpha,A,CNC(C)(C)C(=O)O,CNC(C)(C)C(=O)O,3,1,ok
+3X9,"3-{[(1-hydroxy-2,2,5,5-tetramethyl-2,5-dihydro-1H-pyrrol-3-yl)methyl]disulfanyl}-L-alanine",alpha,C,CC1(C)C=C(CSSCC(N)C(=O)O)C(C)(C)N1O,CC1(C)C=C(CSSC[C@H](N)C(=O)O)C(C)(C)N1O,14,1,ok
+3YM,3-Methoxy-L-tyrosine,alpha,Y,COc1cc(CC(N)C(=O)O)ccc1O,COc1cc(C[C@H](N)C(=O)O)ccc1O,10,1,ok
+3ZH,"11-{4-[(2S)-2-amino-2-carboxyethyl]-3-(8-phenyloctyl)-2,3-dihydro-1H-imidazol-1-yl}undecanoic acid",alpha,X,NC(CC1=CN(CCCCCCCCCCC(=O)O)CN1CCCCCCCCc1ccccc1)C(=O)O,N[C@@H](CC1=CN(CCCCCCCCCCC(=O)O)CN1CCCCCCCCc1ccccc1)C(=O)O,33,1,ok
+3ZL,"N~6~-[(1Z)-4-amino-3-oxopenta-1,4-dien-1-yl]-L-lysine",alpha,K,C=C(N)C(=O)C=CNCCCCC(N)C(=O)O,C=C(N)C(=O)/C=C\NCCCC[C@H](N)C(=O)O,12,1,ok
+41H,"(2S,3S)-2-amino-3-phenylbutanoic acid",alpha,F,CC(c1ccccc1)C(N)C(=O)O,C[C@@H](c1ccccc1)[C@H](N)C(=O)O,8,1,ok
+41Q,L-Asparagine,alpha,N,NC(=O)CC(N)C(=O)O,NC(=O)C[C@H](N)C(=O)O,4,1,ok
+432,O-butanoyl-L-serine,alpha,S,CCCC(=O)OCC(N)C(=O)O,CCCC(=O)OC[C@H](N)C(=O)O,7,1,ok
+45W,(4S)-4-(ethynyloxy)-D-proline,alpha,P,C#COC1CNC(C(=O)O)C1,C#CO[C@@H]1CN[C@@H](C(=O)O)C1,6,1,ok
+4AF,4-ACETYL-L-PHENYLALANINE,alpha,F,CC(=O)c1ccc(CC(N)C(=O)O)cc1,CC(=O)c1ccc(C[C@H](N)C(=O)O)cc1,10,1,ok
+4AK,N~6~-sulfo-L-lysine,alpha,K,NC(CCCCNS(=O)(=O)O)C(=O)O,N[C@@H](CCCCNS(=O)(=O)O)C(=O)O,9,1,ok
+4AW,4-AZATRYPTOPHAN,alpha,F,NC(Cc1c[nH]c2cccnc12)C(=O)O,N[C@@H](Cc1c[nH]c2cccnc12)C(=O)O,10,1,ok
+4BF,4-Bromo-L-Phenylalanine,alpha,F,NC(Cc1ccc(Br)cc1)C(=O)O,N[C@@H](Cc1ccc(Br)cc1)C(=O)O,8,1,ok
+4CF,4-Cyano-L-Phenylalanine,alpha,F,N#Cc1ccc(CC(N)C(=O)O)cc1,N#Cc1ccc(C[C@H](N)C(=O)O)cc1,9,1,ok
+4CG,"(1R,2Z)-2-[(2R)-2-amino-3-(phosphonooxy)propylidene]cyclopentanecarboxylic acid",delta,S,NC(C=C1CCCC1C(=O)O)COP(=O)(O)O,N[C@H](/C=C1/CCC[C@H]1C(=O)O)COP(=O)(O)O,12,1,ok
+4CY,Nitrilo-L-Methionine,alpha,M,N#CSCCC(N)C(=O)O,N#CSCC[C@H](N)C(=O)O,5,1,ok
+4D4,"(2S,3R)-2-azanyl-5-carbamimidamido-3-oxidanyl-pentanoic acid",alpha,R,[H]N=C(N)NCCC(O)C(N)C(=O)O,[H]/N=C(/N)NCC[C@@H](O)[C@H](N)C(=O)O,8,1,ok
+4DB,"(2S)-2-amino-4-[5-(dimethylamino)-1,3-dioxo-1,3-dihydro-2H-isoindol-2-yl]butanoic acid",alpha,X,CN(C)c1ccc2c(c1)C(=O)N(CCC(N)C(=O)O)C2=O,CN(C)c1ccc2c(c1)C(=O)N(CC[C@H](N)C(=O)O)C2=O,16,1,ok
+4DP,"3-[5-(DIMETHYLAMINO)-1,3-DIOXO-1,3-DIHYDRO-2H-ISOINDOL-2-YL]-L-ALANINE",alpha,X,CN(C)c1ccc2c(c1)C(=O)N(CC(N)C(=O)O)C2=O,CN(C)c1ccc2c(c1)C(=O)N(C[C@H](N)C(=O)O)C2=O,15,1,ok
+4FB,cis-4-Fluoro-L-Proline,alpha,P,O=C(O)C1CC(F)CN1,O=C(O)[C@@H]1C[C@H](F)CN1,4,1,ok
+4FO,"(R)-2,4-Diaminobutanoic acid",alpha,X,NCCC(N)C(=O)O,NCC[C@@H](N)C(=O)O,3,1,ok
+4FW,4-Fluoro-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2cccc(F)c12)C(=O)O,N[C@@H](Cc1c[nH]c2cccc(F)c12)C(=O)O,11,1,ok
+4GJ,3-(pyridin-4-yldisulfanyl)-L-alanine,alpha,C,NC(CSSc1ccncc1)C(=O)O,N[C@@H](CSSc1ccncc1)C(=O)O,9,1,ok
+4HH,4'-phosphopanthetheine-serine,alpha,S,CC(C)(COP(=O)(O)OCC(N)C(=O)O)C(O)C(=O)NCCC(=O)NCCS,CC(C)(COP(=O)(O)OC[C@H](N)C(=O)O)[C@@H](O)C(=O)NCCC(=O)NCCS,23,1,ok
+4HJ,"O-[(R)-hydroxy{[(3R)-3-hydroxy-4-{[3-({2-[(2-hydroxybenzoyl)sulfanyl]ethyl}amino)-3-oxopropyl]amino}-2,2-dimethyl-4-oxobutyl]oxy}phosphoryl]-L-serine",alpha,S,CC(C)(COP(=O)(O)OCC(N)C(=O)O)C(O)C(=O)NCCC(=O)NCCSC(=O)c1ccccc1O,CC(C)(COP(=O)(O)OC[C@H](N)C(=O)O)[C@@H](O)C(=O)NCCC(=O)NCCSC(=O)c1ccccc1O,32,1,ok
+4HL,"(6E)-4-[(2S)-2-amino-2-carboxyethyl]-6-[2-(4-hydroxybenzyl)hydraziniumylidene]-3-oxocyclohexa-1,4-dien-1-olate",alpha,X,NC(CC1=CC(=[NH+]NCc2ccc(O)cc2)C([O-])=CC1=O)C(=O)O,N[C@@H](CC1=C/C(=[NH+]\NCc2ccc(O)cc2)C([O-])=CC1=O)C(=O)O,19,1,ok
+4HT,4-Hydroxy-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2cccc(O)c12)C(=O)O,N[C@@H](Cc1c[nH]c2cccc(O)c12)C(=O)O,11,1,ok
+4IK,"(2S,5S)-2,6-diamino-5-{[(2R,3S,4R,5R)-5-(6-amino-9H-purin-9-yl)-3,4-dihydroxytetrahydrofuran-2-yl]methyl}hexanoic acid",alpha,K,NCC(CCC(N)C(=O)O)CC1OC(n2cnc3c(N)ncnc32)C(O)C1O,NC[C@@H](CC[C@H](N)C(=O)O)C[C@H]1O[C@@H](n2cnc3c(N)ncnc32)[C@H](O)[C@@H]1O,23,1,ok
+4IN,4-AMINO-L-TRYPTOPHAN,alpha,W,Nc1cccc2[nH]cc(CC(N)C(=O)O)c12,Nc1cccc2[nH]cc(C[C@H](N)C(=O)O)c12,11,1,ok
+4J2,3-(2-Naphthyl)-D-Alanine,alpha,F,NC(Cc1ccc2ccccc2c1)C(=O)O,N[C@H](Cc1ccc2ccccc2c1)C(=O)O,11,1,ok
+4J4,"S-(2-{[(2',4'-difluorobiphenyl-4-yl)methyl]amino}-2-oxoethyl)-L-cysteine",alpha,C,NC(CSCC(=O)NCc1ccc(-c2ccc(F)cc2F)cc1)C(=O)O,N[C@@H](CSCC(=O)NCc1ccc(-c2ccc(F)cc2F)cc1)C(=O)O,21,1,ok
+4J5,amino{[(3S)-3-amino-3-carboxypropyl]amino}methaniminium,alpha,R,NC(=[NH2+])NCCC(N)C(=O)O,NC(=[NH2+])NCC[C@H](N)C(=O)O,6,1,ok
+4L8,(2R)-2-(aminomethyl)-4-methylpentanoic acid,beta,L,CC(C)CC(CN)C(=O)O,CC(C)C[C@H](CN)C(=O)O,5,1,ok
+4M8,(2S)-2-amino-4-[(S)-hydroxy(methoxy)phosphoryl]butanoic acid,alpha,X,COP(=O)(O)CCC(N)C(=O)O,CO[P@@](=O)(O)CC[C@H](N)C(=O)O,7,1,ok
+4N3,N-octanoyl-D-valine,alpha,X,CCCCCCCC(=O)NC(C(=O)O)C(C)C,CCCCCCCC(=O)N[C@@H](C(=O)O)C(C)C,12,1,ok
+4OG,3-(1-Benzothiophen-3-Yl)-L-Alanine,alpha,F,NC(Cc1csc2ccccc12)C(=O)O,N[C@@H](Cc1csc2ccccc12)C(=O)O,10,1,ok
+4OU,4-(acryloylamino)-L-phenylalanine,alpha,F,C=CC(=O)Nc1ccc(CC(N)C(=O)O)cc1,C=CC(=O)Nc1ccc(C[C@H](N)C(=O)O)cc1,12,1,ok
+4OV,"(2R)-2-[(1R)-2-[(2S)-2-amino-2-carboxyethoxy]-1-{[(2R)-2-amino-2-phenylacetyl]amino}-2-oxoethyl]-5-methyl-3,6-dihydro-2H-1,3-thiazine-4-carboxylic acid",alpha,S,CC1=C(C(=O)O)NC(C(NC(=O)C(N)c2ccccc2)C(=O)OCC(N)C(=O)O)SC1,CC1=C(C(=O)O)N[C@@H]([C@H](NC(=O)[C@H](N)c2ccccc2)C(=O)OC[C@H](N)C(=O)O)SC1,26,1,ok
+4PH,4-Methyl-L-Phenylalanine,alpha,F,Cc1ccc(CC(N)C(=O)O)cc1,Cc1ccc(C[C@H](N)C(=O)O)cc1,8,1,ok
+4PQ,5-Hydroxy-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2ccc(O)cc12)C(=O)O,N[C@@H](Cc1c[nH]c2ccc(O)cc12)C(=O)O,11,1,ok
+4QK,"6-[4-(2-aminoethyl)-1H-1,2,3-triazol-1-yl]-L-norleucine",alpha,X,NCCc1cn(CCCCC(N)C(=O)O)nn1,NCCc1cn(CCCC[C@H](N)C(=O)O)nn1,12,1,ok
+4SJ,"N,beta,beta-trimethyl-L-phenylalanine",alpha,F,CNC(C(=O)O)C(C)(C)c1ccccc1,CN[C@H](C(=O)O)C(C)(C)c1ccccc1,10,1,ok
+4WQ,"(2S)-2-amino-7,7-dimethyloctanoic acid",alpha,X,CC(C)(C)CCCCC(N)C(=O)O,CC(C)(C)CCCC[C@H](N)C(=O)O,8,1,ok
+51T,"2,3,6-trifluoro-L-tyrosine",alpha,Y,NC(Cc1c(F)cc(O)c(F)c1F)C(=O)O,N[C@@H](Cc1c(F)cc(O)c(F)c1F)C(=O)O,11,1,ok
+54C,(betaR)-beta-hydroxy-1-{2-[(2R)-oxiran-2-yl]propan-2-yl}-L-tryptophan,alpha,W,CC(C)(C1CO1)n1cc(C(O)C(N)C(=O)O)c2ccccc21,CC(C)([C@@H]1CO1)n1cc([C@@H](O)[C@H](N)C(=O)O)c2ccccc21,17,1,ok
+55I,4-Trifluoromethyl-L-Phenylalanine,alpha,F,NC(Cc1ccc(C(F)(F)F)cc1)C(=O)O,N[C@@H](Cc1ccc(C(F)(F)F)cc1)C(=O)O,11,1,ok
+56A,(2S)-2-amino-3-[3-(8-phenyloctyl)imidazol-4-yl]propanoic acid,alpha,H,NC(Cc1cncn1CCCCCCCCc1ccccc1)C(=O)O,N[C@@H](Cc1cncn1CCCCCCCCc1ccccc1)C(=O)O,20,1,ok
+5A6,"(2S)-2-amino-4-[5-(5-aminopentyl)-1,3,4-oxadiazol-2-yl]butanoic acid",alpha,X,NCCCCCc1nnc(CCC(N)C(=O)O)o1,NCCCCCc1nnc(CC[C@H](N)C(=O)O)o1,13,1,ok
+5CR,N-acetyl-L-phenylalanine,alpha,F,CC(=O)NC(Cc1ccccc1)C(=O)O,CC(=O)N[C@@H](Cc1ccccc1)C(=O)O,10,1,ok
+5CS,2-AMINO-3-(CYSTEIN-S-YL)-ISOXAZOLIDIN-5-YL-ACETIC ACID,alpha,C,NC(CSC1CC(C(N)C(=O)O)ON1)C(=O)O,N[C@H](C(=O)O)C1C[C@@H](SC[C@H](N)C(=O)O)NO1,12,1,ok
+5CT,Hypusine,alpha,K,NCCC(O)CNCCCCC(N)C(=O)O,NCC[C@H](O)CNCCCC[C@H](N)C(=O)O,11,1,ok
+5CW,5-Chloro-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2ccc(Cl)cc12)C(=O)O,N[C@@H](Cc1c[nH]c2ccc(Cl)cc12)C(=O)O,11,1,ok
+5DW,4-ethynyl-L-phenylalanine,alpha,F,C#Cc1ccc(CC(N)C(=O)O)cc1,C#Cc1ccc(C[C@H](N)C(=O)O)cc1,9,1,ok
+5F0,(3~{S})-3-azanyl-4-methoxy-4-oxidanylidene-butanoic acid,beta,X,COC(=O)C(N)CC(=O)O,COC(=O)[C@@H](N)CC(=O)O,5,1,ok
+5GG,Deoxyhypusine,alpha,K,NCCCCNCCCCC(N)C(=O)O,NCCCCNCCCC[C@H](N)C(=O)O,10,1,ok
+5GM,"(4S)-2,4-dimethyl-L-norleucine",alpha,L,CCC(C)CC(C)(N)C(=O)O,CC[C@H](C)C[C@](C)(N)C(=O)O,6,1,ok
+5MW,"(2~{S})-5-[4-(aminomethyl)-1,2,3-triazol-1-yl]-2-azanyl-pentanoic acid",alpha,X,NCc1cn(CCCC(N)C(=O)O)nn1,NCc1cn(CCC[C@H](N)C(=O)O)nn1,10,1,ok
+5OH,"(2S)-amino[(4R,6S)-2-amino-6-hydroxy-3,4,5,6-tetrahydropyrimidin-4-yl]ethanoic acid",alpha,R,NC1=NC(O)CC(C(N)C(=O)O)N1,NC1=N[C@@H](O)C[C@H]([C@H](N)C(=O)O)N1,8,1,ok
+5OL,"N~6~-(1,1-dihydroxyethyl)-L-lysine",alpha,K,CC(O)(O)NCCCCC(N)C(=O)O,CC(O)(O)NCCCC[C@H](N)C(=O)O,9,1,ok
+5OM,"(2S)-2-amino-8,8-dihydroxy-8-[(2S)-oxiran-2-yl]octanoic acid",alpha,X,NC(CCCCCC(O)(O)C1CO1)C(=O)O,N[C@@H](CCCCCC(O)(O)[C@@H]1CO1)C(=O)O,11,1,ok
+5OW,(2~{S})-2-azanyl-6-[[(~{Z})-~{C}-[2-methyl-3-oxidanyl-5-(phosphonooxymethyl)pyridin-4-yl]-~{N}-[(2~{R})-1-oxidanyl-1-oxidanylidene-3-sulfanyl-propan-2-yl]carbonimidoyl]amino]hexanoic acid,alpha,X,Cc1ncc(COP(=O)(O)O)c(C(=NC(CS)C(=O)O)NCCCCC(N)C(=O)O)c1O,Cc1ncc(COP(=O)(O)O)c(/C(=N/[C@@H](CS)C(=O)O)NCCCC[C@H](N)C(=O)O)c1O,27,2,ok
+5PG,(2S)-(4-hydroxyphenyl)(methylamino)ethanoic acid,alpha,X,CNC(C(=O)O)c1ccc(O)cc1,CN[C@H](C(=O)O)c1ccc(O)cc1,8,1,ok
+5T3,N~6~-ethyl-N~6~-propan-2-yl-L-lysine,alpha,K,CCN(CCCCC(N)C(=O)O)C(C)C,CCN(CCCC[C@H](N)C(=O)O)C(C)C,10,1,ok
+5VV,N-carbamoyl-L-Asparagine,alpha,N,NC(=O)CC(NC(=O)O)C(=O)O,NC(=O)C[C@H](NC(=O)O)C(=O)O,7,1,ok
+5X8,S-adenosyl-L-cysteine,alpha,X,Nc1ncnc2c1ncn2C1OC(CSCC(N)C(=O)O)C(O)C1O,Nc1ncnc2c1ncn2[C@@H]1O[C@H](CSC[C@H](N)C(=O)O)[C@@H](O)[C@H]1O,20,1,ok
+62H,L-Beta2-Homo-Alanine,beta,A,CC(CN)C(=O)O,C[C@@H](CN)C(=O)O,2,1,ok
+66C,"4-[8-(beta-alanyl)-8,9-dihydro-1H-dibenzo[b,f][1,2,3]triazolo[4,5-d]azocin-1-yl]-L-phenylalanine",alpha,F,NCCC(=O)N1Cc2ccccc2-c2c(nnn2-c2ccc(CC(N)C(=O)O)cc2)-c2ccccc21,NCCC(=O)N1Cc2ccccc2-c2c(nnn2-c2ccc(C[C@H](N)C(=O)O)cc2)-c2ccccc21,31,1,ok
+66D,"(4R)-2,4-dimethyl-L-norleucine",alpha,L,CCC(C)CC(C)(N)C(=O)O,CC[C@@H](C)C[C@](C)(N)C(=O)O,6,1,ok
+66E,(2S)-2-(ethylamino)-3-methylbutanoic acid,alpha,V,CCNC(C(=O)O)C(C)C,CCN[C@H](C(=O)O)C(C)C,5,1,ok
+6BR,threoninevanadate,alpha,T,CC(O[V](=O)([O-])([O-])[O-])C(N)C(=O)O,C[C@@H](O[V](=O)([O-])([O-])[O-])[C@H](N)C(=O)O,8,1,ok
+6CL,6-Carboxy-L-Lysine,alpha,X,NC(CCCC(N)C(=O)O)C(=O)O,N[C@H](CCC[C@H](N)C(=O)O)C(=O)O,8,1,ok
+6CV,3-bromo-L-phenylalanine,alpha,F,NC(Cc1cccc(Br)c1)C(=O)O,N[C@@H](Cc1cccc(Br)c1)C(=O)O,8,1,ok
+6CW,6-Chloro-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2cc(Cl)ccc12)C(=O)O,N[C@@H](Cc1c[nH]c2cc(Cl)ccc12)C(=O)O,11,1,ok
+6DU,2-Bromo-L-Phenylalanine,alpha,F,NC(Cc1ccccc1Br)C(=O)O,N[C@@H](Cc1ccccc1Br)C(=O)O,8,1,ok
+6FL,"5,5,5,5',5',5'-Hexafluoro-L-leucine",alpha,X,NC(CC(C(F)(F)F)C(F)(F)F)C(=O)O,N[C@@H](CC(C(F)(F)F)C(F)(F)F)C(=O)O,10,1,ok
+6G4,4-oxononanoyl lysine,alpha,K,CCCCCC(=O)CCC(=O)NCCCCC(N)C(=O)O,CCCCCC(=O)CCC(=O)NCCCC[C@H](N)C(=O)O,16,1,ok
+6G5,4-Chloro-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2cccc(Cl)c12)C(=O)O,N[C@@H](Cc1c[nH]c2cccc(Cl)c12)C(=O)O,11,1,ok
+6GL,5-(phosphonooxy)-L-norvaline,alpha,X,NC(CCCOP(=O)(O)O)C(=O)O,N[C@@H](CCCOP(=O)(O)O)C(=O)O,8,1,ok
+6KM,S-propanoyl-L-cysteine,alpha,C,CCC(=O)SCC(N)C(=O)O,CCC(=O)SC[C@H](N)C(=O)O,6,1,ok
+6M6,S-[(2-phenylethyl)carbamothioyl]-L-cysteine,alpha,C,NC(CSC(=S)NCCc1ccccc1)C(=O)O,N[C@@H](CSC(=S)NCCc1ccccc1)C(=O)O,13,1,ok
+6RK,4-aminocyclohexane-1-carboxylic acid,delta,A,NC1CCC(C(=O)O)CC1,NC1CCC(C(=O)O)CC1,5,1,ok
+6V1,"(2~{R})-2-azanyl-3-[(3~{R})-1-ethyl-2,5-bis(oxidanylidene)pyrrolidin-3-yl]sulfanyl-propanoic acid",alpha,C,CCN1C(=O)CC(SCC(N)C(=O)O)C1=O,CCN1C(=O)C[C@@H](SC[C@H](N)C(=O)O)C1=O,11,1,ok
+6WK,"(2~{R})-2-azanyl-3-[[(2~{S},3~{S})-2,3-bis(oxidanyl)-4-sulfanyl-butyl]disulfanyl]propanoic acid",alpha,C,NC(CSSCC(O)C(O)CS)C(=O)O,N[C@@H](CSSC[C@@H](O)[C@H](O)CS)C(=O)O,10,1,ok
+6ZS,Isovaline,alpha,V,CCC(C)(N)C(=O)O,CC[C@](C)(N)C(=O)O,3,1,ok
+73C,(2S)-2-azanyl-3-butoxy-propanoic acid,alpha,S,CCCCOCC(N)C(=O)O,CCCCOC[C@H](N)C(=O)O,6,1,ok
+73N,(2~{S})-5-carbamimidamido-2-(carboxyamino)pentanoic acid,unknown,X,[H]N=C(N)NCCCC(NC(=O)O)C(=O)O,[H]/N=C(/N)NCCC[C@H](NC(=O)O)C(=O)O,10,1,ok
+73O,Homo-L-Tyrosine,alpha,Y,NC(CCc1ccc(O)cc1)C(=O)O,N[C@@H](CCc1ccc(O)cc1)C(=O)O,9,1,ok
+73P,(2~{S})-6-azanyl-2-(carboxyamino)hexanoic acid,unknown,X,NCCCCC(NC(=O)O)C(=O)O,NCCCC[C@H](NC(=O)O)C(=O)O,8,2,ok
+74P,(E)-N~6~-(1-carboxy-3-oxobutylidene)-L-lysine,alpha,X,CC(=O)CC(=NCCCCC(N)C(=O)O)C(=O)O,CC(=O)C/C(=N\CCCC[C@H](N)C(=O)O)C(=O)O,13,1,ok
+7C9,O-Methyl-L-Serine,alpha,S,COCC(N)C(=O)O,COC[C@H](N)C(=O)O,3,1,ok
+7CC,"N,N-diethyl-L-asparagine",alpha,X,CCN(CC)C(=O)CC(N)C(=O)O,CCN(CC)C(=O)C[C@H](N)C(=O)O,8,1,ok
+7ID,(2~{S})-4-[[(2~{S})-5-[[azanyl($l^{4}-azanylidene)methyl]amino]-1-$l^{1}-oxidanyl-1-oxidanylidene-pentan-2-yl]amino]-2-$l^{2}-azanyl-4-oxidanylidene-butanoic acid,alpha,R,[H]N=C(N)NCCCC(NC(=O)CC(N)C(=O)O)C(=O)O,[H]/N=C(\N)NCCC[C@H](NC(=O)C[C@H](N)C(=O)O)C(=O)O,15,1,ok
+7JA,"N-({(1R,2S)-3-oxo-2-[(2Z)-pent-2-en-1-yl]cyclopentyl}acetyl)-L-isoleucine",alpha,I,CCC=CCC1C(=O)CCC1CC(=O)NC(C(=O)O)C(C)CC,CC/C=C\C[C@@H]1C(=O)CC[C@@H]1CC(=O)N[C@H](C(=O)O)[C@@H](C)CC,18,1,ok
+7N8,4-Borono-L-Phenylalanine,alpha,F,NC(Cc1ccc(B(O)O)cc1)C(=O)O,N[C@@H](Cc1ccc(B(O)O)cc1)C(=O)O,10,1,ok
+7O5,(2~{S})-2-azanyl-3-(2-sulfanylethanoylamino)propanoic acid,alpha,X,NC(CNC(=O)CS)C(=O)O,N[C@@H](CNC(=O)CS)C(=O)O,6,1,ok
+7OZ,(S)-2-amino-4-fluorobutanoic acid,alpha,X,NC(CCF)C(=O)O,N[C@@H](CCF)C(=O)O,3,1,ok
+7QK,N~6~-acetyl-N~6~-methyl-L-lysine,alpha,K,CC(=O)N(C)CCCCC(N)C(=O)O,CC(=O)N(C)CCCC[C@H](N)C(=O)O,9,1,ok
+7T2,N-methyl-4-chloro-L-phenylalanine,alpha,F,CNC(Cc1ccc(Cl)cc1)C(=O)O,CN[C@@H](Cc1ccc(Cl)cc1)C(=O)O,9,1,ok
+7TK,(3S)-3-azanyl-4-oxidanylidene-4-pyrrolidin-1-yl-butanoic acid,beta,X,NC(CC(=O)O)C(=O)N1CCCC1,N[C@@H](CC(=O)O)C(=O)N1CCCC1,8,1,ok
+7VN,N-methyl-2-cyclopentyl-L-glycine,alpha,X,CNC(C(=O)O)C1CCCC1,CN[C@H](C(=O)O)C1CCCC1,6,1,ok
+7VU,N-ethyl-4-methyl-L-phenylalanine,alpha,F,CCNC(Cc1ccc(C)cc1)C(=O)O,CCN[C@@H](Cc1ccc(C)cc1)C(=O)O,10,1,ok
+7W2,"(2S)-2-amino-4-[3,5-difluoro-4-(trifluoromethyl)phenyl]butanoic acid",alpha,F,NC(CCc1cc(F)c(C(F)(F)F)c(F)c1)C(=O)O,N[C@@H](CCc1cc(F)c(C(F)(F)F)c(F)c1)C(=O)O,14,1,ok
+7WC,(3S)-4-(dimethylamino)-3-(methylamino)-4-oxidanylidene-butanoic acid,beta,X,CNC(CC(=O)O)C(=O)N(C)C,CN[C@@H](CC(=O)O)C(=O)N(C)C,7,1,ok
+7XC,(2R)-2-amino-3-[4-(diaminomethylideneamino)phenyl]propanoic acid,alpha,F,N=C(N)Nc1ccc(CC(N)C(=O)O)cc1,N=C(N)Nc1ccc(C[C@@H](N)C(=O)O)cc1,11,1,ok
+7YO,D-Pyroglutamic acid,alpha,X,O=C1CCC(C(=O)O)N1,O=C1CC[C@H](C(=O)O)N1,4,1,ok
+81R,"(4R)-4,5-disulfanyl-L-norvaline",alpha,C,NC(CC(S)CS)C(=O)O,N[C@@H](C[C@@H](S)CS)C(=O)O,5,2,ok
+81S,"(4S)-4,5-disulfanyl-L-norvaline",alpha,C,NC(CC(S)CS)C(=O)O,N[C@@H](C[C@H](S)CS)C(=O)O,5,2,ok
+823,"N,N-bis(3-sulfanylpropyl)-L-asparagine",alpha,X,NC(CC(=O)N(CCCS)CCCS)C(=O)O,N[C@@H](CC(=O)N(CCCS)CCCS)C(=O)O,12,1,ok
+85F,(2R)-2-azanyl-3-[(2R)-2-azanyl-3-oxidanyl-3-oxidanylidene-propyl]sulfanyl-propanoic acid,alpha,X,NC(CSCC(N)C(=O)O)C(=O)O,N[C@@H](CSC[C@H](N)C(=O)O)C(=O)O,8,1,ok
+85G,"N-Ethyl-L-Glutamine, L-Theanine",alpha,Q,CCNC(=O)CCC(N)C(=O)O,CCNC(=O)CC[C@H](N)C(=O)O,7,1,ok
+85J,N-propyl-L-glutamine,alpha,Q,CCCNC(=O)CCC(N)C(=O)O,CCCNC(=O)CC[C@H](N)C(=O)O,8,1,ok
+86N,"(2S)-5-[[5-(6-aminopurin-9-yl)-3,4-bis(oxidanyl)furan-2-yl]methoxy-oxidanyl-phosphoryl]oxy-2-azanyl-5-oxidanylidene-pentanoic acid",alpha,E,Nc1ncnc2c1ncn2-c1oc(COP(=O)(O)OC(=O)CCC(N)C(=O)O)c(O)c1O,Nc1ncnc2c1ncn2-c1oc(COP(=O)(O)OC(=O)CC[C@H](N)C(=O)O)c(O)c1O,27,1,ok
+8JB,"(2~{R})-2-azanyl-3-[[(5~{S})-5-[(1~{S})-1-azanyl-2-oxidanyl-2-oxidanylidene-ethyl]-4,5-dihydro-1,2-oxazol-3-yl]sulfanyl]propanoic acid",alpha,C,NC(CSC1=NOC(C(N)C(=O)O)C1)C(=O)O,N[C@H](C(=O)O)[C@@H]1CC(SC[C@H](N)C(=O)O)=NO1,12,1,ok
+8LJ,"(2S)-2,3-dihydro-1H-pyrrole-2-carboxylic acid",alpha,P,O=C(O)C1CC=CN1,O=C(O)[C@@H]1CC=CN1,3,1,ok
+8RE,"3,4-dihydroxylysine",alpha,K,NCCC(O)C(O)C(N)C(=O)O,NCC[C@H](O)[C@H](O)[C@H](N)C(=O)O,7,1,ok
+8SP,"O-[(R)-{[(2R)-2,3-bis(octanoyloxy)propyl]oxy}(hydroxy)phosphoryl]-L-serine",alpha,S,CCCCCCCC(=O)OCC(COP(=O)(O)OCC(N)C(=O)O)OC(=O)CCCCCCC,CCCCCCCC(=O)OC[C@H](COP(=O)(O)OC[C@H](N)C(=O)O)OC(=O)CCCCCCC,29,1,ok
+8WY,"5,5-dihydroxy-L-norleucine",alpha,X,CC(O)(O)CCC(N)C(=O)O,CC(O)(O)CC[C@H](N)C(=O)O,6,1,ok
+8YR,(2S)-2-azanyl-2-[(3R)-oxolan-3-yl]ethanoic acid,alpha,S,NC(C(=O)O)C1CCOC1,N[C@H](C(=O)O)[C@H]1CCOC1,5,1,ok
+999,"(2R,3S)-3-Hydroxy-D-Aspartic acid",alpha,D,NC(C(=O)O)C(O)C(=O)O,N[C@@H](C(=O)O)[C@H](O)C(=O)O,5,1,ok
+99Y,(R)-4-(2-amino-2-carboxyethyl)benzoic acid,alpha,F,NC(Cc1ccc(C(=O)O)cc1)C(=O)O,N[C@H](Cc1ccc(C(=O)O)cc1)C(=O)O,10,1,ok
+9BP,4-amino-N-(2-methylpropanoyl)-D-isovaline,gamma,X,CC(C)C(=O)NC(C)(CCN)C(=O)O,CC(C)C(=O)N[C@](C)(CCN)C(=O)O,9,1,ok
+9DN,DANSYL-L-ASPARAGINE,alpha,N,CN(C)c1cccc2c(S(=O)(=O)NC(CC(N)=O)C(=O)O)cccc12,CN(C)c1cccc2c(S(=O)(=O)N[C@@H](CC(N)=O)C(=O)O)cccc12,20,1,ok
+9DT,alpha-Methyl-L-2-fluorophenylalanine,alpha,F,CC(N)(Cc1ccccc1F)C(=O)O,C[C@](N)(Cc1ccccc1F)C(=O)O,9,1,ok
+9E7,N~6~-(sulfanylmethyl)-L-lysine,alpha,K,NC(CCCCNCS)C(=O)O,N[C@@H](CCCCNCS)C(=O)O,7,1,ok
+9EV,"6-[(2R)-2-{3-hydroxy-2-methyl-5-[(phosphonooxy)methyl]pyridin-4-yl}-5-oxo-1,3-oxazolidin-3-yl]-L-norleucine",alpha,K,Cc1ncc(COP(=O)(O)O)c(C2OC(=O)CN2CCCCC(N)C(=O)O)c1O,Cc1ncc(COP(=O)(O)O)c([C@H]2OC(=O)CN2CCCC[C@H](N)C(=O)O)c1O,24,1,ok
+9JC,4-(aminomethyl)-8-azanyl-quinoline-2-carbaldehyde,delta,X,NCc1cc(C(=O)O)nc2c(N)cccc12,NCc1cc(C(=O)O)nc2c(N)cccc12,11,1,ok
+9JV,8-azanyl-4-methoxy-quinoline-2-carboxylic acid,delta,X,COc1cc(C(=O)O)nc2c(N)cccc12,COc1cc(C(=O)O)nc2c(N)cccc12,11,1,ok
+9KK,N-Methyl-L-Norleucine,alpha,L,CCCCC(NC)C(=O)O,CCCC[C@H](NC)C(=O)O,5,1,ok
+9KP,(E)-N~6~-[(2E)-1-carboxy-3-(2-carboxyphenyl)prop-2-en-1-ylidene]-L-lysine,alpha,X,NC(CCCCN=C(C=Cc1ccccc1C(=O)O)C(=O)O)C(=O)O,N[C@@H](CCCC/N=C(\C=C\c1ccccc1C(=O)O)C(=O)O)C(=O)O,20,1,ok
+9MN,(2~{S})-2-azanyl-6-(6-bromanylhexanoylamino)hexanoic acid,alpha,K,NC(CCCCNC(=O)CCCCCBr)C(=O)O,N[C@@H](CCCCNC(=O)CCCCCBr)C(=O)O,13,1,ok
+9NE,(2S)-2-[[5-(dimethylamino)naphthalen-1-yl]sulfonylamino]pentanedioic acid,alpha,E,CN(C)c1cccc2c(S(=O)(=O)NC(CCC(=O)O)C(=O)O)cccc12,CN(C)c1cccc2c(S(=O)(=O)N[C@@H](CCC(=O)O)C(=O)O)cccc12,21,1,ok
+9NF,DANSYL-L-PHENYLALANINE,alpha,F,CN(C)c1cccc2c(S(=O)(=O)NC(Cc3ccccc3)C(=O)O)cccc12,CN(C)c1cccc2c(S(=O)(=O)N[C@@H](Cc3ccccc3)C(=O)O)cccc12,23,1,ok
+9NR,DANSYL-L-ARGININE,alpha,R,CN(C)c1cccc2c(S(=O)(=O)NC(CCCNC(=N)N)C(=O)O)cccc12,CN(C)c1cccc2c(S(=O)(=O)N[C@@H](CCCNC(=N)N)C(=O)O)cccc12,23,1,ok
+9NV,DANSYL-L-NORVALINE,alpha,V,CCCC(NS(=O)(=O)c1cccc2c(N(C)C)cccc12)C(=O)O,CCC[C@H](NS(=O)(=O)c1cccc2c(N(C)C)cccc12)C(=O)O,19,1,ok
+9R1,(S)-2-Aminooctanedioic acid,alpha,X,NC(CCCCCC(=O)O)C(=O)O,N[C@@H](CCCCCC(=O)O)C(=O)O,8,1,ok
+9R4,D-gamma-glutamyl-2-methyl-L-alanine,alpha,Q,CC(C)(NC(=O)CCC(N)C(=O)O)C(=O)O,CC(C)(NC(=O)CC[C@@H](N)C(=O)O)C(=O)O,11,1,ok
+9R7,L-gamma-glutamylglycine,alpha,Q,NC(CCC(=O)NCC(=O)O)C(=O)O,N[C@@H](CCC(=O)NCC(=O)O)C(=O)O,9,1,ok
+9U9,"N6-({[(1R,8S,9s)-bicyclo[6.1.0]non-4-yn-9-yl]methoxy}carbonyl)-L-lysine",alpha,K,NC(CCCCNC(=O)OCC1C2CCC#CCCC21)C(=O)O,N[C@@H](CCCCNC(=O)OCC1[C@H]2CCC#CCC[C@@H]12)C(=O)O,18,1,ok
+9UF,N6-{[(6-aminopyridin-3-yl)methoxy]carbonyl}-L-lysine,alpha,K,Nc1ccc(COC(=O)NCCCCC(N)C(=O)O)cn1,Nc1ccc(COC(=O)NCCCC[C@H](N)C(=O)O)cn1,16,1,ok
+9VF,(2S)-2-azanyl-6-(trimethylsilylmethoxycarbonylamino)hexanoic acid,alpha,K,C[Si](C)(C)COC(=O)NCCCCC(N)C(=O)O,C[Si](C)(C)COC(=O)NCCCC[C@H](N)C(=O)O,13,1,ok
+9WV,beta-alanyl-3-amino-L-alanine,beta,X,NCCC(=O)NC(CN)C(=O)O,NCCC(=O)N[C@@H](CN)C(=O)O,7,1,ok
+A0G,(2Z)-2-amino-3-hydroxyprop-2-enoic acid,alpha,X,NC(=CO)C(=O)O,N/C(=C\O)C(=O)O,2,1,ok
+A1A2I,"D-Beta2-Leucine, D-Beta2-Homo-Valine",beta,V,CC(C)C(CN)C(=O)O,CC(C)[C@@H](CN)C(=O)O,4,1,ok
+A1A2K,"3-[1-(carboxymethyl)-1H-1,2,3-triazol-4-yl]-D-alanine",alpha,F,NC(Cc1cn(CC(=O)O)nn1)C(=O)O,N[C@H](Cc1cn(CC(=O)O)nn1)C(=O)O,10,1,ok
+A1A3M,"(5S)-4,5-dihydro-1H-pyrazole-5-carboxylic acid",alpha,P,O=C(O)C1CC=NN1,O=C(O)[C@@H]1CC=NN1,3,1,ok
+A1A5S,1-[(3S)-4-chloro-3-hydroxy-2-methylbutan-2-yl]-L-tryptophan,alpha,X,CC(C)(C(O)CCl)n1cc(CC(N)C(=O)O)c2ccccc21,CC(C)([C@H](O)CCl)n1cc(C[C@H](N)C(=O)O)c2ccccc21,17,1,ok
+A1A5T,(4S)-5-butoxy-N-methyl-L-leucine,alpha,X,CCCCOCC(C)CC(NC)C(=O)O,CCCCOC[C@@H](C)C[C@H](NC)C(=O)O,10,1,ok
+A1A7R,"3-[(2S)-2-{[(2R,3S,3aR,5aS,6R,11bR,11cS)-10-hydroxy-3a-methoxy-3,14-dimethyl-2-phenyl-2,3,3a,4,5,6,7,11c-octahydro-1H-6,11b-(epiminoethano)-3,5a-methanonaphtho[2,1-g]indol-1-yl]oxy}-2,3-dihydro-1H-imidazol-4-yl]-L-alanine",alpha,X,COC12CCC34CC1(C)C(c1ccccc1)N(OC1NC=C(CC(N)C(=O)O)N1)C2C31CCN(C)C4Cc2ccc(O)cc21,CO[C@]12CC[C@]34C[C@@]1(C)[C@@H](c1ccccc1)N(O[C@H]1NC=C(C[C@H](N)C(=O)O)N1)[C@H]2[C@@]31CCN(C)[C@@H]4Cc2ccc(O)cc21,39,1,ok
+A1A7V,S-lactoyl-L-cysteine,alpha,C,CC(O)C(=O)SCC(N)C(=O)O,C[C@H](O)C(=O)SC[C@H](N)C(=O)O,7,1,ok
+A1A8T,alpha-methyl-L-valine,alpha,V,CC(C)C(C)(N)C(=O)O,CC(C)[C@](C)(N)C(=O)O,4,1,ok
+A1ADO,(4R)-5-fluoro-L-leucine,alpha,X,CC(CF)CC(N)C(=O)O,C[C@@H](CF)C[C@H](N)C(=O)O,5,1,ok
+A1ADW,2-Methyl-L-Phenylalanine,alpha,F,Cc1ccccc1CC(N)C(=O)O,Cc1ccccc1C[C@H](N)C(=O)O,8,1,ok
+A1ADZ,(2S)-2-amino-3-(2-methoxyphenyl)propan-1-ol,alpha,Y,COc1ccccc1CC(N)C(=O)O,COc1ccccc1C[C@H](N)C(=O)O,9,1,ok
+A1AL8,1-(2-methylbut-3-en-2-yl)-L-tryptophan,alpha,W,C=CC(C)(C)n1cc(CC(N)C(=O)O)c2ccccc21,C=CC(C)(C)n1cc(C[C@H](N)C(=O)O)c2ccccc21,15,1,ok
+A1ALE,(2S)-2-amino-7-(dimethylamino)-7-oxoheptanoic acid,alpha,X,CN(C)C(=O)CCCCC(N)C(=O)O,CN(C)C(=O)CCCC[C@H](N)C(=O)O,9,1,ok
+A1AMB,"3-(1H-1,2,3-triazol-1-yl)-L-alanine",alpha,F,NC(Cn1ccnn1)C(=O)O,N[C@@H](Cn1ccnn1)C(=O)O,6,1,ok
+A1AMC,"(2S)-2-(methylamino)pentane-1,1,5-triol",alpha,X,CNC(CCCO)C(=O)O,CN[C@@H](CCCO)C(=O)O,5,1,ok
+A1AMM,4-Benzyl-L-phenylalanine,alpha,F,NC(Cc1ccc(Cc2ccccc2)cc1)C(=O)O,N[C@@H](Cc1ccc(Cc2ccccc2)cc1)C(=O)O,14,1,ok
+A1AP1,O-Phospho-D-Tyrosine,alpha,Y,NC(Cc1ccc(OP(=O)(O)O)cc1)C(=O)O,N[C@H](Cc1ccc(OP(=O)(O)O)cc1)C(=O)O,12,1,ok
+A1AQ4,4-Phenyl-D-Phenylalanine,alpha,F,NC(Cc1ccc(-c2ccccc2)cc1)C(=O)O,N[C@H](Cc1ccc(-c2ccccc2)cc1)C(=O)O,13,1,ok
+A1AS0,5-selanyl-L-histidine,alpha,H,NC(Cc1[nH]cnc1[SeH])C(=O)O,N[C@@H](Cc1[nH]cnc1[SeH])C(=O)O,7,1,ok
+A1ASZ,5-sulfanyl-L-histidine,alpha,H,NC(Cc1nc[nH]c1S)C(=O)O,N[C@@H](Cc1nc[nH]c1S)C(=O)O,7,1,ok
+A1AT6,L-Indoline-2-carboxylic acid,alpha,P,O=C(O)C1Cc2ccccc2N1,O=C(O)[C@@H]1Cc2ccccc2N1,7,1,ok
+A1AT7,"(1S)-6-methyl-1,2-dihydroisoquinoline-1-carboxylic acid",alpha,X,Cc1ccc2c(c1)C=CNC2C(=O)O,Cc1ccc2c(c1)C=CN[C@@H]2C(=O)O,9,1,ok
+A1AVU,(3S)-4-fluoro-L-valine,alpha,X,CC(CF)C(N)C(=O)O,C[C@H](CF)[C@H](N)C(=O)O,4,1,ok
+A1AWS,4-cyano-L-tryptophan,alpha,W,N#Cc1cccc2[nH]cc(CC(N)C(=O)O)c12,N#Cc1cccc2[nH]cc(C[C@H](N)C(=O)O)c12,12,1,ok
+A1AZ2,3-methyl-D-histidine,alpha,H,Cn1cncc1CC(N)C(=O)O,Cn1cncc1C[C@@H](N)C(=O)O,7,1,ok
+A1AZQ,N-(2-phenylethyl)-glycine,alpha,G,O=C(O)CNCCc1ccccc1,O=C(O)CNCCc1ccccc1,8,1,ok
+A1BC5,L-seryl-N-[(2S)-2-amino-2-carboxyethyl]glycinamide,alpha,X,NC(CNC(=O)CNC(=O)C(N)CO)C(=O)O,N[C@@H](CNC(=O)CNC(=O)[C@@H](N)CO)C(=O)O,12,1,ok
+A1BDE,N~6~-L-seryl-L-lysine,alpha,K,NC(CCCCNC(=O)C(N)CO)C(=O)O,N[C@@H](CCCCNC(=O)[C@@H](N)CO)C(=O)O,11,1,ok
+A1BEB,2-Methyllysine,alpha,K,CC(N)(CCCCN)C(=O)O,C[C@](N)(CCCCN)C(=O)O,6,1,ok
+A1BIT,"(2R,3S)-3-(propan-2-yl)piperidine-2-carboxylic acid",alpha,P,CC(C)C1CCCNC1C(=O)O,CC(C)[C@@H]1CCCN[C@H]1C(=O)O,7,1,ok
+A1BIU,L-4-Chlorophenylglycine,alpha,X,NC(C(=O)O)c1ccc(Cl)cc1,N[C@H](C(=O)O)c1ccc(Cl)cc1,7,1,ok
+A1BX4,N~6~-hydroxy-L-lysine,alpha,K,NC(CCCCNO)C(=O)O,N[C@@H](CCCCNO)C(=O)O,6,1,ok
+A1BZO,(2S)-2-amino-3-octanoyloxypropanoic acid,alpha,S,CCCCCCCC(=O)OCC(N)C(=O)O,CCCCCCCC(=O)OC[C@H](N)C(=O)O,11,1,ok
+A1CCQ,(2S)-2-hydrazinyl-3-(4-hydroxyphenyl)propanoic acid,alpha,Y,NNC(Cc1ccc(O)cc1)C(=O)O,NN[C@@H](Cc1ccc(O)cc1)C(=O)O,9,1,ok
+A1CCR,(2S)-2-hydrazinyl-3-phenylpropanoic acid,alpha,F,NNC(Cc1ccccc1)C(=O)O,NN[C@@H](Cc1ccccc1)C(=O)O,8,1,ok
+A1CCS,(2S)-5-carbamimidamido-2-hydrazinylpentanoic acid,alpha,R,[H]N=C(N)NCCCC(NN)C(=O)O,[H]/N=C(\N)NCCC[C@H](NN)C(=O)O,8,1,ok
+A1CRT,(4S)-4-{[(1R)-1-carboxy-2-sulfanylethyl]amino}-4-hydroxybutanoic acid,alpha,C,O=C(O)CCC(O)NC(CS)C(=O)O,O=C(O)CC[C@H](O)N[C@@H](CS)C(=O)O,9,2,ok
+A1CTT,alpha-methyl-L-Phenylglycine,alpha,X,CC(N)(C(=O)O)c1ccccc1,C[C@@](N)(C(=O)O)c1ccccc1,7,1,ok
+A1D5E,(4R)-4-{[(2-Aminoethyl)carbamoyl]oxy}-L-proline,alpha,P,NCCNC(=O)OC1CNC(C(=O)O)C1,NCCNC(=O)O[C@H]1CN[C@H](C(=O)O)C1,10,1,ok
+A1D5P,"(2~{R},3~{S})-2-azanyl-3-(4-hydroxyphenyl)-3-oxidanyl-propanoic acid",alpha,Y,NC(C(=O)O)C(O)c1ccc(O)cc1,N[C@@H](C(=O)O)[C@@H](O)c1ccc(O)cc1,9,1,ok
+A1D64,(2~{R})-3-(4-aminophenyl)sulfanyl-2-azanyl-propanoic acid,alpha,C,Nc1ccc(SCC(N)C(=O)O)cc1,Nc1ccc(SC[C@H](N)C(=O)O)cc1,9,1,ok
+A1D7R,(2~{S})-2-azanyl-3-[6-(3-methylbut-2-enyl)-1~{H}-indol-3-yl]propanoic acid,alpha,W,CC(C)=CCc1ccc2c(CC(N)C(=O)O)c[nH]c2c1,CC(C)=CCc1ccc2c(C[C@H](N)C(=O)O)c[nH]c2c1,15,1,ok
+A1D8R,"(2~{S})-2,4-bis(azanyl)-3,3-dimethyl-butanoic acid",alpha,V,CC(C)(CN)C(N)C(=O)O,CC(C)(CN)[C@H](N)C(=O)O,5,1,ok
+A1D9O,"(2~{S},3~{S},4~{S})-3,4-bis(oxidanyl)pyrrolidine-2-carboxylic acid",alpha,P,O=C(O)C1NCC(O)C1O,O=C(O)[C@H]1NC[C@H](O)[C@H]1O,5,1,ok
+A1EAK,(R)-2-Amino-2-cyclopentylacetic acid,alpha,X,NC(C(=O)O)C1CCCC1,N[C@@H](C(=O)O)C1CCCC1,5,1,ok
+A1ECI,5-[(2R)-2-azanyl-3-oxidanyl-3-oxidanylidene-propyl]sulfanyl-5-oxidanylidene-pentanoic acid,alpha,C,NC(CSC(=O)CCCC(=O)O)C(=O)O,N[C@@H](CSC(=O)CCCC(=O)O)C(=O)O,10,1,ok
+A1ECK,(2S)-3-(4-fluorophenyl)-2-(methylsulfonylamino)propanoic acid,alpha,F,CS(=O)(=O)NC(Cc1ccc(F)cc1)C(=O)O,CS(=O)(=O)N[C@@H](Cc1ccc(F)cc1)C(=O)O,12,1,ok
+A1ECL,"(2S)-3-[3,5-bis(fluoranyl)phenyl]-2-(methylsulfonylamino)propanoic acid",alpha,F,CS(=O)(=O)NC(Cc1cc(F)cc(F)c1)C(=O)O,CS(=O)(=O)N[C@@H](Cc1cc(F)cc(F)c1)C(=O)O,13,1,ok
+A1ECM,"(2S)-3,3-dimethyl-2-(methylsulfonylamino)butanoic acid",alpha,V,CC(C)(C)C(NS(C)(=O)=O)C(=O)O,CC(C)(C)[C@H](NS(C)(=O)=O)C(=O)O,8,1,ok
+A1EDD,N-METHYLSULFONYL-D-LYSINE,alpha,K,CS(=O)(=O)NC(CCCCN)C(=O)O,CS(=O)(=O)N[C@H](CCCCN)C(=O)O,9,1,ok
+A1EFT,"(2~{S})-2-azanyl-5-[[(5~{R})-5-[4-[[9-chloranyl-7-(2-fluoranyl-6-methoxy-phenyl)-5~{H}-pyrimido[5,4-d][2]benzazepin-2-yl]amino]-2-methoxy-phenyl]-4-oxidanylidene-1,5-dihydroimidazol-2-yl]amino]pentanoic acid",alpha,R,COc1cc(Nc2ncc3c(n2)-c2ccc(Cl)cc2C(c2c(F)cccc2OC)=NC3)ccc1C1NC(NCCCC(N)C(=O)O)=NC1=O,COc1cc(Nc2ncc3c(n2)-c2ccc(Cl)cc2C(c2c(F)cccc2OC)=NC3)ccc1[C@H]1NC(NCCC[C@H](N)C(=O)O)=NC1=O,44,1,ok
+A1EG1,(2~{S})-2-azanyl-6-[(1~{S})-3-azanylidene-6-[[4-[4-[(3-cyclopropyl-1~{H}-pyrazol-5-yl)amino]-6-(prop-2-ynylcarbamoyl)pyrimidin-2-yl]piperazin-1-yl]methyl]-1-oxidanyl-1~{H}-isoindol-2-yl]hexanoic acid,alpha,X,[H]N=C1c2ccc(CN3CCN(c4nc(Nc5cc(C6CC6)n[nH]5)cc(C(=O)NCC#C)n4)CC3)cc2C(O)N1CCCCC(N)C(=O)O,[H]/N=C1/c2ccc(CN3CCN(c4nc(Nc5cc(C6CC6)n[nH]5)cc(C(=O)NCC#C)n4)CC3)cc2[C@H](O)N1CCCC[C@H](N)C(=O)O,43,1,ok
+A1EIC,O-Methylcarbamoyl-L-Serine,alpha,S,CNC(=O)OCC(N)C(=O)O,CNC(=O)OC[C@H](N)C(=O)O,6,1,ok
+A1EIU,"(2~{S})-2-azanyl-6-[(~{E})-[7-methyl-2,4-bis(oxidanyl)-5-oxidanylidene-cyclohepta-1,3,6-trien-1-yl]methylideneamino]hexanoic acid",alpha,X,Cc1cc(=O)c(O)cc(O)c1C=NCCCCC(N)C(=O)O,Cc1cc(=O)c(O)cc(O)c1/C=N/CCCC[C@H](N)C(=O)O,17,1,ok
+A1EJ1,"(2~{S})-6-[(~{E})-[(2~{S},3~{R},4~{S},5~{R})-2-acetamido-3,4,5,6-tetrakis(oxidanyl)hexylidene]amino]-2-azanyl-hexanoic acid",alpha,X,CC(=O)NC(C=NCCCCC(N)C(=O)O)C(O)C(O)C(O)CO,CC(=O)N[C@@H](/C=N/CCCC[C@H](N)C(=O)O)[C@@H](O)[C@H](O)[C@H](O)CO,19,1,ok
+A1EJ4,(2~{S})-6-[(~{E})-2-acetamidoethylideneamino]-2-azanyl-hexanoic acid,alpha,X,CC(=O)NCC=NCCCCC(N)C(=O)O,CC(=O)NC/C=N/CCCC[C@H](N)C(=O)O,11,1,ok
+A1EJR,(2S)-2-azanyl-6-[6-[[(2R)-1-[4-[2-[3-bromanyl-2-(2-hydroxy-2-oxoethyloxy)-5-methyl-phenyl]ethynyl]phenyl]-4-(methylamino)-4-oxidanylidene-butan-2-yl]carbamoyl]-3-oxidanylidene-1H-indazol-2-yl]hexanoic acid,alpha,X,CNC(=O)CC(Cc1ccc(C#Cc2cc(C)cc(Br)c2OCC(=O)O)cc1)NC(=O)c1ccc2c(=O)n(CCCCC(N)C(=O)O)[nH]c2c1,CNC(=O)C[C@@H](Cc1ccc(C#Cc2cc(C)cc(Br)c2OCC(=O)O)cc1)NC(=O)c1ccc2c(=O)n(CCCC[C@H](N)C(=O)O)[nH]c2c1,45,1,ok
+A1EJS,"(2S)-2-azanyl-6-[[2-[[4-[(5-fluoranyl-2-methoxycarbonyl-phenyl)amino]-2-[[3-(1-methylimidazol-2-yl)phenyl]methylamino]pyrimidin-5-yl]amino]-3,4-bis(oxidanylidene)cyclobuten-1-yl]amino]hexanoic acid",alpha,X,COC(=O)c1ccc(F)cc1Nc1nc(NCc2cccc(-c3nccn3C)c2)ncc1Nc1c(NCCCCC(N)C(=O)O)c(=O)c1=O,COC(=O)c1ccc(F)cc1Nc1nc(NCc2cccc(-c3nccn3C)c2)ncc1Nc1c(NCCCC[C@H](N)C(=O)O)c(=O)c1=O,44,1,ok
+A1EJT,"(2~{S})-6-[(~{E})-[(2~{S},3~{S},4~{R})-5-[[[(2~{R},3~{S},4~{R},5~{R})-5-(6-aminopurin-9-yl)-3,4-bis(oxidanyl)oxolan-2-yl]methoxy-oxidanyl-phosphoryl]oxy-oxidanyl-phosphoryl]oxy-2,3,4-tris(oxidanyl)pentylidene]amino]-2-azanyl-hexanoic acid",alpha,X,Nc1ncnc2c1ncn2C1OC(COP(=O)(O)OP(=O)(O)OCC(O)C(O)C(O)C=NCCCCC(N)C(=O)O)C(O)C1O,Nc1ncnc2c1ncn2[C@@H]1O[C@H](COP(=O)(O)OP(=O)(O)OC[C@@H](O)[C@@H](O)[C@@H](O)/C=N/CCCC[C@H](N)C(=O)O)[C@@H](O)[C@H]1O,40,1,ok
+A1EJZ,"(2~{S})-6-[(~{E})-[(2~{S},3~{R},4~{R},5~{R})-2-acetamido-3,4,5,6-tetrakis(oxidanyl)hexylidene]amino]-2-azanyl-hexanoic acid",alpha,X,CC(=O)NC(C=NCCCCC(N)C(=O)O)C(O)C(O)C(O)CO,CC(=O)N[C@@H](/C=N/CCCC[C@H](N)C(=O)O)[C@@H](O)[C@@H](O)[C@H](O)CO,19,1,ok
+A1EMP,"(2~{S})-2-azanyl-6-[(1~{S})-7-[6-(3,5-dimethyl-1,2-oxazol-4-yl)-1-[(1~{S})-1-pyridin-2-ylethyl]pyrrolo[3,2-b]pyridin-3-yl]-3-methylidene-1-oxidanyl-1~{H}-isoindol-2-yl]hexanoic acid",alpha,K,C=C1c2cccc(-c3cn(C(C)c4ccccn4)c4cc(-c5c(C)noc5C)cnc34)c2C(O)N1CCCCC(N)C(=O)O,C=C1c2cccc(-c3cn([C@@H](C)c4ccccn4)c4cc(-c5c(C)noc5C)cnc34)c2[C@H](O)N1CCCC[C@H](N)C(=O)O,39,1,ok
+A1ER5,(2~{S})-2-azanyl-4-oxidanylidene-4-[(2~{R})-1-oxidanyl-1-oxidanylidene-3-phenyl-propan-2-yl]oxy-butanoic acid,alpha,X,NC(CC(=O)OC(Cc1ccccc1)C(=O)O)C(=O)O,N[C@@H](CC(=O)O[C@H](Cc1ccccc1)C(=O)O)C(=O)O,15,1,ok
+A1H2I,"(2~{S})-2-azanyl-3-[(3~{S})-5-oxidanyl-2-oxidanylidene-1,3-dihydroindol-3-yl]propanoic acid",alpha,Y,NC(CC1C(=O)Nc2ccc(O)cc21)C(=O)O,N[C@@H](C[C@@H]1C(=O)Nc2ccc(O)cc21)C(=O)O,12,1,ok
+A1H45,"(2~{S})-2-azanyl-3-[(3~{R})-5-oxidanyl-2-oxidanylidene-1,3-dihydroindol-3-yl]propanoic acid",alpha,Y,NC(CC1C(=O)Nc2ccc(O)cc21)C(=O)O,N[C@@H](C[C@H]1C(=O)Nc2ccc(O)cc21)C(=O)O,12,1,ok
+A1H5N,2-Imino-2-phenylethanol-lysine,alpha,X,NC(CCCCN=C(CO)c1ccccc1)C(=O)O,N[C@@H](CCCC/N=C(/CO)c1ccccc1)C(=O)O,14,1,ok
+A1H6Z,(S)-2-amino-3-(6-aminopyridin-3-yl)propanoic acid,alpha,F,Nc1ccc(CC(N)C(=O)O)cn1,Nc1ccc(C[C@H](N)C(=O)O)cn1,8,1,ok
+A1H96,(2S)-2-amino-6-(propan-2-ylcarbamothioylamino)hexanoic acid,alpha,K,CC(C)NC(=S)NCCCCC(N)C(=O)O,CC(C)NC(=S)NCCCC[C@H](N)C(=O)O,11,1,ok
+A1I48,"(2~{S},3~{R})-2-azanyl-3-[(1~{R},2~{S})-2-azanyl-4-methyl-1-oxidanyl-pentoxy]butanal",epsilon,L,CC(C)CC(N)C(O)OC(C)C(N)C(=O)O,CC(C)C[C@H](N)[C@H](O)O[C@H](C)[C@H](N)C(=O)O,11,1,ok
+A1I67,"(2~{R},3~{S},6~{R},7~{S})-7-[(1~{S})-1-azanyl-3-methyl-butyl]-2,6-dimethyl-6,7-bis(oxidanyl)-1,4-oxazepane-3-carbaldehyde",epsilon,T,CC(C)CC(N)C1(O)OC(C)C(C(=O)O)NCC1(C)O,CC(C)C[C@H](N)[C@]1(O)O[C@H](C)[C@@H](C(=O)O)NC[C@@]1(C)O,15,1,ok
+A1ICB,"(2S,4S)-4-[(2-chloranyl-5-methyl-phenyl)carbonylamino]pyrrolidine-2-carboxylic acid",alpha,P,Cc1ccc(Cl)c(C(=O)NC2CNC(C(=O)O)C2)c1,Cc1ccc(Cl)c(C(=O)N[C@@H]2CN[C@H](C(=O)O)C2)c1,14,1,ok
+A1ICC,"(2S,4S)-4-(isoquinolin-1-ylcarbonylamino)pyrrolidine-2-carboxylic acid",alpha,P,O=C(NC1CNC(C(=O)O)C1)c1nccc2ccccc12,O=C(N[C@@H]1CN[C@H](C(=O)O)C1)c1nccc2ccccc12,16,1,ok
+A1IHG,(S)-2-amino-3-(9-oxo-9H-thioxanthen-2-yl)propanoic acid,alpha,F,NC(Cc1ccc2sc3ccccc3c(=O)c2c1)C(=O)O,N[C@@H](Cc1ccc2sc3ccccc3c(=O)c2c1)C(=O)O,16,1,ok
+A1IID,(2S)-2-amino-3-(4-sulfanylphenyl)propanoic acid,alpha,F,NC(Cc1ccc(S)cc1)C(=O)O,N[C@@H](Cc1ccc(S)cc1)C(=O)O,8,1,ok
+A1IJ4,4-[3-(aminomethyl)phenoxy]butylcarbamic acid,unknown,X,NCc1cccc(OCCCCNC(=O)O)c1,NCc1cccc(OCCCCNC(=O)O)c1,12,1,ok
+A1IJP,8-azanyl-5-(2-phenylethyl)quinoline-2-carbaldehyde,delta,X,Nc1ccc(CCc2ccccc2)c2ccc(C(=O)O)nc12,Nc1ccc(CCc2ccccc2)c2ccc(C(=O)O)nc12,17,1,ok
+A1IJQ,8-azanylquinoline-2-carboxylic acid,delta,X,Nc1cccc2ccc(C(=O)O)nc12,Nc1cccc2ccc(C(=O)O)nc12,9,1,ok
+A1IKE,(2~{S})-2-(2-azanylphenoxy)propanoic acid,delta,X,CC(Oc1ccccc1N)C(=O)O,C[C@H](Oc1ccccc1N)C(=O)O,8,1,ok
+A1IKP,TRIPHOSPHOSERINE,alpha,S,NC(COP(=O)(O)OP(=O)(O)OP(=O)(O)O)C(=O)O,N[C@@H](COP(=O)(O)OP(=O)(O)OP(=O)(O)O)C(=O)O,14,1,ok
+A1IM3,(3~{R})-3-azanyl-4-(1~{H}-indol-3-yl)butanal,beta,W,NC(CC(=O)O)Cc1c[nH]c2ccccc12,N[C@@H](CC(=O)O)Cc1c[nH]c2ccccc12,11,1,ok
+A1IMX,"4-[2-[1-[3-[3-(aminomethyl)phenoxy]propyl]-1,2,3-triazol-4-yl]ethoxy]-8-azanyl-quinoline-2-carboxylic acid",delta,X,NCc1cccc(OCCCn2cc(CCOc3cc(C(=O)O)nc4c(N)cccc34)nn2)c1,NCc1cccc(OCCCn2cc(CCOc3cc(C(=O)O)nc4c(N)cccc34)nn2)c1,29,1,ok
+A1IQX,NE2-acetamide-histidine,alpha,X,NC(=O)Cn1cnc(CC(N)C(=O)O)c1,NC(=O)Cn1cnc(C[C@H](N)C(=O)O)c1,10,1,ok
+A1IU4,8-(carboxyamino)-4-oxidanyl-quinoline-2-carboxylic acid,delta,X,O=C(O)Nc1cccc2c(O)cc(C(=O)O)nc12,O=C(O)Nc1cccc2c(O)cc(C(=O)O)nc12,13,2,ok
+A1IUO,"(2~{S})-2-[2-azanyl-4-(2,3-dihydro-1~{H}-inden-2-yl)phenoxy]propanoic acid",delta,X,CC(Oc1ccc(C2Cc3ccccc3C2)cc1N)C(=O)O,C[C@H](Oc1ccc(C2Cc3ccccc3C2)cc1N)C(=O)O,17,1,ok
+A1JND,"2-[4-(1~{H}-1,2,3-triazol-4-yl)butylamino]ethanamide",alpha,G,O=C(O)CNCCCCc1c[nH]nn1,O=C(O)CNCCCCc1c[nH]nn1,9,1,ok
+A1JNX,"2-[2-(1~{H}-1,2,3-triazol-4-yl)ethylamino]ethanoic acid",alpha,G,O=C(O)CNCCc1c[nH]nn1,O=C(O)CNCCc1c[nH]nn1,7,1,ok
+A1JWF,2-Tellurophenealanine,alpha,F,NC(Cc1ccc[te]1)C(=O)O,N[C@@H](Cc1ccc[te]1)C(=O)O,6,1,ok
+A1L3I,(2~{S})-3-methyl-2-(methylamino)-3-oxidanyl-butanoic acid,alpha,V,CNC(C(=O)O)C(C)(C)O,CN[C@H](C(=O)O)C(C)(C)O,5,1,ok
+A1L4B,(2S)-2-azanyl-5-nitroso-5-oxidanylidene-pentanoic acid,alpha,K,NC(CCC(=O)N=O)C(=O)O,N[C@@H](CCC(=O)N=O)C(=O)O,6,1,ok
+A1L4D,(2~{S})-2-benzamido-3-phenyl-propanoic acid,alpha,F,O=C(NC(Cc1ccccc1)C(=O)O)c1ccccc1,O=C(N[C@@H](Cc1ccccc1)C(=O)O)c1ccccc1,15,1,ok
+A1L7K,(2~{S})-2-azanyl-3-[(3~{S})-2-oxidanylidenepiperidin-3-yl]propanoic acid,alpha,Q,NC(CC1CCCNC1=O)C(=O)O,N[C@@H](C[C@@H]1CCCNC1=O)C(=O)O,8,1,ok
+A1L7L,(2~{S})-3-cyclobutyl-2-(methylamino)propanoic acid,alpha,A,CNC(CC1CCC1)C(=O)O,CN[C@@H](CC1CCC1)C(=O)O,6,1,ok
+A1L7N,N-Methyl-L-Norvaline,alpha,V,CCCC(NC)C(=O)O,CCC[C@H](NC)C(=O)O,4,1,ok
+A1L97,"(2~{S})-2-azanyl-3-[4-(4-pyridin-2-yl-1,2,3-triazol-1-yl)phenyl]propanoic acid",alpha,F,NC(Cc1ccc(-n2cc(-c3ccccn3)nn2)cc1)C(=O)O,N[C@@H](Cc1ccc(-n2cc(-c3ccccn3)nn2)cc1)C(=O)O,18,1,ok
+A1L9X,"4-PipAmCx, 4-Amino-4-piperidinecarboxylic acid",alpha,X,NC1(C(=O)O)CCNCC1,NC1(C(=O)O)CCNCC1,5,1,ok
+A1LWV,(2~{S})-2-azanyl-6-(5-oxidanylidenepentanoylamino)hexanoic acid,alpha,X,NC(CCCCNC(=O)CCCC=O)C(=O)O,N[C@@H](CCCCNC(=O)CCCC=O)C(=O)O,12,1,ok
+A1MCG,(2~{S})-2-azanyl-3-[4-(pyrimidin-2-ylamino)phenyl]propanoic acid,alpha,F,NC(Cc1ccc(Nc2ncccn2)cc1)C(=O)O,N[C@@H](Cc1ccc(Nc2ncccn2)cc1)C(=O)O,14,1,ok
+A30,O-Ethyl-L-Tyrosine,alpha,Y,CCOc1ccc(CC(N)C(=O)O)cc1,CCOc1ccc(C[C@H](N)C(=O)O)cc1,10,1,ok
+A3U,4-acetamido-L-phenylalanine,alpha,F,CC(=O)Nc1ccc(CC(N)C(=O)O)cc1,CC(=O)Nc1ccc(C[C@H](N)C(=O)O)cc1,11,1,ok
+A5N,O-carboxy-4-imino-L-homoserine,alpha,X,[H]N=C(CC(N)C(=O)O)OC(=O)O,[H]/N=C(\C[C@H](N)C(=O)O)OC(=O)O,7,1,ok
+A8E,(S)-2-Amino-4-bromopent-4-enoic acid,alpha,X,C=C(Br)CC(N)C(=O)O,C=C(Br)C[C@H](N)C(=O)O,4,1,ok
+AA4,Pentahomo-L-Serine,alpha,X,NC(CCCO)C(=O)O,N[C@@H](CCCO)C(=O)O,4,1,ok
+AA6,"3-[4,5-DIHYDROXY-2-2-(2-HYDROXYETHYLAMINO)-PHENYL]-2-METHYLAMINO-PROPIONIC ACID",alpha,Y,CNC(Cc1cc(O)c(O)cc1NCO)C(=O)O,CN[C@@H](Cc1cc(O)c(O)cc1NCO)C(=O)O,13,1,ok
+ABA,L-2-Aminobutyric acid,alpha,A,CCC(N)C(=O)O,CC[C@H](N)C(=O)O,2,1,ok
+AC5,1-Aminocyclopentanecarboxylic acid,alpha,X,NC1(C(=O)O)CCCC1,NC1(C(=O)O)CCCC1,4,1,ok
+ACA,6-aminohexanoic acid,epsilon,G,NCCCCCC(=O)O,NCCCCCC(=O)O,4,1,ok
+ACB,"(2R,3S)-3-Methyl-D-Aspartic acid",alpha,D,CC(C(=O)O)C(N)C(=O)O,C[C@H](C(=O)O)[C@@H](N)C(=O)O,5,1,ok
+AEI,THREONINE-ASPARTIC ESTER,alpha,T,CC(OC(=O)CC(N)C(=O)O)C(N)C(=O)O,C[C@@H](OC(=O)C[C@H](N)C(=O)O)[C@H](N)C(=O)O,11,1,ok
+AFA,"N-[7-METHYL-OCT-2,4-DIENOYL]ASPARAGINE",alpha,N,CC(C)CC=CC=CC(=O)NC(CC(N)=O)C(=O)O,CC(C)C/C=C/C=C\C(=O)N[C@@H](CC(N)=O)C(=O)O,14,1,ok
+AGD,"3-(2-amino-6-oxo-1,6-dihydro-9H-purin-9-yl)-D-alanine",alpha,H,Nc1nc2c(ncn2CC(N)C(=O)O)c(=O)[nH]1,Nc1nc2c(ncn2C[C@@H](N)C(=O)O)c(=O)[nH]1,12,1,ok
+AGM,5-METHYL-ARGININE,alpha,R,CC(CCC(N)C(=O)O)NC(N)=[NH2+],C[C@@H](CC[C@H](N)C(=O)O)NC(N)=[NH2+],8,1,ok
+AGQ,"3-[(3E)-3-(carbamimidoylhydrazono)-4-hydroxy-6-oxocyclohexa-1,4-dien-1-yl]-L-alanine",alpha,R,[H]N=C(N)NN=C1C=C(CC(N)C(=O)O)C(=O)C=C1O,[H]/N=C(/N)N/N=C1\C=C(C[C@H](N)C(=O)O)C(=O)C=C1O,14,1,ok
+AGT,S-{(S)-AMINO[(4-AMINOBUTYL)AMINO]METHYL}-L-CYSTEINE,alpha,C,NCCCCNC(N)SCC(N)C(=O)O,NCCCCN[C@H](N)SC[C@H](N)C(=O)O,10,2,ok
+AHB,"(3S)-3-Hydroxy-L-Asparagine, (2S,3S)-3-Hydroxyasparagine",alpha,N,NC(=O)C(O)C(N)C(=O)O,NC(=O)[C@@H](O)[C@H](N)C(=O)O,5,1,ok
+AHH,AMINO-HYDROXYHEPTANOIC ACID,beta,L,CCCCC(N)C(O)C(=O)O,CCCC[C@@H](N)[C@H](O)C(=O)O,6,1,ok
+AHO,N-ACETYL-N-HYDROXY-L-ORNITHINE,alpha,K,CC(=O)N(O)CCCC(N)C(=O)O,CC(=O)N(O)CCC[C@H](N)C(=O)O,8,1,ok
+AHP,(2S)-2-Aminoheptanoic acid,alpha,L,CCCCCC(N)C(=O)O,CCCCC[C@H](N)C(=O)O,5,1,ok
+AIB,"2-Aminoisobutyric Acid, 2-Methyl-Alanine",alpha,A,CC(C)(N)C(=O)O,CC(C)(N)C(=O)O,2,1,ok
+AJE,"(3S,4R)-4-amino-1-(3-carboxypropanoyl)pyrrolidine-3-carboxylic acid",beta,X,NC1CN(C(=O)CCC(=O)O)CC1C(=O)O,N[C@H]1CN(C(=O)CCC(=O)O)C[C@@H]1C(=O)O,11,1,ok
+ALA,L-Alanine,alpha,A,CC(N)C(=O)O,C[C@H](N)C(=O)O,1,1,ok
+ALC,3-Cyclohexyl-L-Alanine,alpha,A,NC(CC1CCCCC1)C(=O)O,N[C@@H](CC1CCCCC1)C(=O)O,7,1,ok
+ALN,3-(1-naphthyl)-L-Alanine,alpha,F,NC(Cc1cccc2ccccc12)C(=O)O,N[C@@H](Cc1cccc2ccccc12)C(=O)O,11,1,ok
+ALO,"Allo-L-Threonine, (2S,3S)-Allothreonine",alpha,T,CC(O)C(N)C(=O)O,C[C@H](O)[C@H](N)C(=O)O,3,1,ok
+ALS,(3S)-3-(sulfooxy)-L-serine,alpha,S,NC(C(=O)O)C(O)OS(=O)(=O)O,N[C@H](C(=O)O)[C@@H](O)OS(=O)(=O)O,7,1,ok
+ALY,N6-Acetyl-L-Lysine,alpha,K,CC(=O)NCCCCC(N)C(=O)O,CC(=O)NCCCC[C@H](N)C(=O)O,8,1,ok
+AN8,(2S)-2-aminononanoic acid,alpha,X,CCCCCCCC(N)C(=O)O,CCCCCCC[C@H](N)C(=O)O,7,1,ok
+APH,4-Carbamimidoyl-D-Phenylalanine,alpha,F,N=C(N)c1ccc(CC(N)C(=O)O)cc1,N=C(N)c1ccc(C[C@@H](N)C(=O)O)cc1,10,1,ok
+API,6-Carboxy-L-Lysine,alpha,X,NC(CCCC(N)C(=O)O)C(=O)O,N[C@H](CCC[C@H](N)C(=O)O)C(=O)O,8,1,ok
+APM,3-Amidino-L-Phenylalanine,alpha,F,N=C(N)c1cccc(CC(N)C(=O)O)c1,N=C(N)c1cccc(C[C@H](N)C(=O)O)c1,10,1,ok
+ARG,L-Arginine,alpha,R,N=C(N)NCCCC(N)C(=O)O,N=C(N)NCCC[C@H](N)C(=O)O,7,1,ok
+ARO,C-GAMMA-HYDROXY ARGININE,alpha,R,NC(=[NH2+])NCC(O)CC(N)C(=O)O,NC(=[NH2+])NC[C@H](O)C[C@H](N)C(=O)O,8,1,ok
+ARV,5-N-ALLYL-ARGININE,alpha,R,C=CCN=C(N)NCCCC(N)C(=O)O,C=CC/N=C(/N)NCCC[C@H](N)C(=O)O,10,1,ok
+AS2,D-Aspartate semialdehyde,alpha,X,NC(CC=O)C(=O)O,N[C@H](CC=O)C(=O)O,3,1,ok
+AS7,N4-(4-cyanobenzyl)-L-asparagine,alpha,N,N#Cc1ccc(CNC(=O)CC(N)C(=O)O)cc1,N#Cc1ccc(CNC(=O)C[C@H](N)C(=O)O)cc1,13,1,ok
+AS9,N-[HYDROXY(METHYL)PHOSPHORYL]-L-ASPARTIC ACID,alpha,D,CP(=O)(O)NC(CC(=O)O)C(=O)O,C[P@@](=O)(O)N[C@@H](CC(=O)O)C(=O)O,8,1,ok
+ASB,ASPARTIC ACID-4-CARBOXYMETHYL ESTER,alpha,D,NC(CC(=O)OCC(=O)O)C(=O)O,N[C@@H](CC(=O)OCC(=O)O)C(=O)O,8,1,ok
+ASM,2-AMINO-4-OXO-4(1H-PYRROL-1-YL)BUTANOIC ACID,alpha,F,NC(CC(=O)n1cccc1)C(=O)O,N[C@@H](CC(=O)n1cccc1)C(=O)O,8,1,ok
+ASN,L-Asparagine,alpha,N,NC(=O)CC(N)C(=O)O,NC(=O)C[C@H](N)C(=O)O,4,1,ok
+ASP,L-Aspartic acid,alpha,D,NC(CC(=O)O)C(=O)O,N[C@@H](CC(=O)O)C(=O)O,4,1,ok
+AYA,N-ACETYLALANINE,alpha,A,CC(=O)NC(C)C(=O)O,CC(=O)N[C@@H](C)C(=O)O,4,1,ok
+B2N,(2S)-4-amino-2-(aminomethyl)-4-oxobutanoic acid,beta,N,NCC(CC(N)=O)C(=O)O,NC[C@H](CC(N)=O)C(=O)O,5,1,ok
+B3A,L-Beta-Homo-Alanine,beta,A,CC(N)CC(=O)O,C[C@H](N)CC(=O)O,2,1,ok
+B3D,L-beta-Glutamic acid,beta,D,NC(CC(=O)O)CC(=O)O,NC(CC(=O)O)CC(=O)O,5,2,ok
+B3E,beta-L-homoglutamic acid,beta,E,NC(CCC(=O)O)CC(=O)O,N[C@@H](CCC(=O)O)CC(=O)O,6,1,ok
+B3K,L-beta-homolysine,beta,K,NCCCCC(N)CC(=O)O,NCCCC[C@H](N)CC(=O)O,6,1,ok
+B3L,L-Beta-Homoleucine,beta,L,CC(C)CC(N)CC(=O)O,CC(C)C[C@H](N)CC(=O)O,5,1,ok
+B3M,L-beta-homomethionine,beta,M,CSCCC(N)CC(=O)O,CSCC[C@H](N)CC(=O)O,5,1,ok
+B3Q,Beta-L-Homoglutamine,beta,Q,NC(=O)CCC(N)CC(=O)O,NC(=O)CC[C@H](N)CC(=O)O,6,1,ok
+B3S,L-beta-Homoserine,beta,S,NC(CO)CC(=O)O,N[C@@H](CO)CC(=O)O,3,1,ok
+B3T,L-beta-Homothreonine,beta,T,CC(O)C(N)CC(=O)O,C[C@@H](O)[C@H](N)CC(=O)O,4,1,ok
+B3U,2-amino-L-histidine,alpha,H,Nc1ncc(CC(N)C(=O)O)[nH]1,Nc1ncc(C[C@H](N)C(=O)O)[nH]1,7,1,ok
+B3X,"Beta-L-Glutamine, Beta-L-Homoasparagine",beta,N,NC(=O)CC(N)CC(=O)O,NC(=O)C[C@H](N)CC(=O)O,5,1,ok
+B3Y,L-Beta-Homotyrosine,beta,Y,NC(CC(=O)O)Cc1ccc(O)cc1,N[C@H](CC(=O)O)Cc1ccc(O)cc1,9,1,ok
+B5I,Dipropylglycine,alpha,L,CCCC(N)(CCC)C(=O)O,CCCC(N)(CCC)C(=O)O,6,1,ok
+B8R,"(2S,10R)-2,10-diamino-11-(dimethylamino)-11-oxoundecanoic acid",alpha,X,CN(C)C(=O)C(N)CCCCCCCC(N)C(=O)O,CN(C)C(=O)[C@H](N)CCCCCCC[C@H](N)C(=O)O,14,1,ok
+BB6,(2Z)-2-amino-3-sulfanylbut-2-enoic acid,alpha,C,CC(S)=C(N)C(=O)O,C/C(S)=C(/N)C(=O)O,3,1,ok
+BB7,(2Z)-2-amino-4-methoxy-3-sulfanylbut-2-enoic acid,alpha,C,COCC(S)=C(N)C(=O)O,COC/C(S)=C(/N)C(=O)O,5,1,ok
+BB8,"(2S,3S)-BETA-HYDROXY-PHENYLALANINE",alpha,F,NC(C(=O)O)C(O)c1ccccc1,N[C@H](C(=O)O)[C@@H](O)c1ccccc1,8,1,ok
+BB9,(2Z)-2-amino-3-sulfanylprop-2-enoic acid,alpha,C,NC(=CS)C(=O)O,N/C(=C\S)C(=O)O,2,1,ok
+BCS,S-Benzyl-L-Cysteine,alpha,C,NC(CSCc1ccccc1)C(=O)O,N[C@@H](CSCc1ccccc1)C(=O)O,9,1,ok
+BCX,(3R)-3-amino-4-sulfanylbutanoic acid,beta,C,NC(CS)CC(=O)O,N[C@@H](CS)CC(=O)O,3,1,ok
+BE2,Anthranilic acid,beta,X,Nc1ccccc1C(=O)O,Nc1ccccc1C(=O)O,5,1,ok
+BF7,4-bromo-D-phenylalanine,alpha,F,NC(Cc1ccc(Br)cc1)C(=O)O,N[C@H](Cc1ccc(Br)cc1)C(=O)O,8,1,ok
+BG1,O-[(2S)-2-{methyl[(methylamino)sulfonyl]amino}pentanoyl]-L-serine,alpha,S,CCCC(C(=O)OCC(N)C(=O)O)N(C)S(=O)(=O)NC,CCC[C@@H](C(=O)OC[C@H](N)C(=O)O)N(C)S(=O)(=O)NC,15,1,ok
+BH2,"(2S,3R)-Hydroxy-L-Aspartic acid",alpha,D,NC(C(=O)O)C(O)C(=O)O,N[C@H](C(=O)O)[C@@H](O)C(=O)O,5,1,ok
+BHD,(3S)-3-Hydroxy-L-Aspartic acid,alpha,D,NC(C(=O)O)C(O)C(=O)O,N[C@H](C(=O)O)[C@H](O)C(=O)O,5,1,ok
+BIF,4-Phenyl-L-Phenylalanine (4'4-L-Biphenylalanine),alpha,F,NC(Cc1ccc(-c2ccccc2)cc1)C(=O)O,N[C@@H](Cc1ccc(-c2ccccc2)cc1)C(=O)O,13,1,ok
+BIL,L-beta-Homoisoleucine,beta,I,CCC(C)C(N)CC(=O)O,CC[C@H](C)[C@H](N)CC(=O)O,5,1,ok
+BIU,5-bromo-L-isoleucine,alpha,X,CC(CCBr)C(N)C(=O)O,C[C@@H](CCBr)[C@H](N)C(=O)O,5,1,ok
+BMT,N-methyl-(4R)-4-[(E)-but-2-enyl]-4-methyl-L-threonine,alpha,T,CC=CCC(C)C(O)C(NC)C(=O)O,C/C=C/C[C@@H](C)[C@@H](O)[C@H](NC)C(=O)O,9,1,ok
+BNN,ACETYL-P-AMIDINOPHENYLALANINE,alpha,F,[H]N=C(N)c1ccc(CC(NC(C)=O)C(=O)O)cc1,[H]/N=C(/N)c1ccc(C[C@H](NC(C)=O)C(=O)O)cc1,13,1,ok
+BP5,"3-(2,2'-BIPYRIDIN-5-YL)-L-ALANINE",alpha,F,NC(Cc1ccc(-c2ccccn2)nc1)C(=O)O,N[C@@H](Cc1ccc(-c2ccccn2)nc1)C(=O)O,13,1,ok
+BSE,L-Beta2-Homo-serine,beta,S,NCC(CO)C(=O)O,NC[C@@H](CO)C(=O)O,3,1,ok
+BTK,N~6~-butanoyl-L-lysine,alpha,K,CCCC(=O)NCCCCC(N)C(=O)O,CCCC(=O)NCCCC[C@H](N)C(=O)O,10,1,ok
+BTR,6-Bromo-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2cc(Br)ccc12)C(=O)O,N[C@@H](Cc1c[nH]c2cc(Br)ccc12)C(=O)O,11,1,ok
+BUC,"S,S-BUTYLTHIOCYSTEINE",alpha,C,CCCCSSCC(N)C(=O)O,CCCCSSC[C@H](N)C(=O)O,7,1,ok
+BW5,(2~{S})-3-(1-adamantyl)-2-azanyl-propanoic acid,alpha,A,NC(CC12CC3CC(CC(C3)C1)C2)C(=O)O,N[C@@H](CC12CC3CC(CC(C3)C1)C2)C(=O)O,11,1,ok
+BWV,N~5~-(N-butylcarbamimidoyl)-L-ornithine,alpha,R,[H]N=C(NCCCC)NCCCC(N)C(=O)O,[H]/N=C(/NCCCC)NCCC[C@H](N)C(=O)O,11,1,ok
+BXT,(2~{S})-2-azanyl-3-[ethyl(methyl)carbamoyl]oxy-propanoic acid,alpha,S,CCN(C)C(=O)OCC(N)C(=O)O,CCN(C)C(=O)OC[C@H](N)C(=O)O,8,1,ok
+BYR,3-bromo-L-tyrosine,alpha,Y,NC(Cc1ccc(O)c(Br)c1)C(=O)O,N[C@@H](Cc1ccc(O)c(Br)c1)C(=O)O,9,1,ok
+BZK,"(2S, 4S, 6S)-2-amino-6-hydroxy-4-methyl-8-oxodecanoic acid",alpha,X,CCC(=O)CC(O)CC(C)CC(N)C(=O)O,CCC(=O)C[C@@H](O)C[C@@H](C)C[C@H](N)C(=O)O,11,1,ok
+C0O,"(~{Z},2~{R},6~{S})-2,6-bis(azanyl)hept-3-enedioic acid",alpha,K,NC(C=CCC(N)C(=O)O)C(=O)O,N[C@H](/C=C\C[C@H](N)C(=O)O)C(=O)O,8,1,ok
+C1T,"S-[(1S,6R)-3,6-dihydroxy-4-methyl-2,5-dioxocyclohex-3-en-1-yl]-L-cysteine",alpha,C,CC1=C(O)C(=O)C(SCC(N)C(=O)O)C(O)C1=O,CC1=C(O)C(=O)[C@@H](SC[C@H](N)C(=O)O)[C@H](O)C1=O,13,1,ok
+C1X,"(Z)-N~6~-[(4R,5S)-5-(2-CARBOXYETHYL)-4-(CARBOXYMETHYL)DIHYDRO-2H-THIOPYRAN-3(4H)-YLIDENE]-L-LYSINE",alpha,X,NC(CCCCN=C1CSCC(CCC(=O)O)C1CC(=O)O)C(=O)O,N[C@@H](CCCC/N=C1/CSC[C@@H](CCC(=O)O)[C@H]1CC(=O)O)C(=O)O,20,2,ok
+C22,Beta-chloro-L-alanine,alpha,X,NC(CCl)C(=O)O,N[C@@H](CCl)C(=O)O,2,1,ok
+C2N,3-chloro-D-alanine,alpha,X,NC(CCl)C(=O)O,N[C@H](CCl)C(=O)O,2,1,ok
+C3Y,S-[(1S)-1-HYDROXY-1-(HYDROXYAMINO)ETHYL]-L-CYSTEINE,alpha,C,CC(O)(NO)SCC(N)C(=O)O,C[C@@](O)(NO)SC[C@H](N)C(=O)O,7,1,ok
+C4R,"(R)-2-amino-3-(bicyclo[2.2.1]hepta-2,5-dien-7-ylthio)propanoic acid rhodium",alpha,C,NC(C[SH]1C2C3CCC2C2=C3[Rh+]21)C(=O)O,N[C@@H](C[SH]1C2[C@@H]3CC[C@H]2C2=C3[Rh+]21)C(=O)O,10,1,ok
+C5C,S-CYCLOPENTYL THIOCYSTEINE,alpha,C,NC(CSSC1CCCC1)C(=O)O,N[C@@H](CSSC1CCCC1)C(=O)O,8,1,ok
+C6C,S-CYCLOHEXYL THIOCYSTEINE,alpha,C,NC(CSSC1CCCCC1)C(=O)O,N[C@@H](CSSC1CCCCC1)C(=O)O,9,1,ok
+CAB,"4,4-dihydroxy-5-oxo-L-norvaline",alpha,S,NC(CC(O)(O)C=O)C(=O)O,N[C@@H](CC(O)(O)C=O)C(=O)O,6,1,ok
+CAF,S-DIMETHYLARSINOYL-CYSTEINE,alpha,C,C[As](C)(=O)SCC(N)C(=O)O,C[As](C)(=O)SC[C@H](N)C(=O)O,6,1,ok
+CAS,S-(DIMETHYLARSENIC)CYSTEINE,alpha,C,C[As](C)SCC(N)C(=O)O,C[As](C)SC[C@H](N)C(=O)O,5,1,ok
+CCJ,S-(Carboxymethyl)-D-Cysteine,alpha,C,NC(CSCC(=O)O)C(=O)O,N[C@H](CSCC(=O)O)C(=O)O,6,1,ok
+CCL,N~6~-[(CYCLOPENTYLOXY)CARBONYL]-D-LYSINE,alpha,K,NC(CCCCNC(=O)OC1CCCC1)C(=O)O,N[C@H](CCCCNC(=O)OC1CCCC1)C(=O)O,13,1,ok
+CCS,S-Carboxymethyl-L-Cysteine,alpha,C,NC(CSCC(=O)O)C(=O)O,N[C@@H](CSCC(=O)O)C(=O)O,6,1,ok
+CDV,3-METHYL-2-UREIDO-BUTYRIC ACID,alpha,V,CC(C)C(NC(N)=O)C(=O)O,CC(C)[C@@H](NC(N)=O)C(=O)O,6,1,ok
+CG6,beta-Methyl-Cysteine,alpha,C,CC(S)C(N)C(=O)O,C[C@@H](S)[C@H](N)C(=O)O,3,1,ok
+CGL,CYSTINE-GLUTATHIONE,alpha,C,NC(CCC(=O)NC(CSSCC(N)C(=O)O)C(=O)NCC(=O)O)C(=O)O,N[C@@H](CCC(=O)N[C@@H](CSSC[C@H](N)C(=O)O)C(=O)NCC(=O)O)C(=O)O,22,2,ok
+CGU,GAMMA-CARBOXY-GLUTAMIC ACID,alpha,E,NC(CC(C(=O)O)C(=O)O)C(=O)O,N[C@@H](CC(C(=O)O)C(=O)O)C(=O)O,8,1,ok
+CGV,S-[(R)-carboxy(hydroxy)methyl]-L-cysteine,alpha,C,NC(CSC(O)C(=O)O)C(=O)O,N[C@@H](CS[C@@H](O)C(=O)O)C(=O)O,7,1,ok
+CHG,L-Cyclohexylglycine,alpha,X,NC(C(=O)O)C1CCCCC1,N[C@H](C(=O)O)C1CCCCC1,6,1,ok
+CHP,3-CHLORO-4-HYDROXYPHENYLGLYCINE,alpha,X,NC(C(=O)O)c1ccc(O)c(Cl)c1,N[C@H](C(=O)O)c1ccc(O)c(Cl)c1,8,1,ok
+CIR,L-Citrulline,alpha,R,NC(=O)NCCCC(N)C(=O)O,NC(=O)NCCC[C@H](N)C(=O)O,7,1,ok
+CLG,2-AMINO-6-[2-(2-AMINOOXY-ACETYLAMINO)-ACETYLAMINO]-HEXANOIC ACID,alpha,K,NOCC(=O)NCC(=O)NCCCCC(N)C(=O)O,NOCC(=O)NCC(=O)NCCCC[C@H](N)C(=O)O,14,1,ok
+CLH,2-AMINO-6-[2-(2-OXO-ACETYLAMINO)-ACETYLAMINO]-HEXANOIC ACID,alpha,K,NC(CCCCNC(=O)CNC(=O)C=O)C(=O)O,N[C@@H](CCCCNC(=O)CNC(=O)C=O)C(=O)O,13,1,ok
+CME,S-(2-Hydroxyethylmercapto)-L-Cysteine,alpha,C,NC(CSSCCO)C(=O)O,N[C@@H](CSSCCO)C(=O)O,6,1,ok
+CMH,S-(METHYLMERCURY)-L-CYSTEINE,alpha,C,C[Hg]SCC(N)C(=O)O,C[Hg]SC[C@H](N)C(=O)O,4,1,ok
+CML,(2S)-2-{[(2R)-2-amino-2-carboxyethyl]sulfanyl}butanedioic acid,alpha,C,NC(CSC(CC(=O)O)C(=O)O)C(=O)O,N[C@@H](CS[C@@H](CC(=O)O)C(=O)O)C(=O)O,10,2,ok
+CPC,2-METHYL-1-METHYLAMINO-CYCLOPROPANE CARBOXYLIC ACID,alpha,V,CNC1(C(=O)O)CC1C,CN[C@@]1(C(=O)O)C[C@@H]1C,4,1,ok
+CPI,"D-Pipecolic acid, D-Homoproline",alpha,P,O=C(O)C1CCCCN1,O=C(O)[C@H]1CCCCN1,4,1,ok
+CS1,S-(2-ANILINYL-SULFANYL)-CYSTEINE,alpha,C,Nc1ccccc1SSCC(N)C(=O)O,Nc1ccccc1SSC[C@H](N)C(=O)O,10,1,ok
+CS3,S-[3-OXO-3-(2-THIENYL)PROPYL]-L-CYSTEINE,alpha,C,NC(CSCCC(=O)c1cccs1)C(=O)O,N[C@@H](CSCCC(=O)c1cccs1)C(=O)O,11,1,ok
+CS4,"S-[3-(3,4-DICHLOROPHENYL)-3-OXOPROPYL]-L-CYSTEINE",alpha,C,NC(CSCCC(=O)c1ccc(Cl)c(Cl)c1)C(=O)O,N[C@@H](CSCCC(=O)c1ccc(Cl)c(Cl)c1)C(=O)O,14,1,ok
+CSA,S-(2-oxopropyl)-L-Cysteine,alpha,C,CC(=O)CSCC(N)C(=O)O,CC(=O)CSC[C@H](N)C(=O)O,6,1,ok
+CSB,CYS BOUND TO LEAD ION,alpha,C,NC(CS[Pb+])C(=O)O,N[C@@H](CS[Pb+])C(=O)O,3,1,ok
+CSD,3-SULFINOALANINE,alpha,X,NC(CS(=O)O)C(=O)O,N[C@@H](C[S@@](=O)O)C(=O)O,4,1,ok
+CSJ,S-[(2-aminophenyl)carbonyl]-L-cysteine,alpha,X,Nc1ccccc1C(=O)SCC(N)C(=O)O,Nc1ccccc1C(=O)SC[C@H](N)C(=O)O,11,1,ok
+CSK,S-(methylselanyl)-L-cysteine,alpha,C,C[Se]SCC(N)C(=O)O,C[Se]SC[C@H](N)C(=O)O,4,1,ok
+CSO,S-HYDROXYCYSTEINE,alpha,C,NC(CSO)C(=O)O,N[C@@H](CSO)C(=O)O,3,1,ok
+CSP,S-PHOSPHOCYSTEINE,alpha,C,NC(CSP(=O)(O)O)C(=O)O,N[C@@H](CSP(=O)(O)O)C(=O)O,6,1,ok
+CSR,S-ARSONOCYSTEINE,alpha,C,NC(CS[As](=O)(O)O)C(=O)O,N[C@@H](CS[As](=O)(O)O)C(=O)O,6,1,ok
+CSS,S-MERCAPTOCYSTEINE,alpha,C,NC(CSS)C(=O)O,N[C@@H](CSS)C(=O)O,3,1,ok
+CSU,S-Sulfocysteine,alpha,C,NC(CSS(=O)(=O)O)C(=O)O,N[C@@H](CSS(=O)(=O)O)C(=O)O,6,1,ok
+CSX,S-OXY CYSTEINE,alpha,C,NC(C[SH]=O)C(=O)O,N[C@@H](C[SH]=O)C(=O)O,3,1,ok
+CSZ,S-SELANYL CYSTEINE,alpha,C,NC(CS[SeH])C(=O)O,N[C@@H](CS[SeH])C(=O)O,3,1,ok
+CTE,7-Chloro-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2c(Cl)cccc12)C(=O)O,N[C@@H](Cc1c[nH]c2c(Cl)cccc12)C(=O)O,11,1,ok
+CTH,4-CHLOROTHREONINE,alpha,T,NC(C(=O)O)C(O)CCl,N[C@H](C(=O)O)[C@H](O)CCl,4,1,ok
+CUD,3-(4-amino-2-oxopyrimidin-1(2H)-yl)-D-alanine,alpha,F,Nc1ccn(CC(N)C(=O)O)c(=O)n1,Nc1ccn(C[C@@H](N)C(=O)O)c(=O)n1,9,1,ok
+CXM,N-CARBOXYMETHIONINE,alpha,M,CSCCC(NC(=O)O)C(=O)O,CSCC[C@H](NC(=O)O)C(=O)O,7,1,ok
+CY0,S-{3-[(4-ANILINOQUINAZOLIN-6-YL)AMINO]-3-OXOPROPYL}-L-CYSTEINE,alpha,C,NC(CSCCC(=O)Nc1ccc2ncnc(Nc3ccccc3)c2c1)C(=O)O,N[C@@H](CSCCC(=O)Nc1ccc2ncnc(Nc3ccccc3)c2c1)C(=O)O,24,1,ok
+CY4,S-BUTYRYL-CYSTEIN,alpha,C,CCCC(=O)SCC(N)C(=O)O,CCCC(=O)SC[C@H](N)C(=O)O,7,1,ok
+CYG,2-AMINO-4-(AMINO-3-OXO-PROPYLSULFANYLCARBONYL)-BUTYRIC ACID,alpha,C,NC(CCC(=O)SCC(N)C(=O)O)C(=O)O,N[C@@H](CCC(=O)SC[C@H](N)C(=O)O)C(=O)O,11,1,ok
+CYJ,"(Z)-N~6~-[(4R,5S)-5-(2-CARBOXYETHYL)-4-(CARBOXYMETHYL)PIPERIDIN-3-YLIDENE]-L-LYSINE",alpha,P,NC(CCCCN=C1CNCC(CCC(=O)O)C1CC(=O)O)C(=O)O,N[C@@H](CCCC/N=C1/CNC[C@@H](CCC(=O)O)[C@H]1CC(=O)O)C(=O)O,20,2,ok
+CYQ,2-AMINO-3-PHOSPHONOMETHYLSULFANYL-PROPIONIC ACID,alpha,C,NC(CSCP(=O)(O)O)C(=O)O,N[C@@H](CSCP(=O)(O)O)C(=O)O,7,1,ok
+CYR,N~5~-[{[(2R)-2-AMINO-2-CARBOXYETHYL]SULFANYL}(IMINIO)METHYL]-L-ORNITHINATE,alpha,C,NC(CCCNC(=[NH2+])SCC(N)C(=O)O)C(=O)O,N[C@@H](CCCNC(=[NH2+])SC[C@H](N)C(=O)O)C(=O)O,13,1,ok
+CYS,L-Cysteine,alpha,C,NC(CS)C(=O)O,N[C@@H](CS)C(=O)O,2,1,ok
+CYW,S-[(2R)-2-hydroxypropanoyl]-L-cysteine,alpha,C,CC(O)C(=O)SCC(N)C(=O)O,C[C@@H](O)C(=O)SC[C@H](N)C(=O)O,7,1,ok
+CZ2,S-(DIHYDROXYARSINO)CYSTEINE,alpha,C,NC(CS[As](O)O)C(=O)O,N[C@@H](CS[As](O)O)C(=O)O,5,1,ok
+CZS,"3-(6-chloro-1,3-benzothiazol-2-yl)-L-alanine",alpha,F,NC(Cc1nc2ccc(Cl)cc2s1)C(=O)O,N[C@@H](Cc1nc2ccc(Cl)cc2s1)C(=O)O,11,1,ok
+CZZ,THIARSAHYDROXY-CYSTEINE,alpha,C,NC(CS[As]O)C(=O)O,N[C@@H](CS[As]O)C(=O)O,4,1,ok
+D0C,4-Chloro-D-Phenylalanine,alpha,F,NC(Cc1ccc(Cl)cc1)C(=O)O,N[C@H](Cc1ccc(Cl)cc1)C(=O)O,8,1,ok
+D0Q,5-Methyl-L-Tryptophan,alpha,W,Cc1ccc2[nH]cc(CC(N)C(=O)O)c2c1,Cc1ccc2[nH]cc(C[C@H](N)C(=O)O)c2c1,11,1,ok
+D11,"O-Phospho-D-Threonine, (2R,3S)-O-Phosphono-Threonine",alpha,T,CC(OP(=O)(O)O)C(N)C(=O)O,C[C@H](OP(=O)(O)O)[C@@H](N)C(=O)O,7,1,ok
+D2T,(3R)-3-(methylsulfanyl)-L-aspartic acid,alpha,C,CSC(C(=O)O)C(N)C(=O)O,CS[C@@H](C(=O)O)[C@H](N)C(=O)O,6,1,ok
+D3P,"D-(3,5-Dihydroxyphenyl)glycine",alpha,X,NC(C(=O)O)c1cc(O)cc(O)c1,N[C@@H](C(=O)O)c1cc(O)cc(O)c1,8,1,ok
+D4P,"4-Hydroxyphenylglycine, Oxfenicine",alpha,X,NC(C(=O)O)c1ccc(O)cc1,N[C@H](C(=O)O)c1ccc(O)cc1,7,1,ok
+DA2,"NG,NG-Dimethyl-L-Arginine",alpha,R,CN(C)C(=N)NCCCC(N)C(=O)O,CN(C)C(=N)NCCC[C@H](N)C(=O)O,9,1,ok
+DAB,"L-2,4-Diaminobutanoic acid",alpha,X,NCCC(N)C(=O)O,NCC[C@H](N)C(=O)O,3,1,ok
+DAH,"3-Hydroxy-L-Tyrosine, L-Levodopa",alpha,Y,NC(Cc1ccc(O)c(O)c1)C(=O)O,N[C@@H](Cc1ccc(O)c(O)c1)C(=O)O,9,1,ok
+DAL,D-Alanine,alpha,A,CC(N)C(=O)O,C[C@@H](N)C(=O)O,1,1,ok
+DAM,N-Methyldehydroalanine,alpha,A,C=C(NC)C(=O)O,C=C(NC)C(=O)O,2,1,ok
+DAR,D-ARGININE,alpha,R,NC(=[NH2+])NCCCC(N)C(=O)O,NC(=[NH2+])NCCC[C@@H](N)C(=O)O,7,1,ok
+DAS,D-Aspartic acid,alpha,D,NC(CC(=O)O)C(=O)O,N[C@H](CC(=O)O)C(=O)O,4,1,ok
+DBB,D-2-Aminobutyric acid,alpha,A,CCC(N)C(=O)O,CC[C@@H](N)C(=O)O,2,1,ok
+DBU,(Z)-dehydrobutyrine,alpha,A,CC=C(N)C(=O)O,C/C=C(\N)C(=O)O,2,1,ok
+DBY,"3,5-dibromo-L-Tyrosine",alpha,Y,NC(Cc1cc(Br)c(O)c(Br)c1)C(=O)O,N[C@@H](Cc1cc(Br)c(O)c(Br)c1)C(=O)O,10,1,ok
+DBZ,3-(BENZOYLAMINO)-L-ALANINE,alpha,X,NC(CNC(=O)c1ccccc1)C(=O)O,N[C@@H](CNC(=O)c1ccccc1)C(=O)O,10,1,ok
+DC2,"N-acetyl-S-[(1S)-1,2-dichloroethyl]-L-cysteine",alpha,C,CC(=O)NC(CSC(Cl)CCl)C(=O)O,CC(=O)N[C@@H](CS[C@@H](Cl)CCl)C(=O)O,9,1,ok
+DCY,D-Cysteine,alpha,C,NC(CS)C(=O)O,N[C@H](CS)C(=O)O,2,1,ok
+DDZ,3-Hydroxy-L-Serine,alpha,S,NC(C(=O)O)C(O)O,N[C@H](C(=O)O)C(O)O,3,1,ok
+DFF,4-Benzoyl-D-Phenylalanine,alpha,F,NC(Cc1ccc(C(=O)c2ccccc2)cc1)C(=O)O,N[C@H](Cc1ccc(C(=O)c2ccccc2)cc1)C(=O)O,15,1,ok
+DFI,"2,2-DIFLUOROSTATINE",gamma,L,CC(C)CC(N)C(O)C(F)(F)C(=O)O,CC(C)C[C@H](N)[C@@H](O)C(F)(F)C(=O)O,9,1,ok
+DFO,"2,2-DIFLUORO-3-HYDROSTATINE",gamma,L,CC(C)CC(N)C(O)(O)C(F)(F)C(=O)O,CC(C)C[C@H](N)C(O)(O)C(F)(F)C(=O)O,10,1,ok
+DGL,D-Glutamic acid,alpha,E,NC(CCC(=O)O)C(=O)O,N[C@H](CCC(=O)O)C(=O)O,5,1,ok
+DGN,D-Glutamine,alpha,Q,NC(=O)CCC(N)C(=O)O,NC(=O)CC[C@@H](N)C(=O)O,5,1,ok
+DHA,2-AMINO-ACRYLIC ACID,alpha,A,C=C(N)C(=O)O,C=C(N)C(=O)O,1,1,ok
+DHI,D-HISTIDINE,alpha,H,NC(Cc1c[nH]c[nH+]1)C(=O)O,N[C@H](Cc1c[nH]c[nH+]1)C(=O)O,6,1,ok
+DHV,3-Hydroxy-D-Valine,alpha,V,CC(C)(O)C(N)C(=O)O,CC(C)(O)[C@@H](N)C(=O)O,4,1,ok
+DI7,"2,6-Dimethyl-L-Tyrosine",alpha,Y,Cc1cc(O)cc(C)c1CC(N)C(=O)O,Cc1cc(O)cc(C)c1C[C@H](N)C(=O)O,10,1,ok
+DI8,L-Porretine,alpha,P,O=C(O)C1Cc2ccccc2CN1,O=C(O)[C@@H]1Cc2ccccc2CN1,8,1,ok
+DIL,"D-Isoleucine, (2R,3S)-Isoleucine",alpha,I,CCC(C)C(N)C(=O)O,CC[C@@H](C)[C@@H](N)C(=O)O,4,1,ok
+DIR,3-{[(E)-AMINO(HYDROXYIMINO)METHYL]AMINO}ALANINE,alpha,R,NC(=NO)NCC(N)C(=O)O,N/C(=N\O)NC[C@H](N)C(=O)O,6,1,ok
+DIV,D-Isovaline,alpha,V,CCC(C)(N)C(=O)O,CC[C@@](C)(N)C(=O)O,3,1,ok
+DJD,"4-(6-methyl-1,2,4,5-tetrazin-3-yl)-L-phenylalanine",alpha,F,Cc1nnc(-c2ccc(CC(N)C(=O)O)cc2)nn1,Cc1nnc(-c2ccc(C[C@H](N)C(=O)O)cc2)nn1,14,1,ok
+DLE,D-Leucine,alpha,L,CC(C)CC(N)C(=O)O,CC(C)C[C@@H](N)C(=O)O,4,1,ok
+DLS,DI-ACETYL-LYSINE,alpha,K,CC(=O)NCCCCC(NC(C)=O)C(=O)O,CC(=O)NCCCC[C@H](NC(C)=O)C(=O)O,11,1,ok
+DLY,D-Lysine,alpha,K,NCCCCC(N)C(=O)O,NCCCC[C@@H](N)C(=O)O,5,1,ok
+DMH,"N4,N4-DIMETHYL-ASPARAGINE",alpha,X,CN(C)C(=O)CC(N)C(=O)O,CN(C)C(=O)C[C@H](N)C(=O)O,6,1,ok
+DMK,"3,3-Dimethyl-L-Aspartic acid",alpha,D,CC(C)(C(=O)O)C(N)C(=O)O,CC(C)(C(=O)O)[C@H](N)C(=O)O,6,1,ok
+DMT,"3-HYDROXY-4,4-DIMETHYL-2-(METHYLAMINO)-6-OCTENOIC ACID",alpha,T,CC=CCC(C)(C)C(O)C(NC)C(=O)O,C/C=C/CC(C)(C)[C@@H](O)[C@H](NC)C(=O)O,10,1,ok
+DNE,D-Norleucine,alpha,L,CCCCC(N)C(=O)O,CCCC[C@@H](N)C(=O)O,4,1,ok
+DNG,N-FORMYL-D-NORLEUCINE,alpha,L,CCCCC(NC=O)C(=O)O,CCCC[C@@H](NC=O)C(=O)O,6,1,ok
+DNM,N-Methyl-D-Norleucine,alpha,L,CCCCC(NC)C(=O)O,CCCC[C@@H](NC)C(=O)O,5,1,ok
+DNP,3-Amino-L-Alanine,alpha,X,NCC(N)C(=O)O,NC[C@H](N)C(=O)O,2,1,ok
+DNS,N~6~-{[5-(DIMETHYLAMINO)-1-NAPHTHYL]SULFONYL}-L-LYSINE,alpha,K,CN(C)c1cccc2c(S(=O)(=O)NCCCCC(N)C(=O)O)cccc12,CN(C)c1cccc2c(S(=O)(=O)NCCCC[C@H](N)C(=O)O)cccc12,21,1,ok
+DO2,"5,5-dihydroxy-6-oxo-L-norleucine",alpha,X,NC(CCC(O)(O)C=O)C(=O)O,N[C@@H](CCC(O)(O)C=O)C(=O)O,7,1,ok
+DOA,12-AMINO-DODECANOIC ACID,unknown,G,NCCCCCCCCCCCC(=O)O,NCCCCCCCCCCCC(=O)O,10,1,ok
+DON,6-DIAZENYL-5-OXO-L-NORLEUCINE,alpha,K,N=NCC(=O)CCC(N)C(=O)O,N=NCC(=O)CC[C@H](N)C(=O)O,7,1,ok
+DPL,4-OXOPROLINE,alpha,P,O=C1CNC(C(=O)O)C1,O=C1CN[C@H](C(=O)O)C1,4,1,ok
+DPN,D-Phenylalanine,alpha,F,NC(Cc1ccccc1)C(=O)O,N[C@H](Cc1ccccc1)C(=O)O,7,1,ok
+DPP,3-Amino-L-Alanine,alpha,X,NCC(N)C(=O)O,NC[C@H](N)C(=O)O,2,1,ok
+DPQ,"(S)-2-AMINO-3-(4-HYDROXY-3-OXOCYCLOHEXA-1,4-DIENYL)PROPANOIC ACID",alpha,X,NC(CC1=CC(=O)C(O)=CC1)C(=O)O,N[C@@H](CC1=CC(=O)C(O)=CC1)C(=O)O,9,1,ok
+DPR,D-Proline,alpha,P,O=C(O)C1CCCN1,O=C(O)[C@H]1CCCN1,3,1,ok
+DSE,N-Methyl-D-Serine,alpha,S,CNC(CO)C(=O)O,CN[C@H](CO)C(=O)O,3,1,ok
+DSG,D-Asparagine,alpha,N,NC(=O)CC(N)C(=O)O,NC(=O)C[C@@H](N)C(=O)O,4,1,ok
+DSN,D-Serine,alpha,S,NC(CO)C(=O)O,N[C@H](CO)C(=O)O,2,1,ok
+DTH,"D-Threonine, (2R,3S)-Threonine",alpha,T,CC(O)C(N)C(=O)O,C[C@H](O)[C@@H](N)C(=O)O,3,1,ok
+DTR,D-Tryptophan,alpha,W,NC(Cc1c[nH]c2ccccc12)C(=O)O,N[C@H](Cc1c[nH]c2ccccc12)C(=O)O,10,1,ok
+DTY,D-Tyrosine,alpha,Y,NC(Cc1ccc(O)cc1)C(=O)O,N[C@H](Cc1ccc(O)cc1)C(=O)O,8,1,ok
+DV7,L-(7-hydroxycoumarin-4-yl)ethylglycine,alpha,F,NC(CCc1cc(=O)oc2cc(O)ccc12)C(=O)O,N[C@@H](CCc1cc(=O)oc2cc(O)ccc12)C(=O)O,14,1,ok
+DV9,"(2S)-2-azanyl-6,6-bis(fluoranyl)-5-oxidanylidene-6-phosphono-hexanoic acid",alpha,X,NC(CCC(=O)C(F)(F)P(=O)(O)O)C(=O)O,N[C@@H](CCC(=O)C(F)(F)P(=O)(O)O)C(=O)O,11,1,ok
+DVA,D-Valine,alpha,V,CC(C)C(N)C(=O)O,CC(C)[C@@H](N)C(=O)O,3,1,ok
+DYA,DIDEHYDROASPARTATE,alpha,D,NC(=CC(=O)O)C(=O)O,N/C(=C\C(=O)O)C(=O)O,4,1,ok
+DYL,D-Allylglycine,alpha,V,C=CCC(N)C(=O)O,C=CC[C@@H](N)C(=O)O,3,1,ok
+DYS,"S-[5-(2-aminoethyl)-2,3-dihydroxyphenyl]-L-cysteine",alpha,C,NCCc1cc(O)c(O)c(SCC(N)C(=O)O)c1,NCCc1cc(O)c(O)c(SC[C@H](N)C(=O)O)c1,13,1,ok
+E03,6-Fluoro-D-Tryptophan,alpha,W,NC(Cc1c[nH]c2cc(F)ccc12)C(=O)O,N[C@H](Cc1c[nH]c2cc(F)ccc12)C(=O)O,11,1,ok
+E95,7-methyl-L-Tryptophan,alpha,W,Cc1cccc2c(CC(N)C(=O)O)c[nH]c12,Cc1cccc2c(C[C@H](N)C(=O)O)c[nH]c12,11,1,ok
+E9C,"(2S)-2-azanyl-3-[3,4,6-tris(oxidanylidene)cyclohexen-1-yl]propanoic acid",alpha,X,NC(CC1=CC(=O)C(=O)CC1=O)C(=O)O,N[C@@H](CC1=CC(=O)C(=O)CC1=O)C(=O)O,10,1,ok
+E9M,N-methyl-L-Tryptophan,alpha,W,CNC(Cc1c[nH]c2ccccc12)C(=O)O,CN[C@@H](Cc1c[nH]c2ccccc12)C(=O)O,11,1,ok
+E9V,N-Methyl-L-Histidine,alpha,H,CNC(Cc1cnc[nH]1)C(=O)O,CN[C@@H](Cc1cnc[nH]1)C(=O)O,7,1,ok
+ECX,(2R)-2-amino-3-ethylsulfanylpropanoic acid,alpha,C,CCSCC(N)C(=O)O,CCSC[C@H](N)C(=O)O,4,1,ok
+EEP,"(2S,4R)-2-amino-4,5-dihydroxy-4-methylpentanoic acid",alpha,S,CC(O)(CO)CC(N)C(=O)O,C[C@](O)(CO)C[C@H](N)C(=O)O,6,1,ok
+EFC,"S,S-(2-FLUOROETHYL)THIOCYSTEINE",alpha,C,NC(CSSCCF)C(=O)O,N[C@@H](CSSCCF)C(=O)O,6,1,ok
+EI4,Enduracididine,alpha,R,[H]N=C1NCC(CC(N)C(=O)O)N1,[H]/N=C1/NC[C@H](C[C@H](N)C(=O)O)N1,7,1,ok
+EJA,S-[(1Z)-2-carboxy-N-hydroxyethanimidoyl]-L-cysteine,alpha,C,NC(CSC(CC(=O)O)=NO)C(=O)O,N[C@@H](CS/C(CC(=O)O)=N\O)C(=O)O,9,1,ok
+EJJ,N-CARBAMOYL-GLYCINE,alpha,G,NC(=O)NCC(=O)O,NC(=O)NCC(=O)O,3,1,ok
+ELY,"N~6~,N~6~-diethyl-L-lysine",alpha,K,CCN(CC)CCCCC(N)C(=O)O,CCN(CC)CCCC[C@H](N)C(=O)O,9,1,ok
+EME,N-Methyl-L-Glutamic acid,alpha,E,CNC(CCC(=O)O)C(=O)O,CN[C@@H](CCC(=O)O)C(=O)O,6,1,ok
+EO2,(2S)-2-amino-4-methylpent-4-enoic acid,alpha,L,C=C(C)CC(N)C(=O)O,C=C(C)C[C@H](N)C(=O)O,4,1,ok
+EOE,L-(+)-homoproline,beta,P,O=C(O)CC1CCCN1,O=C(O)C[C@@H]1CCCN1,4,1,ok
+ESB,"3-[(3E)-3-(ETHYLIMINO)-4-HYDROXY-6-OXOCYCLOHEXA-1,4-DIEN-1-YL]-L-ALANINE",alpha,X,CCN=C1C=C(CC(N)C(=O)O)C(=O)C=C1O,CC/N=C1\C=C(C[C@H](N)C(=O)O)C(=O)C=C1O,12,1,ok
+ESC,"L-Ethionine, S-Ethyl-Homo-L-Cysteine",alpha,M,CCSCCC(N)C(=O)O,CCSCC[C@H](N)C(=O)O,5,1,ok
+EU0,1-[(2~{S})-3-methyl-1-oxidanylidene-butan-2-yl]guanidine,alpha,V,CC(C)C(NC(N)=[NH2+])C(=O)O,CC(C)[C@H](NC(N)=[NH2+])C(=O)O,6,1,ok
+EUP,4-amino-L-allothreonine,alpha,T,NCC(O)C(N)C(=O)O,NC[C@H](O)[C@H](N)C(=O)O,4,1,ok
+EW6,alpha-methyl-L-serine,alpha,S,CC(N)(CO)C(=O)O,C[C@](N)(CO)C(=O)O,3,1,ok
+EXA,N~6~-[(R)-[(E)-(1-carboxyethylidene)amino]{3-hydroxy-2-methyl-5-[(phosphonooxy)methyl]pyridin-4-yl}methyl]-L-lysine,alpha,K,CC(=NC(NCCCCC(N)C(=O)O)c1c(COP(=O)(O)O)cnc(C)c1O)C(=O)O,C/C(=N\[C@@H](NCCCC[C@H](N)C(=O)O)c1c(COP(=O)(O)O)cnc(C)c1O)C(=O)O,26,1,ok
+EXL,1-Methyl-L-Tryptophan,alpha,W,Cn1cc(CC(N)C(=O)O)c2ccccc21,Cn1cc(C[C@H](N)C(=O)O)c2ccccc21,11,1,ok
+EXY,6-[(2R)-oxiran-2-yl]-L-norleucine,alpha,X,NC(CCCCC1CO1)C(=O)O,N[C@@H](CCCC[C@@H]1CO1)C(=O)O,7,1,ok
+F2F,"3,4-Difluoro-L-Phenylalanine",alpha,F,NC(Cc1ccc(F)c(F)c1)C(=O)O,N[C@@H](Cc1ccc(F)c(F)c1)C(=O)O,9,1,ok
+F2Y,"3,5-difluoro-L-tyrosine",alpha,Y,NC(Cc1cc(F)c(O)c(F)c1)C(=O)O,N[C@@H](Cc1cc(F)c(O)c(F)c1)C(=O)O,10,1,ok
+F3T,"4-amino-2,4,5-trideoxy-5,5,5-trifluoro-L-threo-pentonic acid",gamma,X,NC(C(O)CC(=O)O)C(F)(F)F,N[C@H]([C@@H](O)CC(=O)O)C(F)(F)F,7,1,ok
+F6N,"2-(aminomethyl)-1,3-oxazole-4-carboxylic acid",delta,X,NCc1nc(C(=O)O)co1,NCc1nc(C(=O)O)co1,5,1,ok
+F75,"2-(aminomethyl)-1,3-thiazole-4-carboxylic acid",delta,X,NCc1nc(C(=O)O)cs1,NCc1nc(C(=O)O)cs1,5,1,ok
+F7P,1-[(3R)-3-hydroxy-2-methylbutan-2-yl]-L-Tryptophan,alpha,W,CC(O)C(C)(C)n1cc(CC(N)C(=O)O)c2ccccc21,C[C@@H](O)C(C)(C)n1cc(C[C@H](N)C(=O)O)c2ccccc21,16,1,ok
+F7Q,"(2~{S})-2-azanyl-3-[1-(dioxidanyl)-4-oxidanylidene-cyclohexa-2,5-dien-1-yl]propanoic acid",alpha,S,NC(CC1(OO)C=CC(=O)C=C1)C(=O)O,N[C@@H](CC1(OO)C=CC(=O)C=C1)C(=O)O,10,1,ok
+F7S,(4S)-5-hydroxy-N-methyl-L-Leucine,alpha,X,CNC(CC(C)CO)C(=O)O,CN[C@@H](C[C@H](C)CO)C(=O)O,6,1,ok
+F7V,"(2S,4E)-2-aminohex-4-enoic acid",alpha,L,CC=CCC(N)C(=O)O,C/C=C/C[C@H](N)C(=O)O,4,1,ok
+F7W,7-Fluoro-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2c(F)cccc12)C(=O)O,N[C@@H](Cc1c[nH]c2c(F)cccc12)C(=O)O,11,1,ok
+F93,"(2R,3S)-2-azanyl-3-(3-chloranyl-4-oxidanyl-phenyl)-3-oxidanyl-propanoic acid",alpha,Y,NC(C(=O)O)C(O)c1ccc(O)c(Cl)c1,N[C@@H](C(=O)O)[C@@H](O)c1ccc(O)c(Cl)c1,10,1,ok
+F9D,(2R)-2-aminopent-4-ynoic acid,alpha,V,C#CCC(N)C(=O)O,C#CC[C@@H](N)C(=O)O,3,1,ok
+FAK,N6-trifluoroacetyl-L-lysine,alpha,K,NC(CCCCNC(=O)C(F)(F)F)C(=O)O,N[C@@H](CCCCNC(=O)C(F)(F)F)C(=O)O,11,1,ok
+FCL,3-Chloro-L-Phenylalanine,alpha,F,NC(Cc1cccc(Cl)c1)C(=O)O,N[C@@H](Cc1cccc(Cl)c1)C(=O)O,8,1,ok
+FF9,(2S)-2-azanyl-6-[(E)-(1-oxidanyl-1-oxidanylidene-butan-2-ylidene)amino]hexanoic acid,alpha,X,CCC(=NCCCCC(N)C(=O)O)C(=O)O,CC/C(=N\CCCC[C@H](N)C(=O)O)C(=O)O,11,1,ok
+FFM,"S-[(1R,2R)-2-hydroxy-1-methyl-2-phosphonoethyl]-L-cysteine",alpha,X,CC(SCC(N)C(=O)O)C(O)P(=O)(O)O,C[C@@H](SC[C@H](N)C(=O)O)[C@H](O)P(=O)(O)O,10,1,ok
+FGA,D-Glutamic acid,alpha,E,NC(CCC(=O)O)C(=O)O,N[C@H](CCC(=O)O)C(=O)O,5,2,ok
+FGL,L-Aminomalonic acid,alpha,X,NC(C(=O)O)C(=O)O,NC(C(=O)O)C(=O)O,3,2,ok
+FGP,2-AMINO-3-HYDROXY-3-PHOSPHONOOXY-PROPIONIC ACID,alpha,S,NC(C(=O)O)C(O)OP(=O)(O)O,N[C@H](C(=O)O)[C@@H](O)OP(=O)(O)O,7,1,ok
+FH7,N^5^-formyl-N^5^-hydroxy-D-ornithine,alpha,K,NC(CCCN(O)C=O)C(=O)O,N[C@H](CCCN(O)C=O)C(=O)O,7,1,ok
+FHL,(E)-N~6~-[3-CARBOXY-1-(HYDROXYMETHYL)PROPYLIDENE]-L-LYSINE,alpha,X,NC(CCCCN=C(CO)CCC(=O)O)C(=O)O,N[C@@H](CCCC/N=C(/CO)CCC(=O)O)C(=O)O,13,1,ok
+FHO,N^5^-FORMYL-N^5^-HYDROXY-L-ORNITHINE,alpha,K,NC(CCCN(O)C=O)C(=O)O,N[C@@H](CCCN(O)C=O)C(=O)O,7,1,ok
+FIO,N~5~-[(1E)-2-fluoroethanimidoyl]-L-ornithine,alpha,X,[H]N=C(CF)NCCCC(N)C(=O)O,[H]/N=C(\CF)NCCC[C@H](N)C(=O)O,8,1,ok
+FL6,4-Methyl hydrogen L-aspartate,alpha,D,COC(=O)CC(N)C(=O)O,COC(=O)C[C@H](N)C(=O)O,5,1,ok
+FLA,TRIFLUOROALANINE,alpha,X,NC(C(=O)O)C(F)(F)F,N[C@@H](C(=O)O)C(F)(F)F,4,1,ok
+FLE,FUROYL-LEUCINE,alpha,L,CC(C)CC(NC(=O)c1ccco1)C(=O)O,CC(C)C[C@H](NC(=O)c1ccco1)C(=O)O,11,1,ok
+FLT,2-[4-[(2S)-2-amino-2-carboxyethyl]phenoxy]-2-fluoropropanedioic acid,alpha,Y,NC(Cc1ccc(OC(F)(C(=O)O)C(=O)O)cc1)C(=O)O,N[C@@H](Cc1ccc(OC(F)(C(=O)O)C(=O)O)cc1)C(=O)O,16,1,ok
+FME,N-FORMYLMETHIONINE,alpha,M,CSCCC(NC=O)C(=O)O,CSCC[C@H](NC=O)C(=O)O,6,1,ok
+FOD,"(2S)-2-amino-4-[1-(trans-4-hydroxycyclohexyl)-1H-1,2,3-triazol-4-yl]butanoic acid",alpha,F,NC(CCc1cn(C2CCC(O)CC2)nn1)C(=O)O,N[C@@H](CCc1cn(C2CCC(O)CC2)nn1)C(=O)O,14,1,ok
+FOE,2-(2-AMINO-3-OXO-PROPYLSULFANYL)-N-(4-FLUORO-PHENYL)-N-ISOPROPYL-ACETAMIDE,alpha,C,CC(C)N(C(=O)CSCC(N)C(=O)O)c1ccc(F)cc1,CC(C)N(C(=O)CSC[C@H](N)C(=O)O)c1ccc(F)cc1,16,1,ok
+FP9,trans-4-Fluoro-L-Proline,alpha,P,O=C(O)C1CC(F)CN1,O=C(O)[C@@H]1C[C@@H](F)CN1,4,1,ok
+FQA,N6-benzyl-L-lysine,alpha,K,NC(CCCCNCc1ccccc1)C(=O)O,N[C@@H](CCCCNCc1ccccc1)C(=O)O,12,1,ok
+FT6,6-Fluoro-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2cc(F)ccc12)C(=O)O,N[C@@H](Cc1c[nH]c2cc(F)ccc12)C(=O)O,11,1,ok
+FTR,5-Fluoro-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2ccc(F)cc12)C(=O)O,N[C@@H](Cc1c[nH]c2ccc(F)cc12)C(=O)O,11,1,ok
+FTY,(2S)-2-amino-3-[4-[difluoro(phosphono)methyl]phenyl]propanoic acid,alpha,F,NC(Cc1ccc(C(F)(F)P(=O)(O)O)cc1)C(=O)O,N[C@@H](Cc1ccc(C(F)(F)P(=O)(O)O)cc1)C(=O)O,14,1,ok
+FVA,N-formyl-L-valine,alpha,V,CC(C)C(NC=O)C(=O)O,CC(C)[C@H](NC=O)C(=O)O,5,1,ok
+FX9,3-Trifluoromethyl-L-Phenylalanine,alpha,F,NC(Cc1cccc(C(F)(F)F)c1)C(=O)O,N[C@@H](Cc1cccc(C(F)(F)F)c1)C(=O)O,11,1,ok
+FXC,3-Trifluoromethyl-D-Phenylalanine,alpha,F,NC(Cc1cccc(C(F)(F)F)c1)C(=O)O,N[C@H](Cc1cccc(C(F)(F)F)c1)C(=O)O,11,1,ok
+FXF,(2R)-2-azanyl-3-(3-bromophenyl)propanoic acid,alpha,F,NC(Cc1cccc(Br)c1)C(=O)O,N[C@H](Cc1cccc(Br)c1)C(=O)O,8,1,ok
+FXL,3-Chloro-D-Phenylalanine,alpha,F,NC(Cc1cccc(Cl)c1)C(=O)O,N[C@H](Cc1cccc(Cl)c1)C(=O)O,8,1,ok
+FY2,"2,3-difluoro-L-tyrosine",alpha,Y,NC(Cc1ccc(O)c(F)c1F)C(=O)O,N[C@@H](Cc1ccc(O)c(F)c1F)C(=O)O,10,1,ok
+FY3,"2,3,5-trifluoro-L-tyrosine",alpha,Y,NC(Cc1cc(F)c(O)c(F)c1F)C(=O)O,N[C@@H](Cc1cc(F)c(O)c(F)c1F)C(=O)O,11,1,ok
+FZN,"(2S)-2-amino-6-{[(1Z)-1-{[(2R,3R,4S,5R)-5-({[(R)-{[(R)-{[(2R,3S,4R,5R)-5-(6-amino-9H-purin-9-yl)-3,4-dihydroxytetrahydrofuran-2-yl]methoxy}(hydroxy)phosphoryl]oxy}(hydroxy)phosphoryl]oxy}methyl)-3,4-dihydroxytetrahydrofuran-2-yl]sulfanyl}ethylidene]amino}hexanoic acid",alpha,X,CC(=NCCCCC(N)C(=O)O)SC1OC(COP(=O)(O)OP(=O)(O)OCC2OC(n3cnc4c(N)ncnc43)C(O)C2O)C(O)C1O,C/C(=N/CCCC[C@H](N)C(=O)O)S[C@H]1O[C@H](CO[P@@](=O)(O)O[P@](=O)(O)OC[C@H]2O[C@@H](n3cnc4c(N)ncnc43)[C@H](O)[C@@H]2O)[C@@H](O)[C@H]1O,43,1,ok
+G1X,"(2S)-2-azanyl-3-[3,4-bis(oxidanylidene)cyclohexa-1,5-dien-1-yl]propanoic acid",alpha,X,NC(CC1=CC(=O)C(=O)C=C1)C(=O)O,N[C@@H](CC1=CC(=O)C(=O)C=C1)C(=O)O,9,1,ok
+G5G,"(2S,4S)-2-amino-4,5-dihydroxy-4-methylpentanoic acid",alpha,S,CC(O)(CO)CC(N)C(=O)O,C[C@@](O)(CO)C[C@H](N)C(=O)O,6,1,ok
+G8M,"(1S,2R)-2-[(S)-amino(carboxy)methyl]cyclobutanecarboxylic acid",alpha,E,NC(C(=O)O)C1CCC1C(=O)O,N[C@H](C(=O)O)[C@@H]1CC[C@@H]1C(=O)O,7,1,ok
+G8X,"(2S,3R)-3-hydroxypyrrolidine-2-carboxylic acid",alpha,P,O=C(O)C1NCCC1O,O=C(O)[C@H]1NCC[C@H]1O,4,1,ok
+GAM,alpha-methyl-L-glutamic acid,alpha,E,CC(N)(CCC(=O)O)C(=O)O,C[C@](N)(CCC(=O)O)C(=O)O,6,1,ok
+GFT,(2S)-2-azanyl-3-[cyclohexyloxy(methyl)phosphoryl]oxy-propanoic acid,alpha,S,CP(=O)(OCC(N)C(=O)O)OC1CCCCC1,C[P@](=O)(OC[C@H](N)C(=O)O)OC1CCCCC1,12,1,ok
+GGB,L-Canavanine,alpha,R,NC(N)=NOCCC(N)C(=O)O,NC(N)=NOCC[C@H](N)C(=O)O,7,1,ok
+GGL,L-Glutamic acid,alpha,E,NC(CCC(=O)O)C(=O)O,N[C@@H](CCC(=O)O)C(=O)O,5,2,ok
+GHG,"(2S,4S)-4-Hydroxy-L-Glutamine",alpha,Q,NC(=O)C(O)CC(N)C(=O)O,NC(=O)[C@@H](O)C[C@H](N)C(=O)O,6,1,ok
+GHP,4-Hydroxy-D-Phenylglycine,alpha,X,NC(C(=O)O)c1ccc(O)cc1,N[C@@H](C(=O)O)c1ccc(O)cc1,7,1,ok
+GLJ,"5,5-dihydroxy-L-norvaline",alpha,X,NC(CCC(O)O)C(=O)O,N[C@@H](CCC(O)O)C(=O)O,5,1,ok
+GLN,L-Glutamine,alpha,Q,NC(=O)CCC(N)C(=O)O,NC(=O)CC[C@H](N)C(=O)O,5,1,ok
+GLU,L-Glutamic acid,alpha,E,NC(CCC(=O)O)C(=O)O,N[C@@H](CCC(=O)O)C(=O)O,5,1,ok
+GLY,Glycine,alpha,G,NCC(=O)O,NCC(=O)O,0,1,ok
+GMA,Isoglutamine,gamma,X,NC(=O)C(N)CCC(=O)O,NC(=O)[C@@H](N)CCC(=O)O,5,1,ok
+GME,5-Methylester-L-Glutamate,alpha,E,COC(=O)CCC(N)C(=O)O,COC(=O)CC[C@H](N)C(=O)O,6,1,ok
+GNC,N2-Methyl-L-Glutamine,alpha,Q,CNC(CCC(N)=O)C(=O)O,CN[C@@H](CCC(N)=O)C(=O)O,6,1,ok
+GND,L-Arginine,alpha,R,N=C(N)NCCCC(N)C(=O)O,N=C(N)NCCC[C@H](N)C(=O)O,7,1,ok
+GPL,LYSINE GUANOSINE-5'-MONOPHOSPHATE,alpha,K,Nc1nc2c(ncn2C2OC(COP(=O)(O)NCCCCC(N)C(=O)O)C(O)C2O)c(=O)[nH]1,Nc1nc2c(ncn2[C@@H]2O[C@H](CO[P@@](=O)(O)NCCCC[C@H](N)C(=O)O)[C@@H](O)[C@H]2O)c(=O)[nH]1,28,1,ok
+GQI,(2R)-2-azanyl-3-[(E)-(2-oxidanyl-2-oxidanylidene-ethylidene)amino]oxysulfanyl-propanoic acid,alpha,C,NC(CSON=CC(=O)O)C(=O)O,N[C@@H](CSO/N=C/C(=O)O)C(=O)O,8,1,ok
+GSC,2-ETHYLTHIO GLYCINE,alpha,X,CCSC(N)C(=O)O,CCS[C@H](N)C(=O)O,3,1,ok
+GT9,S-NONYL-CYSTEINE,alpha,C,CCCCCCCCCSCC(N)C(=O)O,CCCCCCCCCSC[C@H](N)C(=O)O,11,1,ok
+GVL,"O-[(R)-{[(3R)-4-AMINO-3-HYDROXY-2,2-DIMETHYL-4-OXOBUTYL]OXY}(HYDROXY)PHOSPHORYL]-L-SERINE",alpha,S,CC(C)(COP(=O)(O)OCC(N)C(=O)O)C(O)C(N)=O,CC(C)(CO[P@@](=O)(O)OC[C@H](N)C(=O)O)[C@@H](O)C(N)=O,15,1,ok
+GZJ,(2S)-2-(acetylamino)butanoic acid,alpha,A,CCC(NC(C)=O)C(=O)O,CC[C@H](NC(C)=O)C(=O)O,5,1,ok
+H14,L-threo-3-Phenylserine,alpha,F,NC(C(=O)O)C(O)c1ccccc1,N[C@H](C(=O)O)[C@H](O)c1ccccc1,8,1,ok
+H5M,TRANS-3-HYDROXY-5-METHYLPROLINE,alpha,P,CC1CC(O)C(C(=O)O)N1,C[C@H]1C[C@H](O)[C@@H](C(=O)O)N1,5,1,ok
+H7V,(S)-3-Cyclohexyl-2-(methylamino)propanoic acid,alpha,A,CNC(CC1CCCCC1)C(=O)O,CN[C@@H](CC1CCCCC1)C(=O)O,8,1,ok
+HAR,(2S)-2-amino-5-[[amino-(hydroxyamino)methylidene]amino]pentanoic acid,alpha,R,N=C(NO)NCCCC(N)C(=O)O,N=C(NO)NCCC[C@H](N)C(=O)O,8,1,ok
+HCL,"(2S)-2-azanyl-2-[2-chloranyl-3,5-bis(oxidanyl)phenyl]ethanoic acid",alpha,X,NC(C(=O)O)c1cc(O)cc(O)c1Cl,N[C@H](C(=O)O)c1cc(O)cc(O)c1Cl,9,1,ok
+HCM,(2S)-2-amino-4-(methyldisulfanyl)butanoic acid,alpha,C,CSSCCC(N)C(=O)O,CSSCC[C@H](N)C(=O)O,5,1,ok
+HCS,Homo-L-Cysteine,alpha,C,NC(CCS)C(=O)O,N[C@@H](CCS)C(=O)O,3,1,ok
+HGL,"(2S)-2-amino-4-(2-amino-6-oxo-1,6-dihydro-9H-purin-9-yl)butanoic acid",alpha,H,Nc1nc2c(ncn2CCC(N)C(=O)O)c(=O)[nH]1,Nc1nc2c(ncn2CC[C@H](N)C(=O)O)c(=O)[nH]1,13,1,ok
+HGM,(2R)-2-(4-hydroxyphenyl)-2-(methylamino)ethanoic acid,alpha,X,CNC(C(=O)O)c1ccc(O)cc1,CN[C@@H](C(=O)O)c1ccc(O)cc1,8,1,ok
+HGY,(2S)-2-amino-2-hydroxyacetic acid,alpha,X,NC(O)C(=O)O,N[C@@H](O)C(=O)O,1,1,ok
+HHK,"(2S)-2,8-Diaminooctanoic Acid",alpha,X,NCCCCCCC(N)C(=O)O,NCCCCCC[C@H](N)C(=O)O,7,1,ok
+HIC,1-Methyl-L-Histidine,alpha,H,Cn1cnc(CC(N)C(=O)O)c1,Cn1cnc(C[C@H](N)C(=O)O)c1,7,1,ok
+HIP,ND1-PHOSPHONOHISTIDINE,alpha,H,NC(Cc1c[nH+]cn1P(=O)(O)O)C(=O)O,N[C@@H](Cc1c[nH+]cn1P(=O)(O)O)C(=O)O,10,1,ok
+HIQ,"1-[1,2-DIHYDROXY-1-(HYDROXYMETHYL)ETHYL]-L-HISTIDINE",alpha,H,NC(Cc1cn(C(O)(CO)CO)cn1)C(=O)O,N[C@@H](Cc1cn(C(O)(CO)CO)cn1)C(=O)O,12,1,ok
+HIS,L-Histidine,alpha,H,NC(Cc1cnc[nH]1)C(=O)O,N[C@@H](Cc1cnc[nH]1)C(=O)O,6,1,ok
+HIX,(2S)-2-amino-3-(2H-triazol-4-yl)propanoic acid,alpha,F,NC(Cc1cnn[nH]1)C(=O)O,N[C@@H](Cc1cnn[nH]1)C(=O)O,6,1,ok
+HJV,N2-Methyl-D-Glutamine,alpha,Q,CNC(CCC(N)=O)C(=O)O,CN[C@H](CCC(N)=O)C(=O)O,6,1,ok
+HJY,4-iodo-N-methyl-D-phenylalanine,alpha,F,CNC(Cc1ccc(I)cc1)C(=O)O,CN[C@H](Cc1ccc(I)cc1)C(=O)O,9,1,ok
+HL2,(3R)-3-Hydroxy-L-Leucine,alpha,T,CC(C)C(O)C(N)C(=O)O,CC(C)[C@@H](O)[C@H](N)C(=O)O,5,1,ok
+HL5,"(2S,4R)-5-hydroxyleucine",alpha,X,CC(CO)CC(N)C(=O)O,C[C@@H](CO)C[C@H](N)C(=O)O,5,1,ok
+HLU,(3S)-3-Hydroxy-L-Leucine,alpha,T,CC(C)C(O)C(N)C(=O)O,CC(C)[C@H](O)[C@H](N)C(=O)O,5,1,ok
+HLX,Homo-L-Leucine,alpha,L,CC(C)CCC(N)C(=O)O,CC(C)CC[C@H](N)C(=O)O,5,1,ok
+HLY,(3~{R})-5-[[(5~{S})-5-azanyl-6-oxidanyl-6-oxidanylidene-hexyl]amino]-3-methyl-3-oxidanyl-5-oxidanylidene-pentanoic acid,alpha,K,CC(O)(CC(=O)O)CC(=O)NCCCCC(N)C(=O)O,C[C@](O)(CC(=O)O)CC(=O)NCCCC[C@H](N)C(=O)O,15,1,ok
+HMF,Homo-D-Phenylalanine,alpha,F,NC(CCc1ccccc1)C(=O)O,N[C@H](CCc1ccccc1)C(=O)O,8,1,ok
+HMR,"Beta-Homoarginine, (S)-3-amino-6-Guanidinohexanoic acid",beta,R,N=C(N)NCCCC(N)CC(=O)O,N=C(N)NCCC[C@H](N)CC(=O)O,8,1,ok
+HNC,"S-[(1S,2R)-2-hydroxy-1-(2-oxoethyl)heptyl]-L-cysteine",alpha,X,CCCCCC(O)C(CC=O)SCC(N)C(=O)O,CCCCC[C@@H](O)[C@H](CC=O)SC[C@H](N)C(=O)O,13,1,ok
+HOO,"(2~{S})-2-azanyl-3-[2,5-bis(oxidanylidene)imidazol-4-yl]propanoic acid",alpha,Q,NC(CC1=NC(=O)NC1=O)C(=O)O,N[C@@H](CC1=NC(=O)NC1=O)C(=O)O,8,1,ok
+HOX,4-Amino-L-Phenylalanine,alpha,F,Nc1ccc(CC(N)C(=O)O)cc1,Nc1ccc(C[C@H](N)C(=O)O)cc1,8,1,ok
+HP9,(2S)-2-azanyl-3-(7-fluoranyl-9-oxidanylidene-xanthen-2-yl)propanoic acid,alpha,F,NC(Cc1ccc2oc3ccc(F)cc3c(=O)c2c1)C(=O)O,N[C@@H](Cc1ccc2oc3ccc(F)cc3c(=O)c2c1)C(=O)O,17,1,ok
+HPE,Homo-L-Phenylalanine,alpha,F,NC(CCc1ccccc1)C(=O)O,N[C@@H](CCc1ccccc1)C(=O)O,8,1,ok
+HQA,3-(8-hydroxyquinolin-3-yl)-L-Alanine,alpha,F,NC(Cc1cnc2c(O)cccc2c1)C(=O)O,N[C@@H](Cc1cnc2c(O)cccc2c1)C(=O)O,12,1,ok
+HR7,"Beta-Homoarginine, (S)-3-amino-6-Guanidinohexanoic acid",beta,R,N=C(N)NCCCC(N)CC(=O)O,N=C(N)NCCC[C@H](N)CC(=O)O,8,1,ok
+HRG,Homo-L-Arginine,alpha,R,N=C(N)NCCCCC(N)C(=O)O,N=C(N)NCCCC[C@H](N)C(=O)O,8,1,ok
+HRP,5-Hydroxy-D-Tryptophan,alpha,W,NC(Cc1c[nH]c2ccc(O)cc12)C(=O)O,N[C@H](Cc1c[nH]c2ccc(O)cc12)C(=O)O,11,1,ok
+HS8,3-(1-sulfo-1H-imidazol-3-ium-4-yl)-L-alanine,alpha,H,NC(Cc1cn(S(=O)(=O)O)c[nH+]1)C(=O)O,N[C@@H](Cc1cn(S(=O)(=O)O)c[nH+]1)C(=O)O,10,1,ok
+HSE,Homo-L-serine,alpha,S,NC(CCO)C(=O)O,N[C@@H](CCO)C(=O)O,3,1,ok
+HSK,3-hydroxy-L-histidine,alpha,H,NC(Cc1cncn1O)C(=O)O,N[C@@H](Cc1cncn1O)C(=O)O,7,1,ok
+HT7,L-beta-homotryptophan,beta,W,NC(CC(=O)O)Cc1c[nH]c2ccccc12,N[C@H](CC(=O)O)Cc1c[nH]c2ccccc12,11,1,ok
+HTI,(4S)-4-{[(2S)-2-AMINO-3-OXOPROPYL]SULFANYL}-L-HOMOSERINE,alpha,C,NC(CSC(O)CC(N)C(=O)O)C(=O)O,N[C@@H](CS[C@@H](O)C[C@H](N)C(=O)O)C(=O)O,10,1,ok
+HTN,(3R)-3-hydroxy-N-methyl-D-asparagine,alpha,N,CNC(=O)C(O)C(N)C(=O)O,CNC(=O)[C@H](O)[C@@H](N)C(=O)O,6,1,ok
+HTR,(BetaS)-Beta-Hydroxy-L-Tryptophan,alpha,W,NC(C(=O)O)C(O)c1c[nH]c2ccccc12,N[C@H](C(=O)O)[C@@H](O)c1c[nH]c2ccccc12,11,1,ok
+HTY,(betaR)-beta-Hydroxy-D-Tyrosine,alpha,Y,NC(C(=O)O)C(O)c1ccc(O)cc1,N[C@@H](C(=O)O)[C@H](O)c1ccc(O)cc1,9,1,ok
+HVA,3-Hydroxy-L-Valine,alpha,V,CC(C)(O)C(N)C(=O)O,CC(C)(O)[C@H](N)C(=O)O,4,1,ok
+HY3,"(2S,3S)-3-hydroxypyrrolidine-2-carboxylic acid",alpha,P,O=C(O)C1NCCC1O,O=C(O)[C@H]1NCC[C@@H]1O,4,1,ok
+HYP,trans-4-Hydroxy-L-proline,alpha,P,O=C(O)C1CC(O)CN1,O=C(O)[C@@H]1C[C@@H](O)CN1,4,1,ok
+HZP,cis-4-Hydroxy-L-proline,alpha,P,O=C(O)C1CC(O)CN1,O=C(O)[C@@H]1C[C@H](O)CN1,4,1,ok
+I2M,3-Methyl-L-Alloisoleucine,alpha,V,CCC(C)(C)C(N)C(=O)O,CCC(C)(C)[C@H](N)C(=O)O,5,1,ok
+I4G,N-isobutylglycine,alpha,G,CC(C)CNCC(=O)O,CC(C)CNCC(=O)O,4,1,ok
+I4O,Histidine oxo-vanadium complex,alpha,H,NC(Cc1cn([V](=O)([O-])([O-])[O-])cn1)C(=O)O,N[C@@H](Cc1cn([V](=O)([O-])([O-])[O-])cn1)C(=O)O,11,1,ok
+I58,4R-FLUORO-N6-ETHANIMIDOYL-L-LYSINE,alpha,X,[H]N=C(C)NCCC(F)CC(N)C(=O)O,[H]/N=C(/C)NCC[C@@H](F)C[C@H](N)C(=O)O,9,1,ok
+I7F,O-hydroxy-L-serine,alpha,S,NC(COO)C(=O)O,N[C@@H](COO)C(=O)O,3,1,ok
+IAE,4-trifluoromethyl-L-homophe,alpha,F,NC(CCc1ccc(C(F)(F)F)cc1)C(=O)O,N[C@@H](CCc1ccc(C(F)(F)F)cc1)C(=O)O,12,1,ok
+IAM,(2S)-2-amino-3-[4-[(propan-2-ylamino)methyl]phenyl]propanoic acid,alpha,F,CC(C)NCc1ccc(CC(N)C(=O)O)cc1,CC(C)NCc1ccc(C[C@H](N)C(=O)O)cc1,12,1,ok
+IAR,(2E)-5-[(diaminomethylidene)amino]-2-iminopentanoic acid,delta,X,[H]N=C(N)NCCCC(=N[H])C(=O)O,[H]/N=C(/N)NCCC/C(=N\[H])C(=O)O,7,1,ok
+IAS,L-Aspartic acid,alpha,D,NC(CC(=O)O)C(=O)O,N[C@@H](CC(=O)O)C(=O)O,4,1,ok
+IB9,Beta-tyrosine,beta,X,NC(CC(=O)O)c1ccc(O)cc1,N[C@@H](CC(=O)O)c1ccc(O)cc1,8,1,ok
+IC0,(2S)-2-aminohept-6-enoic acid,alpha,L,C=CCCCC(N)C(=O)O,C=CCCC[C@H](N)C(=O)O,5,1,ok
+ICY,S-(2-iodobenzyl)-L-cysteine,alpha,C,NC(CSCc1ccccc1I)C(=O)O,N[C@@H](CSCc1ccccc1I)C(=O)O,10,1,ok
+IEL,(2S)-2-amino-6-(1-aminoethylideneamino)hexanoic acid,alpha,X,CC(=N)NCCCCC(N)C(=O)O,CC(=N)NCCCC[C@H](N)C(=O)O,8,1,ok
+IGL,D-2-Indanylglycine,alpha,F,NC(C(=O)O)C1Cc2ccccc2C1,N[C@@H](C(=O)O)C1Cc2ccccc2C1,9,1,ok
+II7,cis-3-aminocyclobutane carboxylic acid,gamma,A,NC1CC(C(=O)O)C1,NC1CC(C(=O)O)C1,3,1,ok
+IIL,"Allo-L-Isoleucine, (2S,3R)-Isoleucine",alpha,I,CCC(C)C(N)C(=O)O,CC[C@@H](C)[C@H](N)C(=O)O,4,1,ok
+ILE,"L-Isoleucine, (2S,3S)-Isoleucine",alpha,I,CCC(C)C(N)C(=O)O,CC[C@H](C)[C@H](N)C(=O)O,4,1,ok
+ILX,"4,5-DIHYDROXYISOLEUCINE",alpha,S,CC(C(O)CO)C(N)C(=O)O,C[C@H]([C@H](N)C(=O)O)[C@@H](O)CO,6,1,ok
+IML,N-Methyl-L-Isoleucine,alpha,I,CCC(C)C(NC)C(=O)O,CC[C@H](C)[C@H](NC)C(=O)O,5,1,ok
+IOR,"N~5~-[(5R)-5-methyl-4-oxo-4,5-dihydro-1H-imidazol-2-yl]-L-ornithine",alpha,R,CC1NC(NCCCC(N)C(=O)O)=NC1=O,C[C@H]1NC(NCCC[C@H](N)C(=O)O)=NC1=O,11,1,ok
+IOY,4-iodo-D-phenylalanine,alpha,F,NC(Cc1ccc(I)cc1)C(=O)O,N[C@H](Cc1ccc(I)cc1)C(=O)O,8,1,ok
+IPG,2-(propan-2-ylamino)acetic acid,alpha,G,CC(C)NCC(=O)O,CC(C)NCC(=O)O,3,1,ok
+IYR,3-iodo-L-tyrosine,alpha,Y,NC(Cc1ccc(O)c(I)c1)C(=O)O,N[C@@H](Cc1ccc(O)c(I)c1)C(=O)O,9,1,ok
+IZO,L-Homopropargylglycine,alpha,L,C#CCCC(N)C(=O)O,C#CCC[C@H](N)C(=O)O,4,1,ok
+J3D,N-carboxy-L-cysteine,alpha,X,O=C(O)NC(CS)C(=O)O,O=C(O)N[C@@H](CS)C(=O)O,5,1,ok
+J7H,(2~{R})-2-azanyl-2-methyl-heptanoic acid,alpha,X,CCCCCC(C)(N)C(=O)O,CCCCC[C@@](C)(N)C(=O)O,6,1,ok
+J8W,(2~{S})-2-azanyl-3-(3-oxidanyl-3-oxidanylidene-propanoyl)oxy-propanoic acid,alpha,S,NC(COC(=O)CC(=O)O)C(=O)O,N[C@@H](COC(=O)CC(=O)O)C(=O)O,8,1,ok
+J9A,N-[(2S)-2-amino-2-carboxyethyl]-L-alpha-glutamine,alpha,X,NC(CNC(=O)C(N)CCC(=O)O)C(=O)O,N[C@@H](CNC(=O)[C@@H](N)CCC(=O)O)C(=O)O,11,2,ok
+JGO,"meso-2,6-diaminopimelic acid NH2",alpha,K,NC(=O)C(N)CCCC(N)C(=O)O,NC(=O)[C@H](N)CCC[C@H](N)C(=O)O,8,1,ok
+JJJ,S-(pyridin-3-ylcarbonyl)-L-cysteine,alpha,C,NC(CSC(=O)c1cccnc1)C(=O)O,N[C@@H](CSC(=O)c1cccnc1)C(=O)O,10,1,ok
+JJK,S-[(S)-hydroxy(pyridin-3-yl)methyl]-L-cysteine,alpha,C,NC(CSC(O)c1cccnc1)C(=O)O,N[C@@H](CS[C@H](O)c1cccnc1)C(=O)O,10,1,ok
+JJL,S-[(S)-hydroxy(5-methoxypyridin-3-yl)methyl]-L-cysteine,alpha,C,COc1cncc(C(O)SCC(N)C(=O)O)c1,COc1cncc([C@@H](O)SC[C@H](N)C(=O)O)c1,12,1,ok
+JKH,(4S)-4-Amino-L-Proline,alpha,P,NC1CNC(C(=O)O)C1,N[C@@H]1CN[C@H](C(=O)O)C1,4,1,ok
+JLP,(2S)-2-azanyl-6-[E-[5-(hydroxymethyl)-2-methyl-3-oxidanyl-pyridin-4-yl]methylideneamino]hexanoic acid,alpha,X,Cc1ncc(CO)c(C=NCCCCC(N)C(=O)O)c1O,Cc1ncc(CO)c(/C=N/CCCC[C@H](N)C(=O)O)c1O,16,1,ok
+JMX,(2S)-3-[1-[(4-bromophenyl)methyl]indol-3-yl]-2-(methylamino)propanoic acid,alpha,W,CNC(Cc1cn(Cc2ccc(Br)cc2)c2ccccc12)C(=O)O,CN[C@@H](Cc1cn(Cc2ccc(Br)cc2)c2ccccc12)C(=O)O,19,1,ok
+K5H,"(2~{R})-2-azanyl-3-[3,3,3-tris(fluoranyl)-2,2-bis(oxidanyl)propyl]sulfanyl-propanoic acid",alpha,C,NC(CSCC(O)(O)C(F)(F)F)C(=O)O,N[C@@H](CSCC(O)(O)C(F)(F)F)C(=O)O,10,1,ok
+K5L,(2~{R})-2-azanyl-3-(3-oxidanyl-3-oxidanylidene-propanoyl)oxy-propanoic acid,alpha,S,NC(COC(=O)CC(=O)O)C(=O)O,N[C@H](COC(=O)CC(=O)O)C(=O)O,8,1,ok
+K7K,2-azanyl-3-[hexyl-[2-(3-oxidanylpyridin-2-yl)pyridin-3-yl]oxy-phosphoryl]oxy-propanal,alpha,S,CCCCCCP(=O)(OCC(N)C(=O)O)Oc1cccnc1-c1ncccc1O,CCCCCC[P@](=O)(OC[C@H](N)C(=O)O)Oc1cccnc1-c1ncccc1O,24,1,ok
+KBE,beta-lysine,beta,K,NCCCC(N)CC(=O)O,NCCC[C@H](N)CC(=O)O,5,1,ok
+KCJ,3-(4-Thiazolyl)-L-Alanine,alpha,F,NC(Cc1cscn1)C(=O)O,N[C@@H](Cc1cscn1)C(=O)O,6,1,ok
+KCR,(E)-N6-(but-2-enoyl)-L-lysine,alpha,K,CC=CC(=O)NCCCCC(N)C(=O)O,C/C=C/C(=O)NCCCC[C@H](N)C(=O)O,10,1,ok
+KCX,LYSINE NZ-CARBOXYLIC ACID,alpha,K,NC(CCCCNC(=O)O)C(=O)O,N[C@@H](CCCCNC(=O)O)C(=O)O,8,1,ok
+KCY,Homo-D-Cysteine,alpha,C,NC(CCS)C(=O)O,N[C@H](CCS)C(=O)O,3,1,ok
+KEO,e(R)-beta-lysyl-hydroxylysine,alpha,K,NCCCC(N)CC(=O)NCCC(O)CC(N)C(=O)O,NCCC[C@H](N)CC(=O)NCC[C@H](O)C[C@H](N)C(=O)O,15,2,ok
+KFP,"N~6~-[(2-amino-4-oxo-3,4-dihydropteridin-6-yl)methyl]-D-lysine",alpha,K,Nc1nc2ncc(CNCCCCC(N)C(=O)O)nc2c(=O)[nH]1,Nc1nc2ncc(CNCCCC[C@@H](N)C(=O)O)nc2c(=O)[nH]1,18,1,ok
+KGC,N~6~-[(2R)-2-CARBOXY-5-OXOTETRAHYDROFURAN-2-YL]-L-LYSINE,alpha,K,NC(CCCCNC1(C(=O)O)CCC(=O)O1)C(=O)O,N[C@@H](CCCCN[C@]1(C(=O)O)CCC(=O)O1)C(=O)O,14,1,ok
+KHB,N~6~-[(3S)-3-hydroxybutanoyl]-L-lysine,alpha,K,CC(O)CC(=O)NCCCCC(N)C(=O)O,C[C@H](O)CC(=O)NCCCC[C@H](N)C(=O)O,11,1,ok
+KJW,(3S)-3-Hydroxy-D-Leucine,alpha,T,CC(C)C(O)C(N)C(=O)O,CC(C)[C@H](O)[C@@H](N)C(=O)O,5,1,ok
+KKD,N-acetyl-L-aspartic acid,alpha,D,CC(=O)NC(CC(=O)O)C(=O)O,CC(=O)N[C@@H](CC(=O)O)C(=O)O,7,1,ok
+KNB,3-(methylsulfonyl)-L-alanine,alpha,X,CS(=O)(=O)CC(N)C(=O)O,CS(=O)(=O)C[C@H](N)C(=O)O,5,1,ok
+KOR,L-HOMOCYSTEINE-S-N-S-L-CYSTEINE,alpha,C,NC(CCSNS(=O)CC(N)C(=O)O)C(=O)O,N[C@@H](CCSN[S@](=O)C[C@H](N)C(=O)O)C(=O)O,12,1,ok
+KPF,N-(1-carboxy-2-fluoro-ethenyl) lysine,alpha,X,NC(CCCCN=C(CF)C(=O)O)C(=O)O,N[C@@H](CCCC/N=C(\CF)C(=O)O)C(=O)O,11,1,ok
+KPI,(2S)-2-amino-6-[(1-hydroxy-1-oxo-propan-2-ylidene)amino]hexanoic acid,alpha,X,CC(=NCCCCC(N)C(=O)O)C(=O)O,C/C(=N\CCCC[C@H](N)C(=O)O)C(=O)O,10,1,ok
+KPY,(2R)-2-AZANYL-3-[2-[(E)-(1-OXIDANYL-1-OXIDANYLIDENE-PROPAN-2-YLIDENE)AMINO]ETHYLSULFANYL]PROPANOIC ACID,alpha,C,CC(=NCCSCC(N)C(=O)O)C(=O)O,C/C(=N\CCSC[C@H](N)C(=O)O)C(=O)O,10,1,ok
+KR3,N~6~-(ethoxycarbonyl)-L-lysine,alpha,K,CCOC(=O)NCCCCC(N)C(=O)O,CCOC(=O)NCCCC[C@H](N)C(=O)O,10,1,ok
+KST,N~6~-(5-CARBOXY-3-THIENYL)-L-LYSINE,alpha,K,NC(CCCCNc1csc(C(=O)O)c1)C(=O)O,N[C@@H](CCCCNc1csc(C(=O)O)c1)C(=O)O,13,1,ok
+KW4,5-Methyl-D-Norleucine,alpha,L,CC(C)CCC(N)C(=O)O,CC(C)CC[C@@H](N)C(=O)O,5,1,ok
+KYN,L-Kynurenine,alpha,F,Nc1ccccc1C(=O)CC(N)C(=O)O,Nc1ccccc1C(=O)C[C@H](N)C(=O)O,10,1,ok
+KYQ,(E)-N~6~-(1-carboxy-2-hydroxyethylidene)-L-lysine,alpha,X,NC(CCCCN=C(CO)C(=O)O)C(=O)O,N[C@@H](CCCC/N=C(\CO)C(=O)O)C(=O)O,11,1,ok
+L3O,"(2S,3S)-3-amino-2-hydroxy-5-methylhexanoic acid",beta,L,CC(C)CC(N)C(O)C(=O)O,CC(C)C[C@H](N)[C@H](O)C(=O)O,6,1,ok
+L4R,Fmoc-(R)-2-(7-octenyl)alanine,alpha,X,C=CCCCCCCC(C)(N)C(=O)O,C=CCCCCCC[C@@](C)(N)C(=O)O,9,1,ok
+L5P,"(2S)-2-azanyl-6-[[(3R,4R)-3,4-bis(oxidanyl)-2-oxidanylidene-5-phosphonooxy-pentyl]amino]hexanoic acid",alpha,K,NC(CCCCNCC(=O)C(O)C(O)COP(=O)(O)O)C(=O)O,N[C@@H](CCCCNCC(=O)[C@H](O)[C@H](O)COP(=O)(O)O)C(=O)O,18,1,ok
+LA2,"N~6~-[(6R)-6,8-disulfanyloctanoyl]-L-lysine",alpha,K,NC(CCCCNC(=O)CCCCC(S)CCS)C(=O)O,N[C@@H](CCCCNC(=O)CCCC[C@@H](S)CCS)C(=O)O,16,2,ok
+LAY,N-acetyl-L-leucine,alpha,L,CC(=O)NC(CC(C)C)C(=O)O,CC(=O)N[C@@H](CC(C)C)C(=O)O,7,1,ok
+LBZ,N-Epsilon-Benzoyl-L-Lysine,alpha,K,NC(CCCCNC(=O)c1ccccc1)C(=O)O,N[C@@H](CCCCNC(=O)c1ccccc1)C(=O)O,13,1,ok
+LCK,(Z)-N~6~-(2-carboxy-1-methylethylidene)-L-lysine,alpha,X,CC(CC(=O)O)=NCCCCC(N)C(=O)O,C/C(CC(=O)O)=N/CCCC[C@H](N)C(=O)O,11,1,ok
+LDH,(2S)-2-amino-6-(ethylamino)hexanoic acid,alpha,K,CCNCCCCC(N)C(=O)O,CCNCCCC[C@H](N)C(=O)O,7,1,ok
+LE1,L-Penicillamine,alpha,V,CC(C)(S)C(N)C(=O)O,CC(C)(S)[C@H](N)C(=O)O,4,1,ok
+LED,"(4R)-5-Oxo-L-Leucine, (2S,4R)-5-Oxo-Leucine",alpha,X,CC(C=O)CC(N)C(=O)O,C[C@@H](C=O)C[C@H](N)C(=O)O,5,1,ok
+LEF,(4S)-5-FLUORO-L-LEUCINE,alpha,X,CC(CF)CC(N)C(=O)O,C[C@H](CF)C[C@H](N)C(=O)O,5,1,ok
+LEI,D-Penicillamine,alpha,V,CC(C)(S)C(N)C(=O)O,CC(C)(S)[C@@H](N)C(=O)O,4,1,ok
+LET,(Z)-N^6-{3-CARBOXY-1-[(4-CARBOXY-2-OXOBUTOXY)METHYL]PROPYLIDENE}-L-LYSINE,alpha,X,NC(CCCCN=C(CCC(=O)O)COCC(=O)CCC(=O)O)C(=O)O,N[C@@H](CCCC/N=C(\CCC(=O)O)COCC(=O)CCC(=O)O)C(=O)O,21,2,ok
+LEU,L-Leucine,alpha,L,CC(C)CC(N)C(=O)O,CC(C)C[C@H](N)C(=O)O,4,1,ok
+LGY,(E)-N~6~-(4-oxobutylidene)-L-lysine,alpha,X,NC(CCCCN=CCCC=O)C(=O)O,N[C@@H](CCCC/N=C/CCC=O)C(=O)O,10,1,ok
+LHC,(2S)-2-amino-4-(4-amino-2-oxopyrimidin-1(2H)-yl)butanoic acid,alpha,F,Nc1ccn(CCC(N)C(=O)O)c(=O)n1,Nc1ccn(CC[C@H](N)C(=O)O)c(=O)n1,10,1,ok
+LLO,"N~6~-[(1S)-3-hydroxy-1,3-dimethylbutyl]-L-lysine",alpha,K,CC(CC(C)(C)O)NCCCCC(N)C(=O)O,C[C@@H](CC(C)(C)O)NCCCC[C@H](N)C(=O)O,12,1,ok
+LLY,NZ-(DICARBOXYMETHYL)LYSINE,alpha,K,NC(CCCCNC(C(=O)O)C(=O)O)C(=O)O,N[C@@H](CCCCNC(C(=O)O)C(=O)O)C(=O)O,12,1,ok
+LLZ,N~6~-[(1S)-3-(6-methoxynaphthalen-2-yl)-1-methyl-3-oxopropyl]-L-lysine,alpha,K,COc1ccc2cc(C(=O)CC(C)NCCCCC(N)C(=O)O)ccc2c1,COc1ccc2cc(C(=O)C[C@H](C)NCCCC[C@H](N)C(=O)O)ccc2c1,22,1,ok
+LME,"(2S,3R)-3-Methyl-L-Glutamic Acid",alpha,E,CC(CC(=O)O)C(N)C(=O)O,C[C@H](CC(=O)O)[C@H](N)C(=O)O,6,1,ok
+LMF,(2S)-2-amino-6-(methylcarbamothioylamino)hexanoic acid,alpha,K,CNC(=S)NCCCCC(N)C(=O)O,CNC(=S)NCCCC[C@H](N)C(=O)O,9,1,ok
+LMQ,"(2S,3S)-3-Methyl-L-Glutamine",alpha,Q,CC(CC(N)=O)C(N)C(=O)O,C[C@@H](CC(N)=O)[C@H](N)C(=O)O,6,1,ok
+LOU,"3-[(3aR,4S,7S,7aS)-2-(carboxymethyl)-1,3-dioxooctahydro-4H-4,7-epoxyisoindol-4-yl]-L-alanine",alpha,K,NC(CC12CCC(O1)C1C(=O)N(CC(=O)O)C(=O)C12)C(=O)O,N[C@@H](C[C@]12CC[C@H](O1)[C@H]1C(=O)N(CC(=O)O)C(=O)[C@H]12)C(=O)O,17,1,ok
+LP6,6-piperidin-1-yl-L-norleucine,alpha,K,NC(CCCCN1CCCCC1)C(=O)O,N[C@@H](CCCCN1CCCCC1)C(=O)O,10,1,ok
+LPG,(2S)-2-aminobut-3-ynoic acid,alpha,A,C#CC(N)C(=O)O,C#C[C@H](N)C(=O)O,2,1,ok
+LPH,propargylglycine,alpha,V,C#CCC(N)C(=O)O,C#CC[C@H](N)C(=O)O,3,1,ok
+LPL,LEU-HYDROXYETHYLENE-LEU,delta,L,CC(C)CC(CC(O)C(N)CC(C)C)C(=O)O,CC(C)C[C@H](C[C@H](O)[C@@H](N)CC(C)C)C(=O)O,12,1,ok
+LRK,"(2S)-2-azanyl-6-[[(2R,4R)-1,4-bis(oxidanyl)-3-oxidanylidene-5-phosphonooxy-pentan-2-yl]amino]hexanoic acid",alpha,X,NC(CCCCNC(CO)C(=O)C(O)COP(=O)(O)O)C(=O)O,N[C@@H](CCCCN[C@H](CO)C(=O)[C@H](O)COP(=O)(O)O)C(=O)O,18,1,ok
+LSO,(Z)-N~6~-(3-CARBOXY-1-{[(4-CARBOXY-2-OXOBUTYL)SULFONYL]METHYL}PROPYLIDENE)-L-LYSINE,alpha,X,NC(CCCCN=C(CCC(=O)O)CS(=O)(=O)CC(=O)CCC(=O)O)C(=O)O,N[C@@H](CCCC/N=C(\CCC(=O)O)CS(=O)(=O)CC(=O)CCC(=O)O)C(=O)O,23,2,ok
+LTU,2-Amino-3-hydroxy-3-[1-[2-(oxiran-2-yl)propan-2-yl]indol-3-yl]propanoic acid,alpha,W,CC(C)(C1CO1)n1cc(C(O)C(N)C(=O)O)c2ccccc21,CC(C)([C@H]1CO1)n1cc([C@@H](O)[C@H](N)C(=O)O)c2ccccc21,17,1,ok
+LV8,(2S)-3-Acetamido-2-aminopropanoic acid,alpha,X,CC(=O)NCC(N)C(=O)O,CC(=O)NC[C@H](N)C(=O)O,5,1,ok
+LVG,L-Vinylglycine,alpha,A,C=CC(N)C(=O)O,C=C[C@H](N)C(=O)O,2,1,ok
+LVN,(3S)-4-oxo-L-valine,alpha,X,CC(C=O)C(N)C(=O)O,C[C@H](C=O)[C@H](N)C(=O)O,4,1,ok
+LWI,2-(Aminomethyl)-L-Phenylalanine,alpha,F,NCc1ccccc1CC(N)C(=O)O,NCc1ccccc1C[C@H](N)C(=O)O,9,1,ok
+LYF,"(2E,4S)-2-{[(5S)-5-amino-5-carboxypentyl]imino}-4-hydroxyheptanedioic acid",alpha,X,NC(CCCCN=C(CC(O)CCC(=O)O)C(=O)O)C(=O)O,N[C@@H](CCCC/N=C(\C[C@@H](O)CCC(=O)O)C(=O)O)C(=O)O,17,1,ok
+LYH,"3,4 ENE-LYSINE",alpha,K,NCCC=CC(N)C(=O)O,NCC/C=C/[C@H](N)C(=O)O,5,1,ok
+LYO,4-HYDROXY-LYSINE,alpha,K,NCCC(O)CC(N)C(=O)O,NCCC(O)C[C@H](N)C(=O)O,6,1,ok
+LYR,"N~6~-[(2Z,4E,6E,8E)-3,7-DIMETHYL-9-(2,6,6-TRIMETHYLCYCLOHEX-1-EN-1-YL)NONA-2,4,6,8-TETRAENYL]LYSINE",alpha,K,CC(C=CC1=C(C)CCCC1(C)C)=CC=CC(C)=CCNCCCCC(N)C(=O)O,CC1=C(C=C/C(C)=C/C=C\C(C)=C\CNCCCC[C@H](N)C(=O)O)C(C)(C)CCC1,25,1,ok
+LYS,L-Lysine,alpha,K,NCCCCC(N)C(=O)O,NCCCC[C@H](N)C(=O)O,5,1,ok
+LYU,N~6~-(4-methylpentyl)-L-lysine,alpha,K,CC(C)CCCNCCCCC(N)C(=O)O,CC(C)CCCNCCCC[C@H](N)C(=O)O,11,1,ok
+LYV,O-phosphono-L-seryl-N-[(3S)-3-amino-3-carboxypropyl]glycinamide,alpha,X,NC(CCNC(=O)CNC(=O)C(N)COP(=O)(O)O)C(=O)O,N[C@@H](CCNC(=O)CNC(=O)[C@@H](N)COP(=O)(O)O)C(=O)O,17,1,ok
+LYX,N''-(2-COENZYME A)-PROPANOYL-LYSINE,alpha,K,CC(SCCNC(=O)CCNC(=O)C(O)C(C)(C)COP(=O)(O)OP(=O)(O)OCC1OC(n2cnc3c(N)ncnc32)C(O)C1OP(=O)(O)O)C(=O)NCCCCC(N)C(=O)O,C[C@H](SCCNC(=O)CCNC(=O)[C@H](O)C(C)(C)CO[P@@](=O)(O)O[P@@](=O)(O)OC[C@H]1O[C@@H](n2cnc3c(N)ncnc32)[C@H](O)[C@@H]1OP(=O)(O)O)C(=O)NCCCC[C@H](N)C(=O)O,57,1,ok
+LYZ,(5R)-5-hydroxy-L-lysine,alpha,K,NCC(O)CCC(N)C(=O)O,NC[C@H](O)CC[C@H](N)C(=O)O,6,1,ok
+M0H,S-(HYDROXYMETHYL)-L-CYSTEINE,alpha,C,NC(CSCO)C(=O)O,N[C@@H](CSCO)C(=O)O,4,1,ok
+M2L,(2R)-2-amino-3-(2-dimethylaminoethylsulfanyl)propanoic acid,alpha,C,CN(C)CCSCC(N)C(=O)O,CN(C)CCSC[C@H](N)C(=O)O,7,1,ok
+M2S,3-{[(R)-methylsulfinyl]methyl}-L-valine,alpha,V,CS(=O)CC(C)(C)C(N)C(=O)O,C[S@@](=O)CC(C)(C)[C@H](N)C(=O)O,7,1,ok
+M30,2-(cyclohexylamino)acetic acid,alpha,G,O=C(O)CNC1CCCCC1,O=C(O)CNC1CCCCC1,6,1,ok
+M70,(2S)-2-amino-3-(1-carbamimidoylpiperidin-4-yl)propanoic acid,alpha,R,N=C(N)N1CCC(CC(N)C(=O)O)CC1,N=C(N)N1CCC(C[C@H](N)C(=O)O)CC1,10,1,ok
+MAA,N-Methyl-L-Alanine,alpha,A,CNC(C)C(=O)O,CN[C@@H](C)C(=O)O,2,1,ok
+MBQ,2-HYDROXY-5-({1-[(4-METHYLPHENOXY)METHYL]-3-OXOPROP-1-ENYL}AMINO)-L-TYROSINE,alpha,Y,Cc1ccc(OCC(=CC=O)Nc2cc(CC(N)C(=O)O)c(O)cc2O)cc1,Cc1ccc(OC/C(=C\C=O)Nc2cc(C[C@H](N)C(=O)O)c(O)cc2O)cc1,23,1,ok
+MCG,(S)-(ALPHA)-METHYL-4-CARBOXYPHENYLGLYCINE,alpha,X,CC(N)(C(=O)O)c1ccc(C(=O)O)cc1,C[C@@](N)(C(=O)O)c1ccc(C(=O)O)cc1,10,1,ok
+MCS,MALONYL CYSTEINE,alpha,C,NC(CSC(=O)CC(=O)O)C(=O)O,N[C@@H](CSC(=O)CC(=O)O)C(=O)O,8,1,ok
+MD0,5-amino-D-isoleucine,alpha,X,CC(CCN)C(N)C(=O)O,C[C@H](CCN)[C@@H](N)C(=O)O,5,1,ok
+MD3,N-(carboxycarbonyl)-S-(naphthalen-2-ylmethyl)-L-cysteine,alpha,C,O=C(O)C(=O)NC(CSCc1ccc2ccccc2c1)C(=O)O,O=C(O)C(=O)N[C@@H](CSCc1ccc2ccccc2c1)C(=O)O,18,1,ok
+MD6,N-[(3-hydroxypyridin-2-yl)carbonyl]glycine,alpha,G,O=C(O)CNC(=O)c1ncccc1O,O=C(O)CNC(=O)c1ncccc1O,9,1,ok
+MDH,N-METHYLDEHYDROBUTYRINE,alpha,A,CC=C(NC)C(=O)O,C/C=C(\NC)C(=O)O,3,1,ok
+ME0,Hydroxy-L-Methionine,alpha,M,NC(CCSCO)C(=O)O,N[C@@H](CCSCO)C(=O)O,5,1,ok
+MEA,N-methyl-L-Phenylalanine,alpha,F,CNC(Cc1ccccc1)C(=O)O,CN[C@@H](Cc1ccccc1)C(=O)O,8,1,ok
+MED,D-Methionine,alpha,M,CSCCC(N)C(=O)O,CSCC[C@@H](N)C(=O)O,4,1,ok
+MEG,"(2S,3S)-3-Methyl-L-Glutamic acid",alpha,E,CC(CC(=O)O)C(N)C(=O)O,C[C@@H](CC(=O)O)[C@H](N)C(=O)O,6,1,ok
+MEN,N4-Methyl-L-Asparagine,alpha,N,CNC(=O)CC(N)C(=O)O,CNC(=O)C[C@H](N)C(=O)O,5,1,ok
+MEQ,N5-Methyl-L-Glutamine,alpha,Q,CNC(=O)CCC(N)C(=O)O,CNC(=O)CC[C@H](N)C(=O)O,6,1,ok
+MET,L-Methionine,alpha,M,CSCCC(N)C(=O)O,CSCC[C@H](N)C(=O)O,4,1,ok
+MF3,Trifluoro-L-Methionine,alpha,M,NC(CCSC(F)(F)F)C(=O)O,N[C@@H](CCSC(F)(F)F)C(=O)O,7,1,ok
+MFH,[(2~{S})-2-azanyl-3-(4-hydroxyphenyl)propyl]carbamic acid,gamma,Y,NC(CNC(=O)O)Cc1ccc(O)cc1,N[C@H](CNC(=O)O)Cc1ccc(O)cc1,10,1,ok
+MGG,2-(2-CARBOXY-ACETYLAMINO)-5-GUANIDINO-PENTANOIC ACID,alpha,R,NC(=[NH2+])NCCCC(NC(=O)CC(=O)O)C(=O)O,NC(=[NH2+])NCCC[C@@H](NC(=O)CC(=O)O)C(=O)O,13,1,ok
+MGN,alpha-methyl-L-glutamine,alpha,Q,CC(N)(CCC(N)=O)C(=O)O,C[C@](N)(CCC(N)=O)C(=O)O,6,1,ok
+MH6,3-hydroxy-2-iminopropanoic acid,alpha,X,[H]N=C(CO)C(=O)O,[H]/N=C(\CO)C(=O)O,2,1,ok
+MH8,(2S)-2-amino-2-methylhept-6-enoic acid,alpha,L,C=CCCCC(C)(N)C(=O)O,C=CCCC[C@](C)(N)C(=O)O,6,1,ok
+MHL,(2S)-4-hydroxy-4-methyl-2-(methylamino)pentanoic acid,alpha,S,CNC(CC(C)(C)O)C(=O)O,CN[C@@H](CC(C)(C)O)C(=O)O,6,1,ok
+MHO,S-OXYMETHIONINE,alpha,M,CS(=O)CCC(N)C(=O)O,C[S@](=O)CC[C@H](N)C(=O)O,5,1,ok
+MHS,3-Methyl-L-Histidine,alpha,H,Cn1cncc1CC(N)C(=O)O,Cn1cncc1C[C@H](N)C(=O)O,7,1,ok
+MHU,"4-N,N-(DIMETHYLAMINO)-L-PHENYLALANINE",alpha,F,CNC(Cc1ccc(N(C)C)cc1)C(=O)O,CN[C@@H](Cc1ccc(N(C)C)cc1)C(=O)O,11,1,ok
+MHV,4-OXO-L-PIPECOLIC ACID,alpha,P,O=C1CCNC(C(=O)O)C1,O=C1CCN[C@H](C(=O)O)C1,5,1,ok
+MIR,Monoethylphosphorylserine,alpha,X,CCOP(=O)(O)OCC(N)C(=O)O,CCO[P@](=O)(O)OC[C@H](N)C(=O)O,8,1,ok
+MIS,MONOISOPROPYLPHOSPHORYLSERINE,alpha,S,CC(C)OP(=O)(O)OCC(N)C(=O)O,CC(C)O[P@](=O)(O)OC[C@H](N)C(=O)O,9,1,ok
+MK8,2-methyl-L-norleucine,alpha,L,CCCCC(C)(N)C(=O)O,CCCC[C@](C)(N)C(=O)O,5,1,ok
+MKD,(2S)-2-amino-2-methyloctanoic acid,alpha,X,CCCCCCC(C)(N)C(=O)O,CCCCCC[C@](C)(N)C(=O)O,7,1,ok
+MLE,N-Methyl-L-Leucine,alpha,L,CNC(CC(C)C)C(=O)O,CN[C@@H](CC(C)C)C(=O)O,5,1,ok
+MLU,N-Methyl-D-Leucine,alpha,L,CNC(CC(C)C)C(=O)O,CN[C@H](CC(C)C)C(=O)O,5,1,ok
+MLY,Epsilon-Dimethyl-L-Lysine,alpha,K,CN(C)CCCCC(N)C(=O)O,CN(C)CCCC[C@H](N)C(=O)O,7,1,ok
+MLZ,N(6)-Methyllysine,alpha,K,CNCCCCC(N)C(=O)O,CNCCCC[C@H](N)C(=O)O,6,1,ok
+MME,N-Methyl-L-Methionine,alpha,M,CNC(CCSC)C(=O)O,CN[C@@H](CCSC)C(=O)O,5,1,ok
+MMO,N2-Methyl-L-Arginine,alpha,R,CNC(CCCNC(=N)N)C(=O)O,CN[C@@H](CCCNC(=N)N)C(=O)O,8,1,ok
+MND,N4-Methyl-D-Asparagine,alpha,N,CNC(=O)CC(N)C(=O)O,CNC(=O)C[C@@H](N)C(=O)O,5,1,ok
+MNL,"4,N-DIMETHYLNORLEUCINE",alpha,L,CCC(C)CC(NC)C(=O)O,CC[C@@H](C)C[C@H](NC)C(=O)O,6,1,ok
+MOZ,(2Z)-2-amino-3-hydroxybut-2-enoic acid,alpha,X,CC(O)=C(N)C(=O)O,C/C(O)=C(/N)C(=O)O,3,1,ok
+MP4,"(2S)-amino(3,5-dihydroxy-4-methylphenyl)ethanoic acid",alpha,X,Cc1c(O)cc(C(N)C(=O)O)cc1O,Cc1c(O)cc([C@H](N)C(=O)O)cc1O,9,1,ok
+MP8,(4R)-4-methyl-L-proline,alpha,P,CC1CNC(C(=O)O)C1,C[C@H]1CN[C@H](C(=O)O)C1,4,1,ok
+MPQ,(S)-2-(Methylamino)-2-phenylacetic acid,alpha,X,CNC(C(=O)O)c1ccccc1,CN[C@H](C(=O)O)c1ccccc1,7,1,ok
+MSA,(2R)-2-(methylamino)-2-methylsulfanylacetic acid,alpha,X,CNC(SC)C(=O)O,CN[C@H](SC)C(=O)O,3,1,ok
+MSE,SELENOMETHIONINE,alpha,M,C[Se]CCC(N)C(=O)O,C[Se]CC[C@H](N)C(=O)O,4,1,ok
+MSL,(2S)-2-AMINO-4-(METHYLSULFONIMIDOYL)BUTANOIC ACID,alpha,M,CS(=N)(=O)CCC(N)C(=O)O,C[S@](=N)(=O)CC[C@H](N)C(=O)O,6,1,ok
+MSO,SELENOMETHIONINE SELENOXIDE,alpha,M,C[Se](=O)CCC(N)C(=O)O,C[Se@@](=O)CC[C@H](N)C(=O)O,5,1,ok
+MT2,[(3S)-3-amino-3-carboxypropyl](ethyl)methylsulfonium,alpha,M,CC[S+](C)CCC(N)C(=O)O,CC[S@@+](C)CC[C@H](N)C(=O)O,6,1,ok
+MTY,3-Hydroxy-L-Phenylalanine,alpha,Y,NC(Cc1cccc(O)c1)C(=O)O,N[C@@H](Cc1cccc(O)c1)C(=O)O,8,1,ok
+MV9,N-methyl-D-Valine,alpha,V,CNC(C(=O)O)C(C)C,CN[C@@H](C(=O)O)C(C)C,4,1,ok
+MVA,N-methyl-L-Valine,alpha,V,CNC(C(=O)O)C(C)C,CN[C@H](C(=O)O)C(C)C,4,1,ok
+MYK,N~6~-tetradecanoyl-L-lysine,alpha,K,CCCCCCCCCCCCCC(=O)NCCCCC(N)C(=O)O,CCCCCCCCCCCCCC(=O)NCCCC[C@H](N)C(=O)O,20,1,ok
+MYN,Capreomycidine,alpha,R,NC1=NC(C(N)C(=O)O)CCN1,NC1=N[C@@H]([C@H](N)C(=O)O)CCN1,7,1,ok
+N0A,3-fluoro-L-phenylalanine,alpha,F,NC(Cc1cccc(F)c1)C(=O)O,N[C@@H](Cc1cccc(F)c1)C(=O)O,8,1,ok
+N10,O-[(HEXYLAMINO)CARBONYL]-L-SERINE,alpha,S,CCCCCCNC(=O)OCC(N)C(=O)O,CCCCCCNC(=O)OC[C@H](N)C(=O)O,11,1,ok
+N2C,"N,S-DIMETHYLCYSTEINE",alpha,C,CNC(CSC)C(=O)O,CN[C@@H](CSC)C(=O)O,4,1,ok
+N65,(2~{S})-2-azanyl-6-[(~{E})-pentan-2-ylideneamino]hexanal,alpha,X,CCCC(C)=NCCCCC(N)C(=O)O,CCC/C(C)=N/CCCC[C@H](N)C(=O)O,10,1,ok
+N9P,3-(4-Pyridyl)-L-Alanine,alpha,F,NC(Cc1ccncc1)C(=O)O,N[C@@H](Cc1ccncc1)C(=O)O,7,1,ok
+NA8,3-(2-naphthyl)-L-Alanine,alpha,F,NC(Cc1ccc2ccccc2c1)C(=O)O,N[C@@H](Cc1ccc2ccccc2c1)C(=O)O,11,1,ok
+NAL,3-(2-naphthyl)-L-Alanine,alpha,F,NC(Cc1ccc2ccccc2c1)C(=O)O,N[C@@H](Cc1ccc2ccccc2c1)C(=O)O,11,1,ok
+NBQ,2-HYDROXY-5-({1-[(2-NAPHTHYLOXY)METHYL]-3-OXOPROP-1-ENYL}AMINO)TYROSINE,alpha,Y,NC(Cc1cc(NC(=CC=O)COc2ccc3ccccc3c2)c(O)cc1O)C(=O)O,N[C@@H](Cc1cc(N/C(=C/C=O)COc2ccc3ccccc3c2)c(O)cc1O)C(=O)O,26,1,ok
+NCB,N-CARBAMOYL-ALANINE,alpha,A,CC(NC(N)=O)C(=O)O,C[C@@H](NC(N)=O)C(=O)O,4,1,ok
+NCY,N-Methyl-L-Cysteine,alpha,C,CNC(CS)C(=O)O,CN[C@@H](CS)C(=O)O,3,1,ok
+NDF,N-(CARBOXYCARBONYL)-D-PHENYLALANINE,alpha,F,O=C(O)C(=O)NC(Cc1ccccc1)C(=O)O,O=C(O)C(=O)N[C@H](Cc1ccccc1)C(=O)O,12,1,ok
+NEP,N1-PHOSPHONOHISTIDINE,alpha,H,NC(Cc1cn(P(=O)(O)O)cn1)C(=O)O,N[C@@H](Cc1cn(P(=O)(O)O)cn1)C(=O)O,10,1,ok
+NHL,(4S)-4-(2-NAPHTHYLMETHYL)-D-GLUTAMIC ACID,alpha,E,NC(CC(Cc1ccc2ccccc2c1)C(=O)O)C(=O)O,N[C@H](C[C@H](Cc1ccc2ccccc2c1)C(=O)O)C(=O)O,16,1,ok
+NLB,6-(benzyloxy)-L-norleucine,alpha,X,NC(CCCCOCc1ccccc1)C(=O)O,N[C@@H](CCCCOCc1ccccc1)C(=O)O,12,1,ok
+NLE,L-Norleucine,alpha,L,CCCCC(N)C(=O)O,CCCC[C@H](N)C(=O)O,4,1,ok
+NLQ,N~2~-ACETYL-L-GLUTAMINE,alpha,Q,CC(=O)NC(CCC(N)=O)C(=O)O,CC(=O)N[C@@H](CCC(N)=O)C(=O)O,8,1,ok
+NLY,N-(4-aminobutyl)-Glycine,alpha,G,NCCCCNCC(=O)O,NCCCCNCC(=O)O,5,1,ok
+NMC,N-CYCLOPROPYLMETHYL GLYCINE,alpha,G,O=C(O)CNCC1CC1,O=C(O)CNCC1CC1,4,1,ok
+NMM,"N-Monomethyl-L-Arginine, Tilarginine",alpha,R,CNC(=N)NCCCC(N)C(=O)O,CNC(=N)NCCC[C@H](N)C(=O)O,8,1,ok
+NPH,"CYSTEINE-METHYLENE-CARBAMOYL-1,10-PHENANTHROLINE",alpha,C,NC(CSCC(=O)Nc1cc2cccnc2c2ncccc12)C(=O)O,N[C@@H](CSCC(=O)Nc1cc2cccnc2c2ncccc12)C(=O)O,20,1,ok
+NPI,"L-Aminopimelic acid, 6-carboxy-L-norleucine",alpha,X,NC(CCCCC(=O)O)C(=O)O,N[C@@H](CCCCC(=O)O)C(=O)O,7,1,ok
+NTR,META-HYDROXY BETA NOR-TYROSINE,alpha,X,NC(C(=O)O)c1ccc(O)c(O)c1,N[C@@H](C(=O)O)c1ccc(O)c(O)c1,8,1,ok
+NVA,L-Norvaline,alpha,V,CCCC(N)C(=O)O,CCC[C@H](N)C(=O)O,3,1,ok
+NYB,N-METHYL-S-[(1R)-1-METHYLPROPYL]-L-CYSTEINE,alpha,C,CCC(C)SCC(NC)C(=O)O,CC[C@@H](C)SC[C@H](NC)C(=O)O,7,1,ok
+NYS,"S-{5-[(1R)-2-amino-1-hydroxyethyl]-2,3-dihydroxyphenyl}-L-cysteine",alpha,C,NCC(O)c1cc(O)c(O)c(SCC(N)C(=O)O)c1,NC[C@H](O)c1cc(O)c(O)c(SC[C@H](N)C(=O)O)c1,14,1,ok
+NZC,N-Methyl-L-Threonine,alpha,T,CNC(C(=O)O)C(C)O,CN[C@H](C(=O)O)[C@@H](C)O,4,1,ok
+O12,N~5~-dodecanoyl-L-ornithine,alpha,K,CCCCCCCCCCCC(=O)NCCCC(N)C(=O)O,CCCCCCCCCCCC(=O)NCCC[C@H](N)C(=O)O,17,1,ok
+O6H,"(2S)-2-amino-3-(2,4,6-trimethylphenyl)propanoic acid",alpha,F,Cc1cc(C)c(CC(N)C(=O)O)c(C)c1,Cc1cc(C)c(C[C@H](N)C(=O)O)c(C)c1,10,1,ok
+O7D,4-methoxy-N-methyl-L-tryptophan,alpha,W,CNC(Cc1c[nH]c2cccc(OC)c12)C(=O)O,CN[C@@H](Cc1c[nH]c2cccc(OC)c12)C(=O)O,13,1,ok
+OAS,O-Acetyl-L-Serine,alpha,S,CC(=O)OCC(N)C(=O)O,CC(=O)OC[C@H](N)C(=O)O,5,1,ok
+OBF,"(2S)-2-amino-4,4-difluorobutanoic acid",alpha,X,NC(CC(F)F)C(=O)O,N[C@@H](CC(F)F)C(=O)O,4,1,ok
+OBS,"(Z)-N^6-[(4S,5R)-5-(2-CARBOXYETHYL)-4-(CARBOXYMETHYL)-1-HYDROXYDIHYDRO-2H-THIOPYRANIUM-3(4H)-YLIDENE]-L-LYSINE",alpha,X,NC(CCCCN=C1CS(=O)CC(CCC(=O)O)C1CC(=O)O)C(=O)O,N[C@@H](CCCC/N=C1/C[S@@](=O)C[C@@H](CCC(=O)O)[C@H]1CC(=O)O)C(=O)O,21,2,ok
+OCS,3-sulfoalanine,alpha,X,NC(CS(=O)(=O)O)C(=O)O,N[C@@H](CS(=O)(=O)O)C(=O)O,5,1,ok
+OCY,HYDROXYETHYLCYSTEINE,alpha,C,NC(CSCCO)C(=O)O,N[C@@H](CSCCO)C(=O)O,5,1,ok
+OEM,N-Methyl-D-Aspartic acid,alpha,D,CNC(CC(=O)O)C(=O)O,CN[C@H](CC(=O)O)C(=O)O,5,1,ok
+OGC,gamma-N-methyl-beta-OH-histidine,alpha,H,Cn1cncc1C(O)C(N)C(=O)O,Cn1cncc1[C@@H](O)[C@@H](N)C(=O)O,8,1,ok
+OHI,3-(2-OXO-2H-IMIDAZOL-4-YL)-L-ALANINE,alpha,X,NC(CC1=NC(=O)N=C1)C(=O)O,N[C@@H](CC1=NC(=O)N=C1)C(=O)O,7,1,ok
+OHS,O-(CARBOXYSULFANYL)-4-OXO-L-HOMOSERINE,alpha,D,NC(CC(=O)OSC(=O)O)C(=O)O,N[C@H](CC(=O)OSC(=O)O)C(=O)O,8,1,ok
+OIB,hydroxylated gamma-amino valeroyl moiety,delta,S,COC(CN)C(O)C(O)C(=O)O,CO[C@@H](CN)[C@H](O)[C@H](O)C(=O)O,7,1,ok
+OIC,L-octahydroindole-2-carboxylic acid,alpha,P,O=C(O)C1CC2CCCCC2N1,O=C(O)[C@@H]1C[C@@H]2CCCC[C@@H]2N1,7,1,ok
+OLD,3-[2-(4-bromophenyl)-2-oxoethyl]-L-histidine,alpha,H,NC(Cc1cncn1CC(=O)c1ccc(Br)cc1)C(=O)O,N[C@@H](Cc1cncn1CC(=O)c1ccc(Br)cc1)C(=O)O,16,1,ok
+OLT,"(2S,3R)-2-Amino-3-methoxybutanoic acid, O-Methyl-L-Threonine",alpha,T,COC(C)C(N)C(=O)O,CO[C@H](C)[C@H](N)C(=O)O,4,1,ok
+OLZ,O-(2-aminoethyl)-L-serine,alpha,S,NCCOCC(N)C(=O)O,NCCOC[C@H](N)C(=O)O,5,1,ok
+OMH,O-[(S)-hydroxy(methoxy)phosphoryl]-L-serine,alpha,S,COP(=O)(O)OCC(N)C(=O)O,CO[P@](=O)(O)OC[C@H](N)C(=O)O,7,1,ok
+OMT,L-Methionine Sulfone,alpha,X,CS(=O)(=O)CCC(N)C(=O)O,CS(=O)(=O)CC[C@H](N)C(=O)O,6,1,ok
+OMX,"(betaR)-Beta-Hydroxy-L-Tyrosine, (3R)-Hydroxy-L-Tyrosine",alpha,Y,NC(C(=O)O)C(O)c1ccc(O)cc1,N[C@H](C(=O)O)[C@H](O)c1ccc(O)cc1,9,1,ok
+OMY,(betaR)-3-chloro-beta-hydroxy-L-tyrosine,alpha,Y,NC(C(=O)O)C(O)c1ccc(O)c(Cl)c1,N[C@H](C(=O)O)[C@H](O)c1ccc(O)c(Cl)c1,10,1,ok
+OMZ,(betaR)-3-CHLORO-BETA-HYDROXY-D-TYROSINE,alpha,Y,NC(C(=O)O)C(O)c1ccc(O)c(Cl)c1,N[C@@H](C(=O)O)[C@H](O)c1ccc(O)c(Cl)c1,10,1,ok
+ONH,N~5~-hydroxy-L-ornithine,alpha,K,NC(CCCNO)C(=O)O,N[C@@H](CCCNO)C(=O)O,5,1,ok
+ONL,(2S)-2-amino-5-oxohexanoic acid,alpha,X,CC(=O)CCC(N)C(=O)O,CC(=O)CC[C@H](N)C(=O)O,5,1,ok
+ORD,D-Ornithine,alpha,K,NCCCC(N)C(=O)O,NCCC[C@@H](N)C(=O)O,4,1,ok
+ORN,L-Ornithine,alpha,K,NCCCC(N)C(=O)O,NCCC[C@H](N)C(=O)O,4,1,ok
+ORQ,N5-acetyl-L-ornithine,alpha,K,CC(=O)NCCCC(N)C(=O)O,CC(=O)NCCC[C@H](N)C(=O)O,7,1,ok
+OSE,O-Sulfo-L-Serine,alpha,S,NC(COS(=O)(=O)O)C(=O)O,N[C@@H](COS(=O)(=O)O)C(=O)O,6,1,ok
+OTH,"N,O-dimethyl-L-threonine",alpha,T,CNC(C(=O)O)C(C)OC,CN[C@H](C(=O)O)[C@@H](C)OC,5,1,ok
+OTY,2-hydroxy-L-tyrosine,alpha,Y,NC(Cc1ccc(O)cc1O)C(=O)O,N[C@@H](Cc1ccc(O)cc1O)C(=O)O,9,1,ok
+OTZ,"2-[2-(aminomethyl)-1,3-oxazol-4-yl]-1,3-thiazole-4-carboxylic acid",unknown,X,NCc1nc(-c2nc(C(=O)O)cs2)co1,NCc1nc(-c2nc(C(=O)O)cs2)co1,10,1,ok
+OV7,(2R)-amino[(carboxymethyl)sulfanyl]acetic acid,alpha,X,NC(SCC(=O)O)C(=O)O,N[C@H](SCC(=O)O)C(=O)O,5,1,ok
+OWF,(3S)-3-Hydroxy-D-Asparagine,alpha,N,NC(=O)C(O)C(N)C(=O)O,NC(=O)[C@@H](O)[C@@H](N)C(=O)O,5,1,ok
+OXX,OXALYL-ASPARTYL ANHYDRIDE,alpha,D,NC(CC(=O)OC(=O)C(=O)[O-])C(=O)O,N[C@@H](CC(=O)OC(=O)C(=O)[O-])C(=O)O,9,1,ok
+OYL,(2S)-2-amino-3-(1-ethylimidazol-4-yl)propanoic acid,alpha,H,CCn1cnc(CC(N)C(=O)O)c1,CCn1cnc(C[C@H](N)C(=O)O)c1,8,1,ok
+OZW,phenylhydrazinyl phenylalanine,alpha,F,NC(Cc1ccc(NNc2ccccc2)cc1)C(=O)O,N[C@@H](Cc1ccc(NNc2ccccc2)cc1)C(=O)O,15,1,ok
+P0A,(2R)-2-aminoheptanedioic acid,alpha,X,NC(CCCCC(=O)O)C(=O)O,N[C@H](CCCCC(=O)O)C(=O)O,7,1,ok
+P1L,S-PALMITOYL-L-CYSTEINE,alpha,C,CCCCCCCCCCCCCCCC(=O)SCC(N)C(=O)O,CCCCCCCCCCCCCCCC(=O)SC[C@H](N)C(=O)O,19,1,ok
+P2Q,"2-hydroxy-5-{[(1S,2E)-1-formyl-4-phenoxybut-2-en-1yl]amino}-L-tyrosine",alpha,Y,NC(Cc1cc(NC(C=O)C=CCOc2ccccc2)c(O)cc1O)C(=O)O,N[C@@H](Cc1cc(N[C@H](C=O)/C=C/COc2ccccc2)c(O)cc1O)C(=O)O,23,1,ok
+P3Q,2-hydroxy-5-{[(1E)-1-(2-oxoethylidene)-4-phenylbutyl]amino}-L-tyrosine,alpha,Y,NC(Cc1cc(NC(=CC=O)CCCc2ccccc2)c(O)cc1O)C(=O)O,N[C@@H](Cc1cc(N/C(=C/C=O)CCCc2ccccc2)c(O)cc1O)C(=O)O,23,1,ok
+P4E,3-Styryl-L-Alanine,alpha,X,NC(CC=Cc1ccccc1)C(=O)O,N[C@@H](CC=Cc1ccccc1)C(=O)O,9,1,ok
+P4F,"5,5-difluoro-4-oxo-5-phosphono-D-norvaline",alpha,X,NC(CC(=O)C(F)(F)P(=O)(O)O)C(=O)O,N[C@H](CC(=O)C(F)(F)P(=O)(O)O)C(=O)O,10,1,ok
+P9S,dihydroxypropylcysteine,alpha,C,NC(CSCC(O)CO)C(=O)O,N[C@@H](CSC[C@H](O)CO)C(=O)O,7,1,ok
+PAQ,2-OXY-4-HYDROXY-5-(2-HYDRAZINOPYRIDINE)PHENYLALANINE,alpha,K,NC(CC1C=C(NNc2ccccn2)C(O)=CC1=O)C(=O)O,N[C@@H](CC1C=C(NNc2ccccn2)C(O)=CC1=O)C(=O)O,17,1,ok
+PAT,ALPHA-PHOSPHONO-TRYPTOPHAN,alpha,W,NC(Cc1c[nH]c2ccccc12)(C(=O)O)P(=O)(O)O,N[C@@](Cc1c[nH]c2ccccc12)(C(=O)O)P(=O)(O)O,14,1,ok
+PBB,S-(4-BROMOBENZYL)CYSTEINE,alpha,C,NC(CSCc1ccc(Br)cc1)C(=O)O,N[C@@H](CSCc1ccc(Br)cc1)C(=O)O,10,1,ok
+PBF,4-Benzoyl-L-Phenylalanine,alpha,F,NC(Cc1ccc(C(=O)c2ccccc2)cc1)C(=O)O,N[C@@H](Cc1ccc(C(=O)c2ccccc2)cc1)C(=O)O,15,1,ok
+PCA,L-Pyroglutamic acid,alpha,X,O=C1CCC(C(=O)O)N1,O=C1CC[C@@H](C(=O)O)N1,4,1,ok
+PCE,2-(3-AMINO-4-CYCLOHEXYL-2-HYDROXY-BUTYL)-PENT-4-YNOIC ACID,delta,A,C#CCC(CC(O)C(N)CC1CCCCC1)C(=O)O,C#CCC(C[C@@H](O)[C@@H](N)CC1CCCCC1)C(=O)O,14,1,ok
+PDD,N-(5'-PHOSPHOPYRIDOXYL)-D-ALANINE,alpha,A,Cc1ncc(COP(=O)(O)O)c(CNC(C)C(=O)O)c1O,Cc1ncc(COP(=O)(O)O)c(CN[C@H](C)C(=O)O)c1O,16,1,ok
+PE1,N~2~-({3-HYDROXY-2-METHYL-5-[(PHOSPHONOOXY)METHYL]PYRIDIN-4-YL}METHYL)-L-LYSINE,alpha,X,Cc1ncc(COP(=O)(O)O)c(CNC(CCCCN)C(=O)O)c1O,Cc1ncc(COP(=O)(O)O)c(CN[C@@H](CCCCN)C(=O)O)c1O,20,1,ok
+PEC,"S,S-PENTYLTHIOCYSTEINE",alpha,C,CCCCCSSCC(N)C(=O)O,CCCCCSSC[C@H](N)C(=O)O,8,1,ok
+PF5,"2,3,4,5,6-pentafluoro-L-phenylalanine",alpha,F,NC(Cc1c(F)c(F)c(F)c(F)c1F)C(=O)O,N[C@@H](Cc1c(F)c(F)c(F)c(F)c1F)C(=O)O,12,1,ok
+PFF,4-Fluoro-L-Phenylalanine,alpha,F,NC(Cc1ccc(F)cc1)C(=O)O,N[C@@H](Cc1ccc(F)cc1)C(=O)O,8,1,ok
+PG9,D-2-Phenylglycine,alpha,X,NC(C(=O)O)c1ccccc1,N[C@@H](C(=O)O)c1ccccc1,6,1,ok
+PH6,(4S)-4-cyclohexyl-L-proline,alpha,P,O=C(O)C1CC(C2CCCCC2)CN1,O=C(O)[C@@H]1C[C@@H](C2CCCCC2)CN1,9,1,ok
+PH8,5-Phenyl-L-Norvaline,alpha,X,NC(CCCc1ccccc1)C(=O)O,N[C@@H](CCCc1ccccc1)C(=O)O,9,1,ok
+PHD,ASPARTYL PHOSPHATE,alpha,D,NC(CC(=O)OP(=O)(O)O)C(=O)O,N[C@@H](CC(=O)OP(=O)(O)O)C(=O)O,8,1,ok
+PHE,L-Phenylalanine,alpha,F,NC(Cc1ccccc1)C(=O)O,N[C@@H](Cc1ccccc1)C(=O)O,7,1,ok
+PHI,4-Iodo-L-Phenylalanine,alpha,F,NC(Cc1ccc(I)cc1)C(=O)O,N[C@@H](Cc1ccc(I)cc1)C(=O)O,8,1,ok
+PJ3,"(2~{S})-2-azanyl-3-[1-[[(2~{R},3~{S},4~{R},5~{R})-5-(2-azanyl-7-methyl-6-oxidanylidene-1,8-dihydropurin-9-yl)-3,4-bis(oxidanyl)oxolan-2-yl]methoxy-oxidanyl-phosphoryl]imidazol-4-yl]propanoic acid",alpha,H,CN1CN(C2OC(COP(=O)(O)n3cnc(CC(N)C(=O)O)c3)C(O)C2O)c2nc(N)[nH]c(=O)c21,CN1CN([C@@H]2O[C@H](COP(=O)(O)n3cnc(C[C@H](N)C(=O)O)c3)[C@@H](O)[C@H]2O)c2nc(N)[nH]c(=O)c21,30,1,ok
+PM3,4-Phosphonomethyl-L-Phenylalanine,alpha,F,NC(Cc1ccc(CP(=O)(O)O)cc1)C(=O)O,N[C@@H](Cc1ccc(CP(=O)(O)O)cc1)C(=O)O,12,1,ok
+POK,2-[[~{N}-[(4~{S})-4-azanyl-5-oxidanylidene-pentyl]carbamimidoyl]amino]ethanoic acid,alpha,R,[H]N=C(NCCCC(N)C(=O)O)NCC(=O)O,[H]/N=C(\NCCC[C@H](N)C(=O)O)NCC(=O)O,11,1,ok
+POM,CIS-5-METHYL-4-OXOPROLINE,alpha,P,CC1NC(C(=O)O)CC1=O,C[C@@H]1N[C@H](C(=O)O)CC1=O,5,1,ok
+PQ4,(2Z)-2-amino-3-(4-hydroxyphenyl)prop-2-enoic acid,alpha,Y,NC(=Cc1ccc(O)cc1)C(=O)O,N/C(=C\c1ccc(O)cc1)C(=O)O,8,1,ok
+PQG,cis-1-amino-4-phenylcyclohexane-1-carboxylic acid,alpha,X,NC1(C(=O)O)CCC(c2ccccc2)CC1,NC1(C(=O)O)CCC(c2ccccc2)CC1,11,1,ok
+PRJ,"(2S,3aS,6R,7aS)-6-hydroxyoctahydro-1H-indole-2-carboxylic acid",alpha,P,O=C(O)C1CC2CCC(O)CC2N1,O=C(O)[C@@H]1C[C@@H]2CC[C@@H](O)C[C@@H]2N1,8,1,ok
+PRK,N6-propionyl-L-lysine,alpha,K,CCC(=O)NCCCCC(N)C(=O)O,CCC(=O)NCCCC[C@H](N)C(=O)O,9,1,ok
+PRO,L-Proline,alpha,P,O=C(O)C1CCCN1,O=C(O)[C@@H]1CCCN1,3,1,ok
+PRS,L-Thioproline,alpha,P,O=C(O)C1CSCN1,O=C(O)[C@@H]1CSCN1,3,1,ok
+PSH,1-thiophosphono-L-histidine,alpha,H,NC(Cc1cn(P(=O)(O)S)cn1)C(=O)O,N[C@@H](Cc1cn([P@@](=O)(O)S)cn1)C(=O)O,10,1,ok
+PSW,3-(SULFANYLSELANYL)-L-ALANINE,alpha,C,NC(C[Se]S)C(=O)O,N[C@@H](C[Se]S)C(=O)O,3,1,ok
+PTH,CE1-METHYLENE-HYDROXY-PHOSPHOTYROSINE,alpha,Y,NC(Cc1ccc(OP(=O)(O)O)c(CO)c1)C(=O)O,N[C@@H](Cc1ccc(OP(=O)(O)O)c(CO)c1)C(=O)O,14,1,ok
+PTM,ALPHA-METHYL-O-PHOSPHOTYROSINE,alpha,Y,CC(N)(Cc1ccc(OP(=O)(O)O)cc1)C(=O)O,C[C@](N)(Cc1ccc(OP(=O)(O)O)cc1)C(=O)O,13,1,ok
+PTR,O-Phospho-L-Tyrosine,alpha,Y,NC(Cc1ccc(OP(=O)(O)O)cc1)C(=O)O,N[C@@H](Cc1ccc(OP(=O)(O)O)cc1)C(=O)O,12,1,ok
+PXU,2-hydroxy-L-proline,alpha,P,O=C(O)C1(O)CCCN1,O=C(O)[C@]1(O)CCCN1,4,1,ok
+PYA,"3-(1,10-PHENANTHROL-2-YL)-L-ALANINE",alpha,F,NC(Cc1ccc2ccc3cccnc3c2n1)C(=O)O,N[C@@H](Cc1ccc2ccc3cccnc3c2n1)C(=O)O,15,1,ok
+PYL,PYRROLYSINE,alpha,K,CC1CC=NC1C(=O)NCCCCC(N)C(=O)O,C[C@@H]1CC=N[C@H]1C(=O)NCCCC[C@H](N)C(=O)O,13,1,ok
+PYX,S-[S-THIOPYRIDOXAMINYL]CYSTEINE,alpha,C,Cc1ncc(CSSCC(N)C(=O)O)c(CN)c1O,Cc1ncc(CSSC[C@H](N)C(=O)O)c(CN)c1O,14,1,ok
+Q2E,(2~{S})-2-azanyl-3-(2-methylsulfanyl-1~{H}-indol-3-yl)propanal,alpha,W,CSc1[nH]c2ccccc2c1CC(N)C(=O)O,CSc1[nH]c2ccccc2c1C[C@H](N)C(=O)O,12,1,ok
+Q3P,N~6~-glycyl-L-lysine,alpha,K,NCC(=O)NCCCCC(N)C(=O)O,NCC(=O)NCCCC[C@H](N)C(=O)O,9,1,ok
+Q3S,"(2R,3S)-2,3-diaminobutanoic acid",alpha,X,CC(N)C(N)C(=O)O,C[C@H](N)[C@@H](N)C(=O)O,3,1,ok
+Q75,Thiazole-histidine,alpha,F,NC(Cc1cncs1)C(=O)O,N[C@@H](Cc1cncs1)C(=O)O,6,1,ok
+Q78,3-(3-thienyl)-L-Alanine,alpha,F,NC(Cc1ccsc1)C(=O)O,N[C@@H](Cc1ccsc1)C(=O)O,6,1,ok
+Q8X,(2~{R})-2-azanyl-3-[(6-pyridin-2-ylpyridin-3-yl)methylsulfanyl]propanal,alpha,C,NC(CSCc1ccc(-c2ccccn2)nc1)C(=O)O,N[C@@H](CSCc1ccc(-c2ccccn2)nc1)C(=O)O,15,1,ok
+QCS,S-carbamoyl-L-cysteine,alpha,C,NC(=O)SCC(N)C(=O)O,NC(=O)SC[C@H](N)C(=O)O,5,1,ok
+QDD,2-(8-azanyl-2-methanoyl-quinolin-4-yl)ethanoic acid,delta,X,Nc1cccc2c(CC(=O)O)cc(C(=O)O)nc12,Nc1cccc2c(CC(=O)O)cc(C(=O)O)nc12,13,1,ok
+QDS,N-(quinoxalin-2-ylcarbonyl)-D-serine,alpha,S,O=C(NC(CO)C(=O)O)c1cnc2ccccc2n1,O=C(N[C@H](CO)C(=O)O)c1cnc2ccccc2n1,14,1,ok
+QIL,N-formyl-L-isoleucine,alpha,I,CCC(C)C(NC=O)C(=O)O,CC[C@H](C)[C@H](NC=O)C(=O)O,6,1,ok
+QM8,6-Sulfanyl-L-norleucine,alpha,X,NC(CCCCS)C(=O)O,N[C@@H](CCCCS)C(=O)O,5,1,ok
+QMB,5-Mercapto-norvaline,alpha,X,NC(CCCS)C(=O)O,N[C@@H](CCCS)C(=O)O,4,1,ok
+QMM,"N5,N5-dimethyl-L-glutamine",alpha,K,CN(C)C(=O)CCC(N)C(=O)O,CN(C)C(=O)CC[C@H](N)C(=O)O,7,1,ok
+QNQ,4-methylcatechol cysteine,alpha,C,Cc1ccc(O)c(O)c1SCC(N)C(=O)O,Cc1ccc(O)c(O)c1SC[C@H](N)C(=O)O,11,1,ok
+QNT,"3,6-dimethylcatechol cysteine",alpha,C,Cc1cc(SCC(N)C(=O)O)c(C)c(O)c1O,Cc1cc(SC[C@H](N)C(=O)O)c(C)c(O)c1O,12,1,ok
+QNW,3-methylcatechol cysteine,alpha,C,Cc1ccc(SCC(N)C(=O)O)c(O)c1O,Cc1ccc(SC[C@H](N)C(=O)O)c(O)c1O,11,1,ok
+QNY,"O-[(3S)-3-amino-3-carboxy-1,1-dihydroxypropyl]-L-threonine",alpha,T,CC(OC(O)(O)CC(N)C(=O)O)C(N)C(=O)O,C[C@@H](OC(O)(O)C[C@H](N)C(=O)O)[C@H](N)C(=O)O,12,1,ok
+QO2,"4,5-dimethylcatechol cysteine",alpha,C,Cc1cc(O)c(O)c(SCC(N)C(=O)O)c1C,Cc1cc(O)c(O)c(SC[C@H](N)C(=O)O)c1C,12,1,ok
+QO5,"3,5-dimethylcatechol cysteine",alpha,C,Cc1cc(C)c(SCC(N)C(=O)O)c(O)c1O,Cc1cc(C)c(SC[C@H](N)C(=O)O)c(O)c1O,12,1,ok
+QOL,8-azanyl-4-[2-(hydroxymethyl)-3-oxidanyl-propoxy]quinoline-2-carbaldehyde,delta,X,Nc1cccc2c(OCC(CO)CO)cc(C(=O)O)nc12,Nc1cccc2c(OCC(CO)CO)cc(C(=O)O)nc12,16,1,ok
+QPA,S-[(1S)-1-carboxy-1-(phosphonooxy)ethyl]-L-cysteine,alpha,C,CC(OP(=O)(O)O)(SCC(N)C(=O)O)C(=O)O,C[C@](OP(=O)(O)O)(SC[C@H](N)C(=O)O)C(=O)O,12,1,ok
+QPH,N-formyl-L-phenylalanine,alpha,F,O=CNC(Cc1ccccc1)C(=O)O,O=CN[C@@H](Cc1ccccc1)C(=O)O,9,1,ok
+QQ8,(4~{S})-4-azanyl-5-formamido-pentanamide,gamma,Q,NC(=O)CCC(N)CNC(=O)O,NC(=O)CC[C@H](N)CNC(=O)O,7,1,ok
+QQB,~{N}-[(2~{S})-2-azanyl-3-naphthalen-1-yl-propyl]methanamide,gamma,F,NC(CNC(=O)O)Cc1cccc2ccccc12,N[C@H](CNC(=O)O)Cc1cccc2ccccc12,13,1,ok
+QUJ,8-azanyl-4-(2-methylpropoxy)quinoline-2-carboxylic acid,delta,X,CC(C)COc1cc(C(=O)O)nc2c(N)cccc12,CC(C)COc1cc(C(=O)O)nc2c(N)cccc12,14,1,ok
+QUK,8-azanyl-4-(3-azanylpropoxy)quinoline-2-carboxylic acid,delta,X,NCCCOc1cc(C(=O)O)nc2c(N)cccc12,NCCCOc1cc(C(=O)O)nc2c(N)cccc12,14,1,ok
+QVA,"(2S,3R)-2-{[(2R)-2-amino-2-carboxyethyl]sulfanyl}-3-hydroxybutanedioic acid",alpha,C,NC(CSC(C(=O)O)C(O)C(=O)O)C(=O)O,N[C@@H](CS[C@H](C(=O)O)[C@H](O)C(=O)O)C(=O)O,11,2,ok
+QVE,8-azanyl-4-(2-hydroxy-2-oxoethyloxy)quinoline-2-carboxylic acid,delta,X,Nc1cccc2c(OCC(=O)O)cc(C(=O)O)nc12,Nc1cccc2c(OCC(=O)O)cc(C(=O)O)nc12,14,1,ok
+QVS,8-azanyl-4-oxidanyl-quinoline-2-carboxylic acid,delta,X,Nc1cccc2c(O)cc(C(=O)O)nc12,Nc1cccc2c(O)cc(C(=O)O)nc12,10,1,ok
+QX7,N-acetyl-3-{[5-(fluorosulfonyl)-2-methylbenzene-1-carbonyl]amino}-L-alanine,alpha,X,CC(=O)NC(CNC(=O)c1cc(S(=O)(=O)F)ccc1C)C(=O)O,CC(=O)N[C@@H](CNC(=O)c1cc(S(=O)(=O)F)ccc1C)C(=O)O,18,1,ok
+R0K,(2~{S})-2-[[(4~{S})-4-azanyl-5-oxidanyl-5-oxidanylidene-pentanoyl]amino]hexanedioic acid,alpha,Q,NC(CCC(=O)NC(CCCC(=O)O)C(=O)O)C(=O)O,N[C@@H](CCC(=O)N[C@@H](CCCC(=O)O)C(=O)O)C(=O)O,15,2,ok
+R2P,"(2R)-2-amino-3-(4-hydroxy-1,2,5-thiadiazol-3-yl)propanoic acid",alpha,F,NC(Cc1nsnc1O)C(=O)O,N[C@H](Cc1nsnc1O)C(=O)O,7,1,ok
+R2T,"beta,gamma-dihydroxyglutamine",alpha,Q,NC(=O)C(O)C(O)C(N)C(=O)O,NC(=O)[C@@H](O)[C@H](O)[C@H](N)C(=O)O,7,1,ok
+R4K,"(2S,3R)-2-azanyl-3-hydroxy-3-[(3S)-3-hydroxy-2-oxo-1H-indol-3-yl]propanoic acid",alpha,F,NC(C(=O)O)C(O)C1(O)C(=O)Nc2ccccc21,N[C@H](C(=O)O)[C@@H](O)[C@]1(O)C(=O)Nc2ccccc21,13,1,ok
+R6E,(2~{R})-2-azanyl-2-ethyl-octanoic acid,alpha,X,CCCCCCC(N)(CC)C(=O)O,CCCCCC[C@](N)(CC)C(=O)O,8,1,ok
+RE0,"3-[(3R)-3-hydroxy-2-oxo-2,3-dihydro-1H-indol-3-yl]-L-alanine",alpha,F,NC(CC1(O)C(=O)Nc2ccccc21)C(=O)O,N[C@@H](C[C@]1(O)C(=O)Nc2ccccc21)C(=O)O,12,1,ok
+RE3,"3-[(3S)-3-hydroxy-2-oxo-2,3-dihydro-1H-indol-3-yl]-L-alanine",alpha,F,NC(CC1(O)C(=O)Nc2ccccc21)C(=O)O,N[C@@H](C[C@@]1(O)C(=O)Nc2ccccc21)C(=O)O,12,1,ok
+RF9,N~6~-[(1R)-1-carboxyethyl]-L-lysine,alpha,K,CC(NCCCCC(N)C(=O)O)C(=O)O,C[C@@H](NCCCC[C@H](N)C(=O)O)C(=O)O,10,1,ok
+RGP,GAMMA-GLUTAMYL PHOSPHATE,alpha,X,NC(CCC(=O)OP(=O)(O)O)C(=O)O,N[C@H](CCC(=O)OP(=O)(O)O)C(=O)O,9,1,ok
+RPI,phospho-arginine,alpha,R,[H]N=C(NCCCC(N)C(=O)O)NP(=O)(O)O,[H]/N=C(/NCCC[C@H](N)C(=O)O)NP(=O)(O)O,11,1,ok
+RVJ,3-triazan-1-yl-L-alanine,alpha,X,NNNCC(N)C(=O)O,NNNC[C@H](N)C(=O)O,4,1,ok
+RVX,O-[methyl(2-methylpropoxy)phosphoryl]-L-serine,alpha,S,CC(C)COP(C)(=O)OCC(N)C(=O)O,CC(C)CO[P@@](C)(=O)OC[C@H](N)C(=O)O,10,1,ok
+RX9,Dehydroisoleucine,alpha,L,CCC(C)=C(N)C(=O)O,CC/C(C)=C(/N)C(=O)O,4,1,ok
+RXL,Dehydrovaline,alpha,V,CC(C)=C(N)C(=O)O,CC(C)=C(N)C(=O)O,3,1,ok
+S0R,(2S)-2-benzamido-4-methyl-pentanoic acid,alpha,L,CC(C)CC(NC(=O)c1ccccc1)C(=O)O,CC(C)C[C@H](NC(=O)c1ccccc1)C(=O)O,12,1,ok
+S12,O-[(S)-hydroxy{[(2S)-2-hydroxy-3-(octadec-9-enoyloxy)propyl]oxy}phosphoryl]-L-serine,alpha,S,CCCCCCCCC=CCCCCCCCC(=O)OCC(O)COP(=O)(O)OCC(N)C(=O)O,CCCCCCCCC=CCCCCCCCC(=O)OC[C@H](O)CO[P@@](=O)(O)OC[C@H](N)C(=O)O,30,1,ok
+S1H,1-HEXADECANOSULFONYL-O-L-SERINE,alpha,S,CCCCCCCCCCCCCCCCS(=O)(=O)OCC(N)C(=O)O,CCCCCCCCCCCCCCCCS(=O)(=O)OC[C@H](N)C(=O)O,21,1,ok
+S2P,"(2S)-2-amino-3-(4-hydroxy-1,2,5-thiadiazol-3-yl)propanoic acid",alpha,F,NC(Cc1nsnc1O)C(=O)O,N[C@@H](Cc1nsnc1O)C(=O)O,7,1,ok
+SAC,N-ACETYL-SERINE,alpha,S,CC(=O)NC(CO)C(=O)O,CC(=O)N[C@@H](CO)C(=O)O,5,1,ok
+SAR,"N-methyl-glycine, sarcosine",alpha,G,CNCC(=O)O,CNCC(=O)O,1,1,ok
+SCH,S-METHYL-THIO-CYSTEINE,alpha,C,CSSCC(N)C(=O)O,CSSC[C@H](N)C(=O)O,4,1,ok
+SCS,3-(ethyldisulfanyl)-L-alanine,alpha,C,CCSSCC(N)C(=O)O,CCSSC[C@H](N)C(=O)O,5,1,ok
+SCY,S-ACETYL-CYSTEINE,alpha,C,CC(=O)SCC(N)C(=O)O,CC(=O)SC[C@H](N)C(=O)O,5,1,ok
+SD4,N-hydroxy-L-asparagine,alpha,X,NC(CC(=O)NO)C(=O)O,N[C@@H](CC(=O)NO)C(=O)O,5,1,ok
+SDP,2-AMINO-3-(DIETHOXY-PHOSPHORYLOXY)-PROPIONIC ACID,alpha,S,CCOP(=O)(OCC)OCC(N)C(=O)O,CCOP(=O)(OCC)OC[C@H](N)C(=O)O,10,1,ok
+SE7,2-AMINO-3-SELENINO-PROPIONIC ACID,alpha,X,NC(C[Se](=O)O)C(=O)O,N[C@@H](C[Se](=O)O)C(=O)O,4,1,ok
+SEB,O-BENZYLSULFONYL-SERINE,alpha,S,NC(COS(=O)(=O)Cc1ccccc1)C(=O)O,N[C@@H](COS(=O)(=O)Cc1ccccc1)C(=O)O,12,1,ok
+SEC,SELENOCYSTEINE,alpha,C,NC(C[SeH])C(=O)O,N[C@@H](C[SeH])C(=O)O,2,1,ok
+SEM,O-benzyl-L-serine,alpha,S,NC(COCc1ccccc1)C(=O)O,N[C@@H](COCc1ccccc1)C(=O)O,9,1,ok
+SEN,"O-[N,N-dimethylphosphoramidate]-L-serine",alpha,S,CN(C)P(=O)(O)OCC(N)C(=O)O,CN(C)[P@](=O)(O)OC[C@H](N)C(=O)O,8,1,ok
+SEP,O-Phospho-L-Serine,alpha,S,NC(COP(=O)(O)O)C(=O)O,N[C@@H](COP(=O)(O)O)C(=O)O,6,1,ok
+SER,L-Serine,alpha,S,NC(CO)C(=O)O,N[C@@H](CO)C(=O)O,2,1,ok
+SFE,(3S)-3-amino-3-phenylpropanoic acid,beta,X,NC(CC(=O)O)c1ccccc1,NC(CC(=O)O)c1ccccc1,7,1,ok
+SGB,O-[(S)-METHYL(1-METHYLETHOXY)PHOSPHORYL]-L-SERINE,alpha,S,CC(C)OP(C)(=O)OCC(N)C(=O)O,CC(C)O[P@@](C)(=O)OC[C@H](N)C(=O)O,9,1,ok
+SHC,S-HEXYLCYSTEINE,alpha,C,CCCCCCSCC(N)C(=O)O,CCCCCCSC[C@H](N)C(=O)O,8,1,ok
+SHP,(4-HYDROXYMALTOSEPHENYL)GLYCINE,alpha,X,NC(C(=O)O)c1ccc(OC2OC(CO)C(O)C(O)C2OC2OC(CO)C(O)C(O)C2O)cc1,N[C@H](C(=O)O)c1ccc(O[C@H]2O[C@H](CO)[C@@H](O)[C@H](O)[C@@H]2O[C@H]2O[C@H](CO)[C@@H](O)[C@H](O)[C@@H]2O)cc1,29,1,ok
+SIB,"(2S)-2-AMINO-4-({[(2S,3S,4R,5R)-3,4-DIHYDROXY-5-(6-OXO-1,6-DIHYDRO-9H-PURIN-9-YL)TETRAHYDROFURAN-2-YL]METHYL}THIO)BUTANOIC ACID",alpha,M,NC(CCSCC1OC(n2cnc3c(=O)[nH]cnc32)C(O)C1O)C(=O)O,N[C@@H](CCSC[C@H]1O[C@@H](n2cnc3c(=O)[nH]cnc32)[C@H](O)[C@@H]1O)C(=O)O,21,1,ok
+SIC,"(2R)-2-[(3S)-3-amino-2,5-dioxopyrrolidin-1-yl]-3-sulfanylpropanoic acid",delta,C,NC1CC(=O)N(C(CS)C(=O)O)C1=O,N[C@H]1CC(=O)N([C@@H](CS)C(=O)O)C1=O,9,1,ok
+SKG,4-methylisoleucine,alpha,L,CC(C)C(C)C(N)C(=O)O,CC(C)[C@H](C)[C@H](N)C(=O)O,5,1,ok
+SKH,(3~{S})-5-[[(5~{S})-5-azanyl-6-oxidanyl-6-oxidanylidene-hexyl]amino]-3-methyl-3-oxidanyl-5-oxidanylidene-pentanoic acid,alpha,K,CC(O)(CC(=O)O)CC(=O)NCCCCC(N)C(=O)O,C[C@@](O)(CC(=O)O)CC(=O)NCCCC[C@H](N)C(=O)O,15,1,ok
+SKJ,beta-methylnorleucine,alpha,L,CCCC(C)C(N)C(=O)O,CCC[C@@H](C)[C@H](N)C(=O)O,5,1,ok
+SLL,(2S)-2-azanyl-6-[(4-hydroxy-4-oxo-butanoyl)amino]hexanoic acid,alpha,K,NC(CCCCNC(=O)CCC(=O)O)C(=O)O,N[C@@H](CCCCNC(=O)CCC(=O)O)C(=O)O,12,1,ok
+SLZ,"L-Thialysine, S-(2-Aminoethyl)-L-Cysteine",alpha,C,NCCSCC(N)C(=O)O,NCCSC[C@H](N)C(=O)O,5,1,ok
+SMC,S-methyl-L-cysteine,alpha,C,CSCC(N)C(=O)O,CSC[C@H](N)C(=O)O,3,1,ok
+SME,METHIONINE SULFOXIDE,alpha,M,CS(=O)CCC(N)C(=O)O,C[S@@](=O)CC[C@H](N)C(=O)O,5,1,ok
+SMF,4-(Sulfomethyl)-L-Phenylalanine,alpha,F,NC(Cc1ccc(CS(=O)(=O)O)cc1)C(=O)O,N[C@@H](Cc1ccc(CS(=O)(=O)O)cc1)C(=O)O,12,1,ok
+SNC,(2R)-2-amino-3-nitrososulfanylpropanoic acid,alpha,C,NC(CSN=O)C(=O)O,N[C@@H](CSN=O)C(=O)O,4,1,ok
+SRZ,PROPOXY-L-SERINE,alpha,S,NC(COCCCO)C(=O)O,N[C@@H](COCCCO)C(=O)O,6,1,ok
+SUI,"(3-AMINO-2,5-DIOXO-1-PYRROLIDINYL)ACETIC ACID",delta,G,NC1CC(=O)N(CC(=O)O)C1=O,N[C@H]1CC(=O)N(CC(=O)O)C1=O,7,1,ok
+SUN,O-[(R)-(DIMETHYLAMINO)(ETHOXY)PHOSPHORYL]-L-SERINE,alpha,S,CCOP(=O)(OCC(N)C(=O)O)N(C)C,CCO[P@@](=O)(OC[C@H](N)C(=O)O)N(C)C,10,1,ok
+SVA,SERINE VANADATE,alpha,S,NC(CO[V]([O-])([O-])([O-])O)C(=O)O,N[C@@H](CO[V]([O-])([O-])([O-])O)C(=O)O,7,1,ok
+SVV,O-[(S)-AMINO(HYDROXY)PHOSPHORYL]-L-SERINE,alpha,S,NC(COP(N)(=O)O)C(=O)O,N[C@@H](CO[P@@](N)(=O)O)C(=O)O,6,1,ok
+SVW,O-[(S)-AMINO(HYDROXY)PHOSPHORYL]-L-SERINE,alpha,S,NC(COP(N)(=O)O)C(=O)O,N[C@@H](CO[P@@](N)(=O)O)C(=O)O,6,1,ok
+SVX,O-[(R)-ETHOXY(METHYL)PHOSPHORYL]-L-SERINE,alpha,S,CCOP(C)(=O)OCC(N)C(=O)O,CCO[P@@](C)(=O)OC[C@H](N)C(=O)O,8,1,ok
+SVY,O-[BIS(1-METHYLETHOXY)PHOSPHORYL]-L-SERINE,alpha,S,CC(C)OP(=O)(OCC(N)C(=O)O)OC(C)C,CC(C)OP(=O)(OC[C@H](N)C(=O)O)OC(C)C,12,1,ok
+SVZ,O-[(S)-HYDROXY(ISOPROPYLAMINO)PHOSPHORYL]-L-SERINE,alpha,S,CC(C)NP(=O)(O)OCC(N)C(=O)O,CC(C)N[P@@](=O)(O)OC[C@H](N)C(=O)O,9,1,ok
+SWW,2-Hydroxyethyl-D-Cysteine,alpha,C,NC(CSCCO)C(=O)O,N[C@H](CSCCO)C(=O)O,5,1,ok
+SXE,O-{(S)-ETHOXY[(1-METHYLETHYL)AMINO]PHOSPHORYL}-L-SERINE,alpha,S,CCOP(=O)(NC(C)C)OCC(N)C(=O)O,CCO[P@@](=O)(NC(C)C)OC[C@H](N)C(=O)O,11,1,ok
+SYS,3-[(2-amino-2-oxoethyl)selanyl]-L-alanine,alpha,C,NC(=O)C[Se]CC(N)C(=O)O,NC(=O)C[Se]C[C@H](N)C(=O)O,6,1,ok
+SZF,(2S)-3-(1-methoxyindol-3-yl)-2-(methylamino)propanoic acid,alpha,W,CNC(Cc1cn(OC)c2ccccc12)C(=O)O,CN[C@@H](Cc1cn(OC)c2ccccc12)C(=O)O,13,1,ok
+T09,"(2S,4R)-2-amino-4-methyloctanoic acid",alpha,X,CCCCC(C)CC(N)C(=O)O,CCCC[C@@H](C)C[C@H](N)C(=O)O,7,1,ok
+T0I,"(2S)-2-amino-3-(2,4-dihydroxy-5-imidazol-1-yl-phenyl)propanoic acid",alpha,Y,NC(Cc1cc(-n2ccnc2)c(O)cc1O)C(=O)O,N[C@@H](Cc1cc(-n2ccnc2)c(O)cc1O)C(=O)O,14,1,ok
+T11,4-[3-(TRIFLUOROMETHYL)DIAZIRIDIN-3-YL]-L-PHENYLALANINE,alpha,F,NC(Cc1ccc(C2(C(F)(F)F)NN2)cc1)C(=O)O,N[C@@H](Cc1ccc(C2(C(F)(F)F)NN2)cc1)C(=O)O,14,1,ok
+T3R,(2S)-5-methyl-2-(methylamino)hexanoic acid,alpha,L,CNC(CCC(C)C)C(=O)O,CN[C@@H](CCC(C)C)C(=O)O,6,1,ok
+T79,(2S)-2-azanylhex-4-ynoic acid,alpha,L,CC#CCC(N)C(=O)O,CC#CC[C@H](N)C(=O)O,4,1,ok
+T8L,Thio-phosohothreonine,alpha,T,CC(OP(=O)(O)S)C(N)C(=O)O,C[C@@H](OP(=O)(O)S)[C@H](N)C(=O)O,7,1,ok
+T9E,Selenothreonine,alpha,C,CC([SeH])C(N)C(=O)O,C[C@@H]([SeH])[C@H](N)C(=O)O,3,1,ok
+TA4,"(S)-2-[4-(AMINOMETHYL)-1H-1,2,3-TRIAZOL-1-YL]-4-METHYLPENTANOIC ACID",epsilon,X,CC(C)CC(C(=O)O)n1cc(CN)nn1,CC(C)C[C@@H](C(=O)O)n1cc(CN)nn1,10,1,ok
+TBG,3-Methyl-L-Valine,alpha,V,CC(C)(C)C(N)C(=O)O,CC(C)(C)[C@H](N)C(=O)O,4,1,ok
+TCQ,"(1S,2R)-N-{(1E)-5-[(2S)-2-amino-2-carboxyethyl]-2-hydroxy-4-oxocyclohexa-2,5-dien-1-ylidene}-2-phenylcyclopropanaminium",alpha,X,NC(CC1=CC(=[NH+]C2CC2c2ccccc2)C(O)=CC1=O)C(=O)O,N[C@@H](CC1=C/C(=[NH+]\[C@H]2C[C@@H]2c2ccccc2)C(O)=CC1=O)C(=O)O,19,1,ok
+TCR,"(3S)-2,3,4,9-tetrahydro-1H-pyrido[3,4-b]indole-3-carboxylic acid",alpha,P,O=C(O)C1Cc2c([nH]c3ccccc23)CN1,O=C(O)[C@@H]1Cc2c([nH]c3ccccc23)CN1,11,1,ok
+TDD,3-Methyl-D-Valine,alpha,V,CC(C)(C)C(N)C(=O)O,CC(C)(C)[C@@H](N)C(=O)O,4,1,ok
+TDF,4-(trifluoromethyl)-D-phenylalanine,alpha,F,NC(Cc1ccc(C(F)(F)F)cc1)C(=O)O,N[C@H](Cc1ccc(C(F)(F)F)cc1)C(=O)O,11,1,ok
+TEF,4-(2H-tetrazol-2-yl)-L-phenylalanine,alpha,X,NC(Cc1ccc(-n2ncnn2)cc1)C(=O)O,N[C@@H](Cc1ccc(-n2ncnn2)cc1)C(=O)O,12,1,ok
+TGH,6-{[(S)-carboxy(hydroxy)methyl]amino}-7-hydroxy-L-tryptophan,alpha,X,NC(Cc1c[nH]c2c(O)c(NC(O)C(=O)O)ccc12)C(=O)O,N[C@@H](Cc1c[nH]c2c(O)c(N[C@@H](O)C(=O)O)ccc12)C(=O)O,17,1,ok
+TH5,"(2S,3R)-3-acetyloxy-2-aminobutanoic acid",alpha,T,CC(=O)OC(C)C(N)C(=O)O,CC(=O)O[C@H](C)[C@H](N)C(=O)O,6,1,ok
+TH6,"4-Hydroxy-L-Threonine, (2S,3S)-4-Hydroxy-L-Threonine",alpha,T,NC(C(=O)O)C(O)CO,N[C@H](C(=O)O)[C@H](O)CO,4,1,ok
+THR,"L-Threonine, (2S,3R)-Threonine",alpha,T,CC(O)C(N)C(=O)O,C[C@@H](O)[C@H](N)C(=O)O,3,1,ok
+TIH,3-(2-thienyl)-L-Alanine,alpha,F,NC(Cc1cccs1)C(=O)O,N[C@@H](Cc1cccs1)C(=O)O,6,1,ok
+TIS,"O-(1,1-dihydroxyethyl)-L-serine",alpha,S,CC(O)(O)OCC(N)C(=O)O,CC(O)(O)OC[C@H](N)C(=O)O,6,1,ok
+TLY,"6-N-Thiolacetyl-L-Lysine, N-epsilon-Thioacetyllysine",alpha,K,CC(=S)NCCCCC(N)C(=O)O,CC(=S)NCCCC[C@H](N)C(=O)O,8,1,ok
+TMD,"(2S,3R,4R)-3-hydroxy-4-methyl-2-(methylamino)octanoic acid",alpha,T,CCCCC(C)C(O)C(NC)C(=O)O,CCCC[C@@H](C)[C@@H](O)[C@H](NC)C(=O)O,9,1,ok
+TNQ,6-[(carboxymethyl)amino]-7-hydroxy-L-tryptophan,alpha,W,NC(Cc1c[nH]c2c(O)c(NCC(=O)O)ccc12)C(=O)O,N[C@@H](Cc1c[nH]c2c(O)c(NCC(=O)O)ccc12)C(=O)O,16,1,ok
+TOQ,"6,7-dihydroxy-L-tryptophan",alpha,W,NC(Cc1c[nH]c2c(O)c(O)ccc12)C(=O)O,N[C@@H](Cc1c[nH]c2c(O)c(O)ccc12)C(=O)O,12,1,ok
+TOX,1-hydroperoxy-L-tryptophan,alpha,W,NC(Cc1cn(OO)c2ccccc12)C(=O)O,N[C@@H](Cc1cn(OO)c2ccccc12)C(=O)O,12,1,ok
+TOZ,"2-[2-(aminomethyl)-1,3-thiazol-4-yl]-1,3-oxazole-4-carboxylic acid",unknown,X,NCc1nc(-c2nc(C(=O)O)co2)cs1,NCc1nc(-c2nc(C(=O)O)co2)cs1,10,1,ok
+TPJ,(5R)-5-Tert-Butyl-L-Proline,alpha,P,CC(C)(C)C1CCC(C(=O)O)N1,CC(C)(C)[C@H]1CC[C@@H](C(=O)O)N1,7,1,ok
+TPO,"O-Phospho-L-Threonine, (2S,3R)-O-Phosphothreonine",alpha,T,CC(OP(=O)(O)O)C(N)C(=O)O,C[C@@H](OP(=O)(O)O)[C@H](N)C(=O)O,7,1,ok
+TPQ,"5-(2-CARBOXY-2-AMINOETHYL)-2-HYDROXY-1,4-BENZOQUINONE",alpha,X,NC(CC1=CC(=O)C(O)=CC1=O)C(=O)O,N[C@@H](CC1=CC(=O)C(O)=CC1=O)C(=O)O,10,1,ok
+TQI,N-{[4-CHLORO-3-(TRIFLUOROMETHYL)PHENYL]SULFONYL}-L-TRYPTOPHAN,alpha,W,O=C(O)C(Cc1c[nH]c2ccccc12)NS(=O)(=O)c1ccc(Cl)c(C(F)(F)F)c1,O=C(O)[C@H](Cc1c[nH]c2ccccc12)NS(=O)(=O)c1ccc(Cl)c(C(F)(F)F)c1,24,1,ok
+TQQ,"(S)-2-AMINO-3-(6,7-DIHYDRO-6-IMINO-7-OXO-1H-INDOL-3-YL)PROPANOIC ACID",alpha,F,[H]N=C1C=Cc2c(CC(N)C(=O)O)c[nH]c2C1=O,[H]/N=C1/C=Cc2c(C[C@H](N)C(=O)O)c[nH]c2C1=O,12,1,ok
+TQZ,2-AMINO-3-PENTASULFANYLPROPAN-1-OL,alpha,C,NC(CSSSSS)C(=O)O,N[C@@H](CSSSSS)C(=O)O,6,1,ok
+TRF,1-Formyl-L-tryptophan,alpha,W,NC(Cc1cn(C=O)c2ccccc12)C(=O)O,N[C@@H](Cc1cn(C=O)c2ccccc12)C(=O)O,12,1,ok
+TRN,7-Aza-L-Tryptophan,alpha,F,NC(Cc1c[nH]c2ncccc12)C(=O)O,N[C@@H](Cc1c[nH]c2ncccc12)C(=O)O,10,1,ok
+TRO,2-Hydroxy-L-Tryptophan,alpha,W,NC(Cc1c(O)[nH]c2ccccc12)C(=O)O,N[C@@H](Cc1c(O)[nH]c2ccccc12)C(=O)O,11,1,ok
+TRP,L-Tryptophan,alpha,W,NC(Cc1c[nH]c2ccccc12)C(=O)O,N[C@@H](Cc1c[nH]c2ccccc12)C(=O)O,10,1,ok
+TRQ,"2-AMINO-3-(6,7-DIOXO-6,7-DIHYDRO-1H-INDOL-3-YL)-PROPIONIC ACID",alpha,F,NC(Cc1c[nH]c2c1C=CC(=O)C2=O)C(=O)O,N[C@@H](Cc1c[nH]c2c1C=CC(=O)C2=O)C(=O)O,12,1,ok
+TRX,6-Hydroxy-L-Tryptophan,alpha,W,NC(Cc1c[nH]c2cc(O)ccc12)C(=O)O,N[C@@H](Cc1c[nH]c2cc(O)ccc12)C(=O)O,11,1,ok
+TS9,"(2S,3S,4R)-2-amino-3,4-dihydroxy-3-methylpentanoic acid",alpha,T,CC(O)C(C)(O)C(N)C(=O)O,C[C@@H](O)[C@@](C)(O)[C@H](N)C(=O)O,6,1,ok
+TSQ,4-(trimethylsilyl)-L-phenylalanine,alpha,F,C[Si](C)(C)c1ccc(CC(N)C(=O)O)cc1,C[Si](C)(C)c1ccc(C[C@H](N)C(=O)O)cc1,11,1,ok
+TSY,(2S)-2-amino-3-trisulfanylpropanoic acid,alpha,C,NC(CSSS)C(=O)O,N[C@@H](CSSS)C(=O)O,4,1,ok
+TTQ,6-AMINO-7-HYDROXY-L-TRYPTOPHAN,alpha,W,Nc1ccc2c(CC(N)C(=O)O)c[nH]c2c1O,Nc1ccc2c(C[C@H](N)C(=O)O)c[nH]c2c1O,12,1,ok
+TTS,"3-((3E)-4-HYDROXY-3-{[2-(4-HYDROXYPHENYL)ETHYL]IMINO}-6-OXOCYCLOHEXA-1,4-DIEN-1-YL)ALANINE",alpha,X,NC(CC1=CC(=NCCc2ccc(O)cc2)C(O)=CC1=O)C(=O)O,N[C@@H](CC1=C/C(=N\CCc2ccc(O)cc2)C(O)=CC1=O)C(=O)O,19,1,ok
+TXY,"3-[(5S)-4,5-dihydroxycyclohexa-1,3-dien-1-yl]-L-alanine",alpha,X,NC(CC1=CC=C(O)C(O)C1)C(=O)O,N[C@@H](CC1=CC=C(O)[C@@H](O)C1)C(=O)O,9,1,ok
+TY2,3-Amino-L-Tyrosine,alpha,Y,Nc1cc(CC(N)C(=O)O)ccc1O,Nc1cc(C[C@H](N)C(=O)O)ccc1O,9,1,ok
+TY5,O-Benzyl-L-Tyrosine,alpha,Y,NC(Cc1ccc(OCc2ccccc2)cc1)C(=O)O,N[C@@H](Cc1ccc(OCc2ccccc2)cc1)C(=O)O,15,1,ok
+TY8,"2,4-bis(hydroperoxy)-5-hydroxy-L-phenylalanine",alpha,Y,NC(Cc1cc(O)c(OO)cc1OO)C(=O)O,N[C@@H](Cc1cc(O)c(OO)cc1OO)C(=O)O,12,1,ok
+TY9,"3,4-bis(hydroperoxy)-5-hydroxy-L-phenylalanine",alpha,Y,NC(Cc1cc(O)c(OO)c(OO)c1)C(=O)O,N[C@@H](Cc1cc(O)c(OO)c(OO)c1)C(=O)O,12,1,ok
+TYI,"(2S)-2-amino-3-(4-hydroxy-3,5-diiodophenyl)propanoic acid",alpha,Y,NC(Cc1cc(I)c(O)c(I)c1)C(=O)O,N[C@@H](Cc1cc(I)c(O)c(I)c1)C(=O)O,10,1,ok
+TYJ,"2,5-dihydroxy-N-methyl-L-tyrosine",alpha,Y,CNC(Cc1cc(O)c(O)cc1O)C(=O)O,CN[C@@H](Cc1cc(O)c(O)cc1O)C(=O)O,11,1,ok
+TYN,AMINOBENZOFURAZAN-O-TYROSINE,alpha,Y,Nc1ccc(Oc2ccc(CC(N)C(=O)O)cc2)c2c1NON2,Nc1ccc(Oc2ccc(C[C@H](N)C(=O)O)cc2)c2c1NON2,18,1,ok
+TYO,"(4Z,6E)-2-AMINO-7-HYDROPEROXY-4-[(E)-2-HYDROXYVINYL]HEPTA-4,6-DIENOIC ACID",alpha,X,NC(CC(C=CO)=CC=COO)C(=O)O,N[C@@H](CC(C=CO)=C/C=C/OO)C(=O)O,10,1,ok
+TYQ,3-AMINO-6-HYDROXY-TYROSINE,alpha,Y,Nc1cc(CC(N)C(=O)O)c(O)cc1O,Nc1cc(C[C@H](N)C(=O)O)c(O)cc1O,10,1,ok
+TYR,L-Tyrosine,alpha,Y,NC(Cc1ccc(O)cc1)C(=O)O,N[C@@H](Cc1ccc(O)cc1)C(=O)O,8,1,ok
+TYS,O-Sulfo-L-Tyrosine,alpha,Y,NC(Cc1ccc(OS(=O)(=O)O)cc1)C(=O)O,N[C@@H](Cc1ccc(OS(=O)(=O)O)cc1)C(=O)O,12,1,ok
+TYT,TYROSINE DERIVATIVE,alpha,X,NC(CC1CC(=NC2CC2c2ccccc2)C(O)=CC1=O)C(=O)O,N[C@@H](CC1C/C(=N\C2CC2c2ccccc2)C(O)=CC1=O)C(=O)O,19,1,ok
+TYX,S-(2-ANILINO-2-OXOETHYL)-L-CYSTEINE,alpha,C,NC(CSCC(=O)Nc1ccccc1)C(=O)O,N[C@@H](CSCC(=O)Nc1ccccc1)C(=O)O,12,1,ok
+TYY,"3-(4-HYDROXY-3-IMINO-6-OXO-CYCLOHEXA-1,4-DIENYL)-ALANINE",alpha,X,N=C1C=C(CC(N)C(=O)O)C(=O)C=C1O,N=C1C=C(C[C@H](N)C(=O)O)C(=O)C=C1O,10,1,ok
+TZB,"(4S)-2-[(1E)-1-AMINOPROP-1-ENYL]-4,5-DIHYDRO-1,3-THIAZOLE-4-CARBOXYLIC ACID",delta,A,CC=C(N)C1=NC(C(=O)O)CS1,C/C=C(\N)C1=N[C@@H](C(=O)O)CS1,7,1,ok
+U2M,(2S)-2-amino-7-sulfanylheptanoic acid,alpha,X,NC(CCCCCS)C(=O)O,N[C@@H](CCCCCS)C(=O)O,6,1,ok
+U2X,O-(cyclohexylmethyl)-L-tyrosine,alpha,Y,NC(Cc1ccc(OCC2CCCCC2)cc1)C(=O)O,N[C@@H](Cc1ccc(OCC2CCCCC2)cc1)C(=O)O,15,1,ok
+U3X,4-[(cyclohexylmethyl)amino]-L-phenylalanine,alpha,F,NC(Cc1ccc(NCC2CCCCC2)cc1)C(=O)O,N[C@@H](Cc1ccc(NCC2CCCCC2)cc1)C(=O)O,15,1,ok
+UAL,(2Z)-2-amino-3-(carbamoylamino)prop-2-enoic acid,alpha,R,NC(=O)NC=C(N)C(=O)O,NC(=O)N/C=C(\N)C(=O)O,5,1,ok
+UB4,"(2S)-2-amino-4-(1,3-benzothiazol-2-yl)butanoic acid",alpha,F,NC(CCc1nc2ccccc2s1)C(=O)O,N[C@@H](CCc1nc2ccccc2s1)C(=O)O,11,1,ok
+UDS,N-[(3-HYDROXYQUINOLIN-2-YL)CARBONYL]-D-SERINE,alpha,S,O=C(NC(CO)C(=O)O)c1nc2ccccc2cc1O,O=C(N[C@H](CO)C(=O)O)c1nc2ccccc2cc1O,15,1,ok
+UF0,"O-[(R)-hydroxy{[(3R)-3-hydroxy-4-{[3-({2-[(hydroxyacetyl)amino]ethyl}amino)-3-oxopropyl]amino}-2,2-dimethyl-4-oxobutyl]oxy}phosphoryl]-L-serine",alpha,S,CC(C)(COP(=O)(O)OCC(N)C(=O)O)C(O)C(=O)NCCC(=O)NCCNC(=O)CO,CC(C)(CO[P@@](=O)(O)OC[C@H](N)C(=O)O)[C@@H](O)C(=O)NCCC(=O)NCCNC(=O)CO,27,1,ok
+UGY,(2S)-amino(carbamoylamino)ethanoic acid,alpha,R,NC(=O)NC(N)C(=O)O,NC(=O)N[C@H](N)C(=O)O,4,1,ok
+UIA,[(2~{R})-1-azanylpropan-2-yl]carbamic acid,gamma,A,CC(CN)NC(=O)O,C[C@H](CN)NC(=O)O,3,1,ok
+UKD,"3-(4-phosphono-1H-1,2,3-triazol-1-yl)-L-alanine",alpha,F,NC(Cn1cc(P(=O)(O)O)nn1)C(=O)O,N[C@@H](Cn1cc(P(=O)(O)O)nn1)C(=O)O,10,1,ok
+UKY,"3-(5-phosphono-1H-1,2,3-triazol-1-yl)-L-alanine",alpha,F,NC(Cn1nncc1P(=O)(O)O)C(=O)O,N[C@@H](Cn1nncc1P(=O)(O)O)C(=O)O,10,1,ok
+UN1,(2S)-2-Aminohexanedioic acid,alpha,X,NC(CCCC(=O)O)C(=O)O,N[C@@H](CCCC(=O)O)C(=O)O,6,1,ok
+UN2,"(2S)-2-amino-4,4-dihydroxybutanoic acid",alpha,S,NC(CC(O)O)C(=O)O,N[C@@H](CC(O)O)C(=O)O,4,1,ok
+UOX,3-(oxido-lambda~4~-selanyl)-L-alanine,alpha,C,NC(C[Se-]=O)C(=O)O,N[C@@H](C[Se-]=O)C(=O)O,3,1,ok
+URV,[(2~{S})-2-azanyl-3-methyl-butyl]carbamic acid,gamma,V,CC(C)C(N)CNC(=O)O,CC(C)[C@H](N)CNC(=O)O,5,1,ok
+UU4,(2S)-2-amino-4-(L-serylamino)butanoic acid,alpha,X,NC(CCNC(=O)C(N)CO)C(=O)O,N[C@@H](CCNC(=O)[C@@H](N)CO)C(=O)O,9,1,ok
+UU5,(2S)-2-amino-4-[(oxoacetyl)amino]butanoic acid,alpha,X,NC(CCNC(=O)C=O)C(=O)O,N[C@@H](CCNC(=O)C=O)C(=O)O,7,1,ok
+UX8,"(2~{S},3~{R})-2-azanyl-3-(1~{H}-indol-3-yl)-3-oxidanyl-propanoic acid",alpha,W,NC(C(=O)O)C(O)c1c[nH]c2ccccc12,N[C@H](C(=O)O)[C@H](O)c1c[nH]c2ccccc12,11,1,ok
+UXQ,(2S)-2-azanyl-3-[4-[(2-chloranylethanoylamino)methyl]phenyl]propanoic acid,alpha,F,NC(Cc1ccc(CNC(=O)CCl)cc1)C(=O)O,N[C@@H](Cc1ccc(CNC(=O)CCl)cc1)C(=O)O,13,1,ok
+UXY,(4R)-4-hydroxy-L-lysine,alpha,K,NCCC(O)CC(N)C(=O)O,NCC[C@@H](O)C[C@H](N)C(=O)O,6,1,ok
+UY7,trans-4-Hydroxy-D-proline,alpha,P,O=C(O)C1CC(O)CN1,O=C(O)[C@H]1C[C@H](O)CN1,4,1,ok
+UYA,cis-4-Hydroxy-D-proline,alpha,P,O=C(O)C1CC(O)CN1,O=C(O)[C@H]1C[C@@H](O)CN1,4,1,ok
+UZ4,"(2R,3S)-3-amino-2-hydroxy-4-[(3S)-2-oxopyrrolidin-3-yl]butanoic acid",beta,Q,NC(CC1CCNC1=O)C(O)C(=O)O,N[C@@H](C[C@@H]1CCNC1=O)[C@@H](O)C(=O)O,9,1,ok
+UZA,"(2S,6E)-2-amino-2-methylnon-6-enoic acid",alpha,X,CCC=CCCCC(C)(N)C(=O)O,CC/C=C/CCC[C@](C)(N)C(=O)O,8,1,ok
+UZN,[(2~{S})-2-azanylhexyl]carbamic acid,gamma,L,CCCCC(N)CNC(=O)O,CCCC[C@H](N)CNC(=O)O,6,1,ok
+V1C,(2S)-2-azanyl-3-[4-[1-(2-methylpropyl)pyrazol-4-yl]phenyl]propanoic acid,alpha,F,CC(C)Cn1cc(-c2ccc(CC(N)C(=O)O)cc2)cn1,CC(C)Cn1cc(-c2ccc(C[C@H](N)C(=O)O)cc2)cn1,16,1,ok
+V1V,"(2S,3S)-3-amino-2-hydroxyhexanoic acid",beta,V,CCCC(N)C(O)C(=O)O,CCC[C@H](N)[C@H](O)C(=O)O,5,1,ok
+V3C,Trans-4-athyl-L-proline,alpha,P,CCC1CNC(C(=O)O)C1,CC[C@H]1CN[C@H](C(=O)O)C1,5,1,ok
+V44,"S-[2,2-bis(1-methyl-1H-imidazol-2-yl)ethyl]-L-cysteine",alpha,C,Cn1ccnc1C(CSCC(N)C(=O)O)c1nccn1C,Cn1ccnc1C(CSC[C@H](N)C(=O)O)c1nccn1C,16,1,ok
+V4F,8-(aminomethyl)-4-(phosphonomethoxy)quinoline-2-carboxylic acid,epsilon,X,NCc1cccc2c(OCP(=O)(O)O)cc(C(=O)O)nc12,NCc1cccc2c(OCP(=O)(O)O)cc(C(=O)O)nc12,16,1,ok
+V53,8-azanyl-4-(phosphonomethoxy)quinoline-2-carboxylic acid,delta,X,Nc1cccc2c(OCP(=O)(O)O)cc(C(=O)O)nc12,Nc1cccc2c(OCP(=O)(O)O)cc(C(=O)O)nc12,15,1,ok
+V5F,(2R)-2-(2-azanylphenoxy)propanoic acid,delta,X,CC(Oc1ccccc1N)C(=O)O,C[C@@H](Oc1ccccc1N)C(=O)O,8,1,ok
+V5N,"(2S,3S)-2-azanyl-3-(1H-imidazol-5-yl)-3-oxidanyl-propanoic acid",alpha,H,NC(C(=O)O)C(O)c1cnc[nH]1,N[C@H](C(=O)O)[C@H](O)c1cnc[nH]1,7,1,ok
+V61,"2,3,5,6-tetrafluoro-4-iodo-L-phenylalanine",alpha,F,NC(Cc1c(F)c(F)c(I)c(F)c1F)C(=O)O,N[C@@H](Cc1c(F)c(F)c(I)c(F)c1F)C(=O)O,12,1,ok
+V6W,(2S)-2-amino-3-[1-(carboxymethyl)indol-3-yl]propanoic acid,alpha,W,NC(Cc1cn(CC(=O)O)c2ccccc12)C(=O)O,N[C@@H](Cc1cn(CC(=O)O)c2ccccc12)C(=O)O,14,1,ok
+VAH,"(2S,3R)-3-Hydroxynorvaline",alpha,T,CCC(O)C(N)C(=O)O,CC[C@@H](O)[C@H](N)C(=O)O,4,1,ok
+VAL,L-Valine,alpha,V,CC(C)C(N)C(=O)O,CC(C)[C@H](N)C(=O)O,3,1,ok
+VDE,"(2S)-2-azanyl-6-[4-[(2S)-2,3-bis(azanyl)-3-oxidanylidene-propyl]-1,2,3-triazol-1-yl]hexanoic acid",alpha,X,NC(=O)C(N)Cc1cn(CCCCC(N)C(=O)O)nn1,NC(=O)[C@@H](N)Cc1cn(CCCC[C@H](N)C(=O)O)nn1,15,1,ok
+VDL,"(2R,3R)-2,3-DIAMINOBUTANOIC ACID",alpha,X,CC(N)C(N)C(=O)O,C[C@@H](N)[C@@H](N)C(=O)O,3,1,ok
+VEF,"(3S)-3-azanyl-2,2-bis(oxidanyl)butanoic acid",beta,A,CC(N)C(O)(O)C(=O)O,C[C@H](N)C(O)(O)C(=O)O,4,1,ok
+VHF,(2~{S})-2-azanyl-5-oxidanylidene-5-phosphonooxy-pentanoic acid,alpha,E,NC(CCC(=O)OP(=O)(O)O)C(=O)O,N[C@@H](CCC(=O)OP(=O)(O)O)C(=O)O,9,1,ok
+VI3,(2~{R})-2-azanyl-3-[bis(oxidanylidene)-$l^{5}-sulfanyl]propanoic acid,alpha,X,NC(C[S-](=O)=O)C(=O)O,N[C@@H](C[S-](=O)=O)C(=O)O,4,1,ok
+VLL,"(2S,3R)-2,3-diaminobutanoic acid",alpha,X,CC(N)C(N)C(=O)O,C[C@@H](N)[C@H](N)C(=O)O,3,1,ok
+VNW,8-azanyl-4-methylselanyl-quinoline-2-carboxylic acid,delta,X,C[Se]c1cc(C(=O)O)nc2c(N)cccc12,C[Se]c1cc(C(=O)O)nc2c(N)cccc12,11,1,ok
+VPV,"(2E,4R)-2-{[(5S)-5-amino-5-carboxypentyl]imino}-4-hydroxyheptanedioic acid",alpha,X,NC(CCCCN=C(CC(O)CCC(=O)O)C(=O)O)C(=O)O,N[C@@H](CCCC/N=C(\C[C@H](O)CCC(=O)O)C(=O)O)C(=O)O,17,1,ok
+VR0,(2S)-2-amino-5-[[amino-(methylcarbamoylamino)methylidene]amino]pentanoic acid,alpha,R,CNC(=O)NC(=N)NCCCC(N)C(=O)O,CNC(=O)NC(=N)NCCC[C@H](N)C(=O)O,11,1,ok
+VVK,N-(2-methoxyphenyl)-2-methyl-L-alanine,alpha,A,COc1ccccc1NC(C)(C)C(=O)O,COc1ccccc1NC(C)(C)C(=O)O,10,1,ok
+W4T,3-bromo-S-beta-phenylalanine,beta,X,NC(CC(=O)O)c1cccc(Br)c1,N[C@@H](CC(=O)O)c1cccc(Br)c1,8,1,ok
+WFP,"3,5-Difluoro-L-Phenylalanine",alpha,F,NC(Cc1cc(F)cc(F)c1)C(=O)O,N[C@@H](Cc1cc(F)cc(F)c1)C(=O)O,9,1,ok
+WLU,(4R)-5-hydroxy-N-methyl-L-Leucine,alpha,X,CNC(CC(C)CO)C(=O)O,CN[C@@H](C[C@@H](C)CO)C(=O)O,6,1,ok
+WPA,(betaR)-beta-methoxy-L-phenylalanine,alpha,F,COC(c1ccccc1)C(N)C(=O)O,CO[C@H](c1ccccc1)[C@H](N)C(=O)O,9,1,ok
+WRP,(betaR)-beta-hydroxy-1-[(3R)-3-hydroxy-2-methylbutan-2-yl]-L-Tryptophan,alpha,W,CC(O)C(C)(C)n1cc(C(O)C(N)C(=O)O)c2ccccc21,C[C@@H](O)C(C)(C)n1cc([C@@H](O)[C@H](N)C(=O)O)c2ccccc21,17,1,ok
+WVL,"(2S,3R)-2-amino-3,5-dimethylhex-4-enoic acid",alpha,L,CC(C)=CC(C)C(N)C(=O)O,CC(C)=C[C@@H](C)[C@H](N)C(=O)O,6,1,ok
+WWB,5-(3-methylbut-2-en-1-yl)-L-tryptophan,alpha,W,CC(C)=CCc1ccc2[nH]cc(CC(N)C(=O)O)c2c1,CC(C)=CCc1ccc2[nH]cc(C[C@H](N)C(=O)O)c2c1,15,1,ok
+WYK,"(4S)-4-Hydroxy-L-Arginine, (2S,4S)-4-Hydroxy-Arginine",alpha,R,N=C(N)NCC(O)CC(N)C(=O)O,N=C(N)NC[C@@H](O)C[C@H](N)C(=O)O,8,1,ok
+WZJ,N-methyl-L-allo-Isoleucine,alpha,I,CCC(C)C(NC)C(=O)O,CC[C@@H](C)[C@H](NC)C(=O)O,5,1,ok
+X5H,(~{E})-6-(2-hydroxy-2-oxoethylamino)hex-4-enoic acid,alpha,G,O=C(O)CCC=CCNCC(=O)O,O=C(O)CC/C=C/CNCC(=O)O,8,1,ok
+X5U,(S)-alpha-methyl-4-Iodophenylalanine,alpha,F,CC(N)(Cc1ccc(I)cc1)C(=O)O,C[C@](N)(Cc1ccc(I)cc1)C(=O)O,9,1,ok
+X60,2-ethyl-L-norvaline,alpha,L,CCCC(N)(CC)C(=O)O,CCC[C@@](N)(CC)C(=O)O,5,1,ok
+X6E,2-ethyl-D-norvaline,alpha,L,CCCC(N)(CC)C(=O)O,CCC[C@](N)(CC)C(=O)O,5,1,ok
+XA6,"4-Carbamoyl-L-phenylalanine, 4-Cxa",alpha,F,NC(=O)c1ccc(CC(N)C(=O)O)cc1,NC(=O)c1ccc(C[C@H](N)C(=O)O)cc1,10,1,ok
+XC0,"(S)-2-Aminooctanoic acid, S-Capryline",alpha,L,CCCCCCC(N)C(=O)O,CCCCCC[C@H](N)C(=O)O,6,1,ok
+XCN,S-cyano-L-cysteine,alpha,C,N#CSCC(N)C(=O)O,N#CSC[C@H](N)C(=O)O,4,1,ok
+XDT,O-methyl-D-allothreonine,alpha,T,COC(C)C(N)C(=O)O,COC(C)[C@@H](N)C(=O)O,4,1,ok
+XOK,(2~{S})-2-azanyl-6-[[(6~{S})-6-sulfanyloctanoyl]amino]hexanoic acid,alpha,K,CCC(S)CCCCC(=O)NCCCCC(N)C(=O)O,CC[C@H](S)CCCCC(=O)NCCCC[C@H](N)C(=O)O,15,1,ok
+XPL,"N~6~-[(3R,5R)-5-amino-3-methyl-D-prolyl]-L-lysine",alpha,K,CC1CC(N)NC1C(=O)NCCCCC(N)C(=O)O,C[C@@H]1C[C@H](N)N[C@H]1C(=O)NCCCC[C@H](N)C(=O)O,14,1,ok
+XPR,"(2S,3aS,6R,7aS)-6-(sulfooxy)octahydro-1H-indole-2-carboxylic acid",alpha,P,O=C(O)C1CC2CCC(OS(=O)(=O)O)CC2N1,O=C(O)[C@@H]1C[C@@H]2CC[C@@H](OS(=O)(=O)O)C[C@@H]2N1,12,1,ok
+XRE,5-hydroxyproline,alpha,P,O=C(O)C1CCC(O)N1,O=C(O)[C@@H]1CC[C@H](O)N1,4,1,ok
+XRW,N~6~-[(2S)-2-hydroxypropanoyl]-L-lysine,alpha,K,CC(O)C(=O)NCCCCC(N)C(=O)O,C[C@H](O)C(=O)NCCCC[C@H](N)C(=O)O,10,1,ok
+XW1,(2S)-2-amino-7-ethoxy-7-oxoheptanoic acid,alpha,X,CCOC(=O)CCCCC(N)C(=O)O,CCOC(=O)CCCC[C@H](N)C(=O)O,9,1,ok
+XX1,N~6~-7H-PURIN-6-YL-L-LYSINE,alpha,K,NC(CCCCNc1ncnc2nc[nH]c12)C(=O)O,N[C@@H](CCCCNc1ncnc2nc[nH]c12)C(=O)O,14,1,ok
+XXA,"2,4,5-trideoxy-2-(methylamino)-4-[(2E)-penta-2,4-dien-1-yl]-L-xylonic acid",alpha,T,C=CC=CCC(C)C(O)C(NC)C(=O)O,C=C/C=C/C[C@@H](C)[C@@H](O)[C@H](NC)C(=O)O,10,1,ok
+XYC,3-Cyclopentane-L-Alanine,alpha,A,NC(CC1CCCC1)C(=O)O,N[C@@H](CC1CCCC1)C(=O)O,6,1,ok
+Y1V,(4R)-5-amino-L-leucine,delta,A,CC(CN)CC(N)C(=O)O,C[C@@H](CN)C[C@H](N)C(=O)O,5,1,ok
+Y28,O-benzyl-N-(carboxycarbonyl)-D-tyrosine,alpha,Y,O=C(O)C(=O)NC(Cc1ccc(OCc2ccccc2)cc1)C(=O)O,O=C(O)C(=O)N[C@H](Cc1ccc(OCc2ccccc2)cc1)C(=O)O,20,1,ok
+Y57,N~6~-(2-phenylethyl)-N~6~-propan-2-yl-L-lysine,alpha,K,CC(C)N(CCCCC(N)C(=O)O)CCc1ccccc1,CC(C)N(CCCC[C@H](N)C(=O)O)CCc1ccccc1,16,1,ok
+YBR,N-Methyl-D-Glutamic acid,alpha,E,CNC(CCC(=O)O)C(=O)O,CN[C@H](CCC(=O)O)C(=O)O,6,1,ok
+YC3,3-[2-(sulfanylmethyl)phenyl]-L-phenylalanine,alpha,F,NC(Cc1cccc(-c2ccccc2CS)c1)C(=O)O,N[C@@H](Cc1cccc(-c2ccccc2CS)c1)C(=O)O,15,1,ok
+YCM,S-(2-AMINO-2-OXOETHYL)-L-CYSTEINE,alpha,C,NC(=O)CSCC(N)C(=O)O,NC(=O)CSC[C@H](N)C(=O)O,6,1,ok
+YCP,"L-Pipecolic acid, L-Homoproline",alpha,P,O=C(O)C1CCCCN1,O=C(O)[C@@H]1CCCCN1,4,1,ok
+YD5,N-(2-carboxyethyl)-L-alanine,alpha,A,CC(NCCC(=O)O)C(=O)O,C[C@H](NCCC(=O)O)C(=O)O,6,1,ok
+YF5,Agmatinamic acid,epsilon,R,[H]N=C(N)NCCCC(N)C(O)CC(O)C(O)C(=O)O,[H]/N=C(/N)NCCC[C@@H](N)[C@@H](O)C[C@H](O)[C@@H](O)C(=O)O,14,1,ok
+YFQ,Beta-N-Methylamino-L-Alanine,alpha,X,CNCC(N)C(=O)O,CNC[C@H](N)C(=O)O,3,1,ok
+YFZ,(-)-Galantinic acid,epsilon,S,NC(CO)C(O)CC(O)CC(=O)O,N[C@@H](CO)[C@@H](O)C[C@H](O)CC(=O)O,8,1,ok
+YHA,L-Homocitrulline,alpha,R,NC(=O)NCCCCC(N)C(=O)O,NC(=O)NCCCC[C@H](N)C(=O)O,8,1,ok
+YNM,N-Methyl-L-Tyrosine,alpha,Y,CNC(Cc1ccc(O)cc1)C(=O)O,CN[C@@H](Cc1ccc(O)cc1)C(=O)O,9,1,ok
+YOF,3-fluoro-L-tyrosine,alpha,Y,NC(Cc1ccc(O)c(F)c1)C(=O)O,N[C@@H](Cc1ccc(O)c(F)c1)C(=O)O,9,1,ok
+YPR,"(2S,4R)-4-(7-methoxy-2-phenylquinolin-4-yl)oxypyrrolidine-2-carboxylic acid",alpha,P,COc1ccc2c(OC3CNC(C(=O)O)C3)cc(-c3ccccc3)nc2c1,COc1ccc2c(O[C@H]3CN[C@H](C(=O)O)C3)cc(-c3ccccc3)nc2c1,22,1,ok
+YPZ,"3-[(3Z)-4-hydroxy-6-oxo-3-(2-phenylhydrazinylidene)cyclohexa-1,4-dien-1-yl]-L-alanine",alpha,X,NC(CC1=CC(=NNc2ccccc2)C(O)=CC1=O)C(=O)O,N[C@@H](CC1=C/C(=N/Nc2ccccc2)C(O)=CC1=O)C(=O)O,17,1,ok
+YRV,S-[(3-methylphenyl)methyl]-L-cysteine,alpha,C,Cc1cccc(CSCC(N)C(=O)O)c1,Cc1cccc(CSC[C@H](N)C(=O)O)c1,10,1,ok
+YTH,"O-Phosphono-L-allothreonine, (2S,3S)-O-Phosphono-Allothreonine",alpha,T,CC(OP(=O)(O)O)C(N)C(=O)O,C[C@H](OP(=O)(O)O)[C@H](N)C(=O)O,7,1,ok
+YTL,(2~{S})-2-(2-azanylethanoyloxy)-3-(4-hydroxyphenyl)propanoic acid,delta,Y,NCC(=O)OC(Cc1ccc(O)cc1)C(=O)O,NCC(=O)O[C@@H](Cc1ccc(O)cc1)C(=O)O,12,1,ok
+YWF,gamma-aminobutenoic acid,gamma,G,NCC=CC(=O)O,NC/C=C/C(=O)O,2,1,ok
+YYA,"2,4,5-trideoxy-2-(methylamino)-4-[(2Z)-penta-2,4-dien-1-yl]-L-xylonic acid",alpha,T,C=CC=CCC(C)C(O)C(NC)C(=O)O,C=C/C=C\C[C@@H](C)[C@@H](O)[C@H](NC)C(=O)O,10,1,ok
+Z01,"3-[(2,2-dimethylpropanoyl)amino]-L-alanine",alpha,X,CC(C)(C)C(=O)NCC(N)C(=O)O,CC(C)(C)C(=O)NC[C@H](N)C(=O)O,8,1,ok
+Z3E,O3-benzyl-L-threonine,alpha,T,CC(OCc1ccccc1)C(N)C(=O)O,C[C@@H](OCc1ccccc1)[C@H](N)C(=O)O,10,1,ok
+Z50,"3-{[(3-{[(2-aminoethyl)sulfanyl]methyl}-5-(4-methyl-1H-1,2,3-triazol-1-yl)phenyl)methyl]sulfanyl}propanoic acid",unknown,X,Cc1cn(-c2cc(CSCCN)cc(CSCCC(=O)O)c2)nn1,Cc1cn(-c2cc(CSCCN)cc(CSCCC(=O)O)c2)nn1,19,1,ok
+Z70,(2S)-2-amino-4-(2-amino-1H-imidazol-5-yl)butanoic acid,alpha,H,Nc1ncc(CCC(N)C(=O)O)[nH]1,Nc1ncc(CC[C@H](N)C(=O)O)[nH]1,8,1,ok
+Z9J,3-{[(3-{[(2-aminoethyl)sulfanyl]methyl}phenyl)methyl]sulfanyl}propanoic acid,unknown,X,NCCSCc1cccc(CSCCC(=O)O)c1,NCCSCc1cccc(CSCCC(=O)O)c1,13,1,ok
+ZAE,N-methyl-D-Phenylalanine,alpha,F,CNC(Cc1ccccc1)C(=O)O,CN[C@H](Cc1ccccc1)C(=O)O,8,1,ok
+ZAI,(2~{S})-2-azanyl-6-[[(~{R})-[2-methyl-3-oxidanyl-5-(phosphonooxymethyl)pyridin-4-yl]-[[(2~{S})-1-oxidanyl-1-oxidanylidene-3-sulfanyl-propan-2-yl]amino]methyl]amino]hexanoic acid,alpha,K,Cc1ncc(COP(=O)(O)O)c(C(NCCCCC(N)C(=O)O)NC(CS)C(=O)O)c1O,Cc1ncc(COP(=O)(O)O)c([C@H](NCCCC[C@H](N)C(=O)O)N[C@H](CS)C(=O)O)c1O,27,2,ok
+ZAL,"3-Cyclohexyl-D-Alanine, D-Cyclohexanealanine, D-Ace",alpha,A,NC(CC1CCCCC1)C(=O)O,N[C@H](CC1CCCCC1)C(=O)O,7,1,ok
+ZBZ,S-(phenylcarbonyl)-L-cysteine,alpha,C,NC(CSC(=O)c1ccccc1)C(=O)O,N[C@@H](CSC(=O)c1ccccc1)C(=O)O,10,1,ok
+ZCL,"3,4-Dichloro-L-Phenylalanine",alpha,F,NC(Cc1ccc(Cl)c(Cl)c1)C(=O)O,N[C@@H](Cc1ccc(Cl)c(Cl)c1)C(=O)O,9,1,ok
+ZDJ,3-methyl-L-tyrosine,alpha,Y,Cc1cc(CC(N)C(=O)O)ccc1O,Cc1cc(C[C@H](N)C(=O)O)ccc1O,9,1,ok
+ZGL,D-alpha-glutamine,gamma,X,NC(=O)C(N)CCC(=O)O,NC(=O)[C@H](N)CCC(=O)O,5,1,ok
+ZIQ,Alpha-Methyl-L-tryptophan,alpha,W,CC(N)(Cc1c[nH]c2ccccc12)C(=O)O,C[C@](N)(Cc1c[nH]c2ccccc12)C(=O)O,11,1,ok
+ZNY,(4R)-4-(ethyloxy)-L-proline,alpha,P,CCOC1CNC(C(=O)O)C1,CCO[C@H]1CN[C@H](C(=O)O)C1,6,1,ok
+ZSX,(2R)-amino(4-methoxyphenyl)acetic acid,alpha,X,COc1ccc(C(N)C(=O)O)cc1,COc1ccc([C@@H](N)C(=O)O)cc1,8,1,ok
+ZT6,(betaR)-3-chloro-beta-{[tri(propan-2-yl)silyl]oxy}-L-tyrosine,alpha,Y,CC(C)[Si](OC(c1ccc(O)c(Cl)c1)C(N)C(=O)O)(C(C)C)C(C)C,CC(C)[Si](O[C@H](c1ccc(O)c(Cl)c1)[C@H](N)C(=O)O)(C(C)C)C(C)C,20,1,ok
+ZTC,"(2S)-amino(3,5-dimethoxyphenyl)acetic acid",alpha,X,COc1cc(OC)cc(C(N)C(=O)O)c1,COc1cc(OC)cc([C@H](N)C(=O)O)c1,10,1,ok
+ZTG,(betaR)-3-chloro-beta-{[tri(propan-2-yl)silyl]oxy}-D-tyrosine,alpha,Y,CC(C)[Si](OC(c1ccc(O)c(Cl)c1)C(N)C(=O)O)(C(C)C)C(C)C,CC(C)[Si](O[C@H](c1ccc(O)c(Cl)c1)[C@@H](N)C(=O)O)(C(C)C)C(C)C,20,1,ok
+ZTK,(2S)-2-amino-3-cyanopropanoic acid,alpha,X,N#CCC(N)C(=O)O,N#CC[C@H](N)C(=O)O,3,1,ok
+ZUK,5-pyrimidin-2-yl-D-norvaline,alpha,X,NC(CCCc1ncccn1)C(=O)O,N[C@H](CCCc1ncccn1)C(=O)O,9,1,ok
+ZV4,(2S)-2-amino-3-(4-phosphonophenyl)propanoic acid,alpha,F,NC(Cc1ccc(P(=O)(O)O)cc1)C(=O)O,N[C@@H](Cc1ccc(P(=O)(O)O)cc1)C(=O)O,11,1,ok
+ZY9,6-(aminomethyl)pyridine-2-carboxylic acid,delta,X,NCc1cccc(C(=O)O)n1,NCc1cccc(C(=O)O)n1,6,1,ok
+ZYJ,"(4R)-4-({[(1E)-(3,4-dimethoxyphenyl)methylidene]amino}oxy)-L-proline",alpha,P,COc1ccc(C=NOC2CNC(C(=O)O)C2)cc1OC,COc1ccc(/C=N/O[C@H]2CN[C@H](C(=O)O)C2)cc1OC,16,1,ok
+ZYK,"(4R)-4-({[(3,4-dimethoxyphenyl)carbonyl]amino}oxy)-L-proline",alpha,P,COc1ccc(C(=O)NOC2CNC(C(=O)O)C2)cc1OC,COc1ccc(C(=O)NO[C@H]2CN[C@H](C(=O)O)C2)cc1OC,17,1,ok
+ZZU,"(2S,3S)-3-HYDROXYARGININE",alpha,X,N=C(N)NCCC(O)C(N)C(=O)O,N=C(N)NCC[C@H](O)[C@H](N)C(=O)O,8,1,ok

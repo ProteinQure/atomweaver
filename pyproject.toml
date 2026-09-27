@@ -1,0 +1,102 @@
+[project]
+name = "atomweaver"
+version = "0.1.0"
+description = "AtomWeaver: multi-component flow-matching all-atom peptide side-chain design."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "AGPL-3.0-or-later" }
+classifiers = [
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+]
+
+# Versions below are floors; the staging build was tested on the exact versions noted in comments.
+dependencies = [
+    "torch>=2.2",              # tested: 2.10.0
+    "numpy>=1.24",             # tested: 2.4.1
+    "scipy>=1.10",             # tested: 1.17.0
+    "scikit-learn>=1.3",       # tested: 1.8.0
+    "joblib>=1.3",             # tested: 1.5.3
+    "typer>=0.12",             # tested: 0.21.1
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=9.1", "ruff>=0.16"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["atomweaver", "atomweaver.joint_diffusion"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "F",    # pyflakes
+    "I",    # isort
+    "E",    # pycodestyle error
+    "N",    # pep8-naming
+    "D",    # pydocstyle
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "COM",  # flake8-commas
+    "C4",   # flake8-comprehensions
+    "T10",  # flake8-debugger
+    "EM",   # flake8-errmsg
+    "FA",   # flake8-future-annotations
+    "ISC",  # flake8-implicit-str-concat
+    "LOG",  # flake8-logging
+    "G",    # flake8-logging-format
+    "INP",  # flake8-no-pep420
+    "PIE",  # flake8-pie
+    "PT",   # flake8-pytest-style
+    "Q",    # flake8-quotes
+    "RSE",  # flake8-raise
+    "RET",  # flake8-return
+    "SIM",  # flake8-simplify
+    "TC",   # flake8-type-checking
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "PD",   # pandas-vet
+    "PLC",  # pylint conventions
+    "PLE",  # pylint errors
+    "NPY",  # NumPy-specific rules
+    "PERF", # perflint
+    "FURB", # refurb
+    "RUF",  # ruff-specific rules
+]
+
+# Local imports avoid model/data import cycles; unused unpacked dimensions follow F841 conventions.
+ignore = ["COM812", "D200", "D401", "EM101", "EM102", "PD010", "PTH123", "PLC0415", "RUF059"]
+
+exclude = ["./docs/*"]
+
+pydocstyle.convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F403"]
+# CLI and utility scripts: matrix/dimension notation (B, L, K, R), Typer-idiom option defaults, long
+# explanatory comments, and other deliberate conventions in this code. Correctness rules stay on.
+"./scripts/*" = [
+    "INP001", "D103", "SIM105",
+    "N803", "N806", "N816", "N802", "N812", "ARG001", "ARG002", "B008", "C408", "RUF001", "RUF002",
+    "RUF003", "RUF005", "D100", "D102", "D105", "D205", "D301", "D400", "E501", "E741", "E402", "F841",
+    "SIM102", "SIM108", "SIM115", "SIM118", "SIM210", "SIM401", "RUF013", "RUF015", "PERF102", "PERF401",
+    "RET504", "B007", "B904", "PD011", "PTH100", "PTH103", "PTH105", "PTH108", "PTH110", "PTH118", "PTH119",
+    "PTH120", "PTH207", "RUF100",
+]
+# Model package: matrix/dimension notation (B, L, K, R, x_T) per the ML literature, Angstrom/mu in
+# prose, narrative multi-paragraph docstrings, and long trailing explanatory comments. Correctness
+# rules (F821 undefined name, F811 redefinition) stay on everywhere.
+"./atomweaver/joint_diffusion/*" = [
+    "N803", "N806", "N816", "ARG001", "ARG002", "B008", "RUF001", "RUF002", "RUF003", "D100", "D102", "D105",
+    "D205", "D301", "D400", "E501", "E741", "E402", "F841", "SIM102", "SIM108", "SIM115", "SIM118", "SIM210",
+    "SIM401", "RUF013", "RUF015", "PERF102", "PERF401", "RET504", "B007", "B904", "PD011", "PTH100", "PTH103",
+    "PTH105", "PTH108", "PTH110", "PTH118", "PTH119", "PTH120", "PTH207", "RUF100",
+]
+
+[tool.ruff.format]
+docstring-code-format = true
