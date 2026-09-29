@@ -56,7 +56,8 @@ python scripts/joint_diffusion/design.py --pdb-dir examples/ --out OUTDIR
 ```
 
 This samples side-chain atom clouds for every input (production settings baked in), reads off identity
-with the balanced hybrid discretizer over the 300-residue vocabulary, and writes:
+with the balanced hybrid discretizer over the 300-residue vocabulary (`--vocab` selects another), and
+writes:
 
 | output | contents |
 |---|---|
@@ -85,8 +86,28 @@ read-out. Existing clouds labeled `ALA` can be corrected by rerunning the read-o
 Useful options:
 
 - `--num-samples N` - designs sampled per input (default 5).
-- `--canon20` - restrict the vocabulary to the 20 canonical amino acids (no NCAA can be called).
+- `--vocab {full300,exp450,canon20}` - candidate vocabulary (default `full300`); see below.
 - `--dry-run` - print the underlying sampling + read-out commands without running them.
+
+---
+
+## Choosing a vocabulary
+
+`--vocab` selects which residues the read-out may call. It swaps only the small CPU read-out head and
+its reference library -- the model and the sampling are identical in every case.
+
+| `--vocab` | classes | NCAA | head | reference library |
+|---|---|---|---|---|
+| `full300` | 300 | yes | `readout_head_full300.joblib` | `reference_library.pt` |
+| `exp450` | 450 | yes | `readout_head_exp450.joblib` | `expanded450_library.pt` |
+| `canon20` | 20 | no | `readout_head_canon20.joblib` | `reference_library.pt` |
+
+**NOTE:** `exp450` is not a superset of `full300`. Switching therefore both adds and removes some
+residues. Expect the two to disagree on a substantial fraction of positions.
+
+A head and its reference library are a **matched pair**. Any class missing from the library scores
+`-inf` and can never be called -- `apply_hybrid_readout.py` warns and names those classes. An explicit
+`--head` ignores `--vocab` entirely, so `--head` must be paired with an explicit `--eval-db`.
 
 ---
 
@@ -122,12 +143,14 @@ python scripts/joint_diffusion/fit_learned_readout.py \
   --out my_head.joblib
 
 # 3. design with the custom head -- only the subset's residues can be called
-python scripts/joint_diffusion/design.py --pdb-dir examples/ --out OUTDIR --head my_head.joblib
+python scripts/joint_diffusion/design.py --pdb-dir examples/ --out OUTDIR \
+  --head my_head.joblib --eval-db data/reference_library.pt
 ```
 
 A **new** residue outside the shipped 300 needs reference rotamers in the fitting `--ref-db` library
 and a refitted head. Pass that library to design with `--eval-db my_library.pt` and the fitted head
-with `--head my_head.joblib`. The bundled library already covers the full 300.
+with `--head my_head.joblib`. The bundled `reference_library.pt` covers the full 300; `exp450` ships
+its own `expanded450_library.pt` covering all 450.
 
 ---
 

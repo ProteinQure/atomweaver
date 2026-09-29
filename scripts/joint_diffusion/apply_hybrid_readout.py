@@ -12,8 +12,12 @@ fitted -- every knob (eps, m, beta, gamma) is a named constant in the chosen pre
 Two inputs:
   * Learned head (--head) : the SAME frozen logreg bundle apply_learned_readout.py consumes
                              (bundle = {clf, classes}). Defines the candidate vocabulary.
+                             ``--vocab {canon20,full300,exp450}`` selects a shipped head by name
+                             (default full300); --head overrides it with an arbitrary bundle.
   * NDM ref-DB (--ref-db) : the reference residue library .pt (reference_library.pt),
                              scored with GeometricMatcher at penalties atom0.5/elem0.3/chir50.
+                             Must cover the head's classes. Any class missing from it can never
+                             be called.
 
 Output ``preds.json`` mirrors apply_learned_readout.py's schema (meta / classes / designs), where
 each design carries per-site ``argmax`` (top-1) AND ``probs`` (the [L, C] normalized distribution,
@@ -50,9 +54,21 @@ from atomweaver.joint_diffusion.reference_library import ReferenceLibrary
 app = typer.Typer(add_completion=False, help=__doc__)
 
 MAXSC = 16
-# canon-20 ship head (20-class); --canon20 swaps to it when --head is not given, restricting the
-# candidate vocabulary to the 20 canonicals (NCAA columns vanish -> pure canon-20 read-out).
-CANON20_HEAD = "data/readout_head_canon20.joblib"
+# ---------------------------------------------------------------------------- vocabulary registry
+# Named candidate vocabularies. --vocab picks one; each entry names the ship head that defines the
+# candidate classes and the NDM reference library those classes were fit against. ``ref_db: None``
+# means the vocabulary needs no library at all: canon20 is pure-canonical, so NDM is skipped.
+#
+# NOTE exp450 is NOT a superset of full300: the two overlap heavily but each has classes the other
+# lacks. So a head and its reference library are a PAIR -- pointing exp450 at a library that predates
+# it leaves its new classes with -inf NDM scores (silently uncallable). The coverage check below
+# reports exactly that, and `ref_db` here is the hook for pinning a matched library per vocabulary.
+VOCABS = {
+    "canon20": {"head": "data/readout_head_canon20.joblib", "ref_db": None},
+    "full300": {"head": "data/readout_head_full300.joblib", "ref_db": "data/reference_library.pt"},
+    "exp450": {"head": "data/readout_head_exp450.joblib", "ref_db": "data/expanded450_library.pt"},
+}
+DEF_VOCAB = "full300"
 ELMAP = {"C": 1, "N": 2, "O": 3, "S": 4}  # sidechain char -> DB element index (+1); default 4=X
 BB_EL = [1, 0, 0, 2]
 CANON = {
@@ -211,13 +227,21 @@ def learned_features(Cres, bb, bm, sc, sm, sel):
 @app.command()
 def main(
     head: Optional[str] = typer.Option(
-        None, "--head", help="Learned head bundle (.joblib); defines candidate vocab. Required unless --canon20."
+        None,
+        "--head",
+        help="Learned head bundle (.joblib); defines the candidate vocab. "
+        "Overrides --vocab; defaults to the --vocab ship head.",
+    ),
+    vocab: str = typer.Option(
+        DEF_VOCAB,
+        "--vocab",
+        help=f"Named candidate vocabulary -- picks the ship head. One of {list(VOCABS)} (default {DEF_VOCAB}).",
     ),
     ref_db: Optional[str] = typer.Option(
         None,
         "--ref-db",
         help="NDM reference residue library (.pt). "
-        "Required only when NDM is actually used; skipped for --canon20 / pure-canonical vocab.",
+        "Required only when NDM is actually used; skipped for --vocab canon20 / any pure-canonical vocab.",
     ),
     clouds: str = typer.Option(
         ...,
@@ -229,12 +253,6 @@ def main(
         "b2_balanced",
         "--preset",
         help=f"Named hybrid preset (default b2_balanced, DMS-validated): {list(H.SHIP_PRESETS)}",
-    ),
-    canon20: bool = typer.Option(
-        False,
-        "--canon20/--no-canon20",
-        help=f"Convenience: when --head is not given, swap to the canon-20 ship head ({CANON20_HEAD}), "
-        "restricting the candidate vocabulary to the 20 canonicals (no NCAA candidates).",
     ),
     atom_penalty: float = typer.Option(0.5, "--atom-penalty"),
     elem_penalty: float = typer.Option(0.3, "--elem-penalty"),
@@ -249,14 +267,32 @@ def main(
         raise typer.BadParameter(f"--preset must be one of {list(H.SHIP_PRESETS)}")
     pr = H.SHIP_PRESETS[preset]
 
-    # --- resolve the head: --canon20 supplies the canon-20 ship head only when --head is not given ---
+    # --- resolve the candidate vocabulary ---
+    if vocab not in VOCABS:
+        raise typer.BadParameter(f"--vocab must be one of {list(VOCABS)}")
+
+    # --- resolve the head: an explicit --head always wins over the --vocab ship head ---
+    # ``vocab_label`` is what lands in preds.json meta. A head that is not a ship head is reported as
+    # "custom" rather than inheriting the --vocab name.
     if head is None:
-        if canon20:
-            head = CANON20_HEAD
-        else:
-            raise typer.BadParameter("--head is required (or pass --canon20 to use the canon-20 ship head).")
-    elif canon20:
-        typer.echo(f"[apply_hybrid_readout] NOTE: explicit --head given; --canon20 head-swap ignored (using {head}).")
+        head = VOCABS[vocab]["head"]
+        vocab_label = vocab
+        # The vocabulary also supplies the library its head was fit against, when it pins one.
+        if ref_db is None:
+            ref_db = VOCABS[vocab]["ref_db"]
+        if not Path(head).is_file():
+            raise typer.BadParameter(
+                f"--vocab {vocab} expects the ship head at {head}, which is not present. "
+                "Pass --head explicitly, or install that head under data/."
+            )
+    else:
+        ship = VOCABS[vocab]["head"]
+        same = Path(head).resolve() == Path(ship).resolve()
+        vocab_label = vocab if same else "custom"
+        if not same and vocab != DEF_VOCAB:
+            typer.echo(
+                f"[apply_hybrid_readout] NOTE: explicit --head given; --vocab {vocab} head-swap ignored ({head})."
+            )
 
     # --- Learned head defines the candidate vocabulary ---
     bundle = joblib.load(head)
@@ -267,13 +303,13 @@ def main(
 
     # --- decide whether the NDM geometric matcher is actually consumed ([2]) ---
     # The blend only reads qN (the NDM cliff) when the family is not pure-Learned AND there is at
-    # least one non-canonical candidate. A canon-only vocabulary (--canon20, or any all-canon head)
+    # least one non-canonical candidate. A canon-only vocabulary (--vocab canon20, or any all-canon head)
     # collapses every blend to pure Learned (w_canon=1 => P=pL), so NDM/ref-DB are never needed.
     need_ndm = (pr["family"] != "pure_learned") and (not bool(is_canon.all()))
     if need_ndm and ref_db is None:
         raise typer.BadParameter(
             "--ref-db is required for this preset/head (NDM is used). "
-            "Pass --canon20 (or a pure-canonical head / pure_learned preset) to skip it."
+            "Pass --vocab canon20 (or a pure-canonical head / pure_learned preset) to skip it."
         )
 
     NDM = ndm_col = num_types = representable = None
@@ -290,6 +326,16 @@ def main(
         num_types = len(library.data["metadata"])
         # candidate col in the DB type space per Learned class (-1 => not in DB; NDM score = -inf there)
         ndm_col = np.array([ccd_to_idx.get(c, -1) for c in classes], dtype=np.int64)
+        # A class absent from the ref-DB scores -inf under NDM, so the blend can never call it.
+        missing = [c for c, j in zip(classes, ndm_col, strict=True) if j < 0]
+        if missing:
+            shown = ", ".join(missing[:12]) + (f", ... (+{len(missing) - 12} more)" if len(missing) > 12 else "")
+            typer.secho(
+                f"[apply_hybrid_readout] WARNING: {len(missing)}/{len(classes)} candidate classes are absent "
+                f"from --ref-db {ref_db} and can NEVER be called (NDM score -inf): {shown}",
+                fg=typer.colors.YELLOW,
+                err=True,
+            )
     else:
         typer.echo("[apply_hybrid_readout] canon-only vocab -> NDM/ref-DB skipped (blend collapses to pure Learned).")
 
@@ -370,7 +416,8 @@ def main(
             "penalties": {"atom": atom_penalty, "elem": elem_penalty, "chir": chir_penalty},
             "n_designs": len(designs),
             "n_classes": len(classes),
-            "canon20": bool(canon20),
+            "vocab": vocab_label,
+            "canon20": bool(is_canon.all()),  # retained for back-compat
             "element_vocab": "5",
             "mode": "hybrid",
         },

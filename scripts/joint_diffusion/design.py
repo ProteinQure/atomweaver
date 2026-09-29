@@ -12,8 +12,9 @@ output into user-friendly files:
 
   1. ``sample.py`` (side-chain cloud sampling + ``--export-clouds``; JOINT default, optional ``--design-positions``),
      wrapped in the exact production environment block + flags (var0.25 read-out recipe).
-  2. ``apply_hybrid_readout.py --preset b2_balanced`` on the exported clouds (CPU), with the general
-     full300 Learned head + the clean-300 eval DB (= the NDM reference DB).
+  2. ``apply_hybrid_readout.py --preset b2_balanced`` on the exported clouds (CPU), with the Learned
+     head selected by ``--vocab`` (default: the general full300 head + the clean-300 eval DB, which
+     doubles as the NDM reference DB).
   3. Post-processing of the resulting ``preds.json`` into ``designs.fasta`` + ``designs.csv``.
 
 Everything the model needs is bundled under ``data/`` and ``weights/``; the defaults below
@@ -35,9 +36,14 @@ input structure name plus the ``_s<idx>`` sample suffix
   * a NON-CANONICAL residue (NCAA) is written as its CCD/PQ code in square brackets
     (e.g. DAL -> ``[DAL]``), so ``A[DAL]C...`` stays human-readable.
 
-Composition control (default OFF):
-  * ``--canon20`` -- swap the Learned head to the canon-20 ship head (20-class), restricting the
-    candidate vocabulary to the 20 canonicals so NO NCAA can be called (every argmax is canonical).
+Composition control -- ``--vocab`` (default ``full300``):
+  * ``full300`` -- the shipped 300-type NCAA-open vocabulary (the default).
+  * ``exp450``  -- the expanded 450-type NCAA-open vocabulary. It is NOT a superset of full300.
+  * ``canon20`` -- the 20 canonical amino acids only, so NO NCAA can be called (every argmax is
+    canonical).
+
+``--head`` still accepts an arbitrary refit bundle and overrides ``--vocab`` entirely -- library
+included, so it must be paired with an explicit ``--eval-db``.
 """
 
 from __future__ import annotations
@@ -68,8 +74,18 @@ DEF_REPO = str(_REPO_ROOT)
 DEF_CHECKPOINT = str(_REPO_ROOT / "weights" / "atomweaver.pt")
 DEF_EVAL_DB = str(_REPO_ROOT / "data" / "reference_library.pt")
 DEF_SAMPLING_DB = str(_REPO_ROOT / "data" / "sampling_library.pt")
-DEF_HEAD = str(_REPO_ROOT / "data" / "readout_head_full300.joblib")
-CANON20_HEAD = str(_REPO_ROOT / "data" / "readout_head_canon20.joblib")
+VOCABS = {
+    "canon20": {"head": str(_REPO_ROOT / "data" / "readout_head_canon20.joblib"), "ref_db": None},
+    "full300": {
+        "head": str(_REPO_ROOT / "data" / "readout_head_full300.joblib"),
+        "ref_db": str(_REPO_ROOT / "data" / "reference_library.pt"),
+    },
+    "exp450": {
+        "head": str(_REPO_ROOT / "data" / "readout_head_exp450.joblib"),
+        "ref_db": str(_REPO_ROOT / "data" / "expanded450_library.pt"),
+    },
+}
+DEF_VOCAB = "full300"
 DEF_PRESET = "b2_balanced"
 
 EVAL_SCRIPT = "scripts/joint_diffusion/sample.py"
@@ -171,7 +187,9 @@ def build_sampling(
     return env, argv
 
 
-def build_readout(*, head: str, eval_db: str, out: Path, preset: str, repo: str) -> tuple[dict, list[str]]:
+def build_readout(
+    *, head: Optional[str], vocab: str, eval_db: str, out: Path, preset: str, repo: str
+) -> tuple[dict, list[str]]:
     # apply_hybrid_readout.py is CPU-only (it setdefaults CUDA_VISIBLE_DEVICES=""); we pin it empty.
     # PYTHONPATH=repo so the bundled ``atomweaver`` package resolves from the checkout (matches build_sampling);
     # without it a plain-install run would import a differently-installed atomweaver.
@@ -179,8 +197,7 @@ def build_readout(*, head: str, eval_db: str, out: Path, preset: str, repo: str)
     argv = [
         sys.executable,
         READOUT_SCRIPT,
-        "--head",
-        head,
+        *(["--head", head] if head is not None else ["--vocab", vocab]),
         "--ref-db",
         eval_db,
         "--clouds",
@@ -271,18 +288,25 @@ def main(
         None, "--pdb-dir", help="Directory of input PDBs (peptide backbone + target). Required unless --from-preds."
     ),
     num_samples: int = typer.Option(5, "--num-samples", help="Designs sampled per input structure."),
-    canon20: bool = typer.Option(
-        False,
-        "--canon20/--no-canon20",
-        help="Restrict the candidate vocabulary to the 20 canonicals by swapping to the canon-20 ship "
-        "head (no NCAA can be called). Default off (full300, NCAA-open).",
+    vocab: str = typer.Option(
+        DEF_VOCAB,
+        "--vocab",
+        help=f"Candidate vocabulary -- picks the ship head. One of {list(VOCABS)} (default {DEF_VOCAB}). "
+        "canon20 excludes every NCAA; full300 and exp450 are NCAA-open and overlap but are NOT nested.",
     ),
     gpu: int = typer.Option(0, "--gpu", help="GPU index for sampling (paired with CUDA_DEVICE_ORDER=PCI_BUS_ID)."),
     # --- overridable production paths / knobs ---
     checkpoint: str = typer.Option(DEF_CHECKPOINT, "--checkpoint"),
-    eval_db: str = typer.Option(DEF_EVAL_DB, "--eval-db", help="Read-out vocab DB; also the hybrid NDM --ref-db."),
+    eval_db: Optional[str] = typer.Option(
+        None,
+        "--eval-db",
+        help="Read-out vocab DB; also the hybrid NDM --ref-db. Defaults to the --vocab library, "
+        f"else {Path(DEF_EVAL_DB).name}.",
+    ),
     sampling_db: str = typer.Option(DEF_SAMPLING_DB, "--sampling-db", help="Model-load DB (not used for scoring)."),
-    head: str = typer.Option(DEF_HEAD, "--head", help="Learned head (.joblib) -- general full300 by default."),
+    head: Optional[str] = typer.Option(
+        None, "--head", help="Learned head (.joblib). Overrides --vocab; defaults to the --vocab ship head."
+    ),
     repo: str = typer.Option(DEF_REPO, "--repo", help="atomweaver checkout root."),
     preset: str = typer.Option(DEF_PRESET, "--preset", help="Hybrid read-out preset."),
     num_steps: int = typer.Option(250, "--num-steps"),
@@ -302,10 +326,34 @@ def main(
         raise typer.BadParameter("--num-steps must be >= 2 (single-step sampling is not supported).")
     outp = Path(out)
 
-    # --canon20 swaps the Learned head to the canon-20 ship head unless the user overrode --head.
-    if canon20 and head == DEF_HEAD:
-        head = CANON20_HEAD
-        typer.echo(f"[design] --canon20: using canon-20 ship head ({head}); NCAA candidates excluded.")
+    # ---- resolve the candidate vocabulary -> (head, eval-db) ----
+    if vocab not in VOCABS:
+        raise typer.BadParameter(f"--vocab must be one of {list(VOCABS)}")
+
+    if head is None:
+        ship_head = VOCABS[vocab]["head"]
+        if not Path(ship_head).is_file():
+            raise typer.BadParameter(
+                f"--vocab {vocab} expects the ship head at {ship_head}, which is not present. "
+                "Pass --head explicitly, or install that head under data/."
+            )
+        if vocab == "canon20":
+            typer.echo(f"[design] --vocab canon20: canon-20 ship head ({ship_head}); NCAA candidates excluded.")
+        else:
+            typer.echo(f"[design] --vocab {vocab}: {ship_head} (NCAA-open).")
+    elif vocab != DEF_VOCAB:
+        typer.echo(f"[design] NOTE: explicit --head given; --vocab {vocab} head-swap ignored (using {head}).")
+
+    # The NDM reference library must cover the head's classes, and full300/exp450 are NOT nested, so
+    # each vocabulary pins the library its head was fit against.
+    if head is not None and eval_db is None:
+        raise typer.BadParameter(
+            "--eval-db is required with --head: a custom head must name the reference library it was "
+            "fit against (any class missing from it can never be called). Pass --eval-db, or drop "
+            "--head and use --vocab to get a matched head/library pair."
+        )
+    if eval_db is None:
+        eval_db = VOCABS[vocab]["ref_db"] or DEF_EVAL_DB
 
     # ---- post-process-only path (no GPU) ----
     if from_preds:
@@ -330,7 +378,7 @@ def main(
         num_steps=num_steps,
         design_positions=design_positions,
     )
-    read_env, read_argv = build_readout(head=head, eval_db=eval_db, out=outp, preset=preset, repo=repo)
+    read_env, read_argv = build_readout(head=head, vocab=vocab, eval_db=eval_db, out=outp, preset=preset, repo=repo)
 
     if dry_run:
         typer.echo("# --- 1. SAMPLING (GPU) ---")

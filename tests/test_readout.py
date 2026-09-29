@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from scripts.joint_diffusion import apply_hybrid_readout, design
 from scripts.joint_diffusion.apply_hybrid_readout import build_tensors, label_cloud, learned_features, main, parse_cloud
 from scripts.joint_diffusion.design import postprocess
 
@@ -31,6 +32,19 @@ def clouds(request, tmp_path):
     return directory
 
 
+def test_vocab_registries_agree():
+    """Keep design.py's --vocab choices and ship heads identical to the read-out's."""
+    assert list(design.VOCABS) == list(apply_hybrid_readout.VOCABS)
+    assert design.DEF_VOCAB == apply_hybrid_readout.DEF_VOCAB == "full300"
+    for name, spec in apply_hybrid_readout.VOCABS.items():
+        # design.py stores absolute paths, apply_hybrid_readout repo-relative ones.
+        assert Path(design.VOCABS[name]["head"]) == ROOT / spec["head"]
+        pinned = design.VOCABS[name]["ref_db"]
+        assert (pinned is None) == (spec["ref_db"] is None)
+        if pinned is not None:
+            assert Path(pinned) == ROOT / spec["ref_db"]
+
+
 def test_released_features():
     """Keep slot order, element encoding, geometry, and dihedrals unchanged."""
     residues, _ = parse_cloud(DATA / "clouds/reference_s0.pdb")
@@ -50,7 +64,7 @@ def test_released_readout(tmp_path, vocab, clouds):
         clouds=str(clouds),
         out=str(output),
         preset="b2_balanced",
-        canon20=vocab == "canon20",
+        vocab=vocab,
         atom_penalty=0.5,
         elem_penalty=0.3,
         chir_penalty=50.0,
